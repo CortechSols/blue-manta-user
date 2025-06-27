@@ -1,5 +1,6 @@
 import axios from "axios";
 import { camelCase, snakeCase } from "change-case";
+import { getAuthToken } from "./auth-token";
 
 // Simple function to convert object keys recursively
 function convertKeys(
@@ -55,9 +56,22 @@ export const apiClient = axios.create({
 apiClient.interceptors.request.use(
 	(config) => {
 		// Add authorization header if token exists
-		const token = localStorage.getItem("accessToken");
+		// Try to get token from auth store first, fallback to localStorage for backward compatibility
+		let token: string | null = null;
+		
+		// Get token using the utility function
+		token = getAuthToken();
+		console.log("Token from auth utility:", token ? "Present" : "Missing");
+		
+		console.log("Request URL:", config.url);
+		console.log("Token available:", token ? "Yes" : "No");
+		console.log("Is login URL:", config.url?.includes("/login/"));
+		
 		if (token && !config.url?.includes("/login/")) {
 			config.headers.Authorization = `Bearer ${token}`;
+			console.log("Authorization header added");
+		} else {
+			console.log("Authorization header NOT added - Token:", !!token, "Not login:", !config.url?.includes("/login/"));
 		}
 
 		if (

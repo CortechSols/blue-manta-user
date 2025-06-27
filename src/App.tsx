@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useIsAuthenticated } from "@/stores/authStore";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import CalendarPage from "./pages/CalendarPage";
@@ -11,21 +12,121 @@ import TrainChatbotPage from "./pages/TrainChatbotPage";
 import DataSourcesPage from "./pages/DataSourcesPage";
 import CalendarCallbackPage from "./pages/CalendarCallbackPage";
 
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isAuthenticated = useIsAuthenticated();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 function App() {
+	const isAuthenticated = useIsAuthenticated();
+
 	return (
 		<Routes>
-			{/* <Route path="/" element={<WelcomePage />} /> */}
-			<Route path="/" element={<LoginPage />} />
-			<Route path="/dashboard" element={<DashboardPage />} />
-			<Route path="/calendar" element={<CalendarPage />} />
-			<Route path="/content" element={<ContentPage />} />
-			<Route path="/chat-history" element={<ChatHistoryPage />} />
-			<Route path="/calendly/callback" element={<CalendarCallbackPage />} />
-			<Route path="/client-profile" element={<ClientProfilePage />} />
-			<Route path="/qa" element={<QualityAssurancePage />} />
-			<Route path="/settings" element={<AdminProfilePage />} />
-			<Route path="/train-chatbot" element={<TrainChatbotPage />} />
-			<Route path="/data" element={<DataSourcesPage />} />
+			{/* Public routes */}
+			<Route path="/login" element={<LoginPage />} />
+			
+			{/* Root redirect */}
+			<Route 
+				path="/" 
+				element={
+					isAuthenticated ? (
+						<Navigate to="/calendar" replace />
+					) : (
+						<Navigate to="/login" replace />
+					)
+				} 
+			/>
+			
+			{/* Protected routes */}
+			<Route 
+				path="/dashboard" 
+				element={
+					<ProtectedRoute>
+						<DashboardPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/calendar" 
+				element={
+					<ProtectedRoute>
+						<CalendarPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/content" 
+				element={
+					<ProtectedRoute>
+						<ContentPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/chat-history" 
+				element={
+					<ProtectedRoute>
+						<ChatHistoryPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/calendly/callback" 
+				element={
+					<ProtectedRoute>
+						<CalendarCallbackPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/client-profile" 
+				element={
+					<ProtectedRoute>
+						<ClientProfilePage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/qa" 
+				element={
+					<ProtectedRoute>
+						<QualityAssurancePage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/settings" 
+				element={
+					<ProtectedRoute>
+						<AdminProfilePage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/train-chatbot" 
+				element={
+					<ProtectedRoute>
+						<TrainChatbotPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/data" 
+				element={
+					<ProtectedRoute>
+						<DataSourcesPage />
+					</ProtectedRoute>
+				} 
+			/>
+			
+			{/* Fallback route */}
+			<Route path="*" element={<Navigate to="/" replace />} />
 		</Routes>
 	);
 }

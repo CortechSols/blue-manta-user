@@ -37,18 +37,16 @@ export type OrganizationDetail = {
 };
 
 // Hook to fetch all organizations
+// Disabled organization fetching for user-specific Calendly integration
+// This will be handled differently for individual users
 export function useOrganizations() {
-  return useQuery<Organization[]>({
-    queryKey: ["organizations", "list"],
-    queryFn: async () => {
-      const response = await apiClient.get(
-        "/auth/organizations/get_organizations/"
-      );
-      return response.data;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+  return {
+    data: [],
+    isLoading: false,
+    error: null,
+    isError: false,
+    isSuccess: true,
+  };
 }
 
 // Hook to fetch a specific organization by ID

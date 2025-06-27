@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Calendar, ExternalLink, RefreshCw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { CalendlyDashboard } from "@/components/calendly/CalendlyDashboard";
 import { useCalendlyConnect } from "@/hooks/useCalendly";
-import { useGetCalendlyStatus } from "@/hooks/useApi";
+import { useCalendlyConnection, useCalendlyActions, useCalendlyLoading } from "@/stores/calendlyStore";
 
 const CalendlyConnectState = ({
 	onConnect,
@@ -40,92 +42,25 @@ const CalendlyConnectState = ({
 	</div>
 );
 
-const CalendlyConnectedState = ({
-	schedulingUrl,
-	userName,
-}: {
-	schedulingUrl: string;
-	userName: string;
-}) => (
-	<div className="space-y-6">
-		{/* Connected Status */}
-		<div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-			<div className="flex items-center gap-3">
-				<div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-					<User className="w-5 h-5 text-green-600" />
-				</div>
-				<div>
-					<h4 className="font-medium text-green-800">Calendly Connected</h4>
-					<p className="text-sm text-green-600">Connected as: {userName}</p>
-				</div>
-			</div>
-			<div className="w-3 h-3 bg-green-500 rounded-full"></div>
-		</div>
-
-		{/* Scheduling Interface */}
-		<div className="bg-white rounded-lg border">
-			<div className="p-4 border-b">
-				<h4 className="font-semibold text-gray-900">Schedule Appointments</h4>
-				<p className="text-sm text-gray-600 mt-1">
-					Your Calendly scheduling page is embedded below
-				</p>
-			</div>
-			<div className="p-4">
-				<iframe
-					src={schedulingUrl}
-					width="100%"
-					height="600"
-					frameBorder="0"
-					title="Calendly Scheduling"
-					className="rounded border"
-				></iframe>
-			</div>
-		</div>
-
-		{/* Direct Link */}
-		<div className="p-4 bg-gray-50 rounded-lg">
-			<div className="flex items-center justify-between">
-				<div>
-					<h5 className="font-medium text-gray-900">Direct Scheduling Link</h5>
-					<p className="text-sm text-gray-600 mt-1">
-						Share this link with clients to book appointments
-					</p>
-					<code className="text-xs bg-white px-2 py-1 rounded mt-2 inline-block border">
-						{schedulingUrl}
-					</code>
-				</div>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => {
-						navigator.clipboard.writeText(schedulingUrl);
-						// You could add a toast notification here
-					}}
-				>
-					Copy Link
-				</Button>
-			</div>
-		</div>
-		<div
-			className="calendly-inline-widget"
-			data-url="https://calendly.com/mawaisjatt4/calendly-intro4"
-			style={{ minWidth: "320px", height: "630px" }}
-		></div>
-		<script
-			type="text/javascript"
-			src="https://assets.calendly.com/assets/external/widget.js"
-			async
-		></script>
-	</div>
-);
-
 export default function CalendarPage() {
 	const { initiateOAuth, isPending, error } = useCalendlyConnect();
-	// const { data: calendlyStatus, isLoading: isStatusLoading } =
-	// 	useGetCalendlyStatus();
+	const connectionStatus = useCalendlyConnection();
+	const { checkConnectionStatus } = useCalendlyActions();
+	const loading = useCalendlyLoading();
 
-	const calendlyStatus = undefined;
-	const isStatusLoading = false;
+	// Check connection status and load data on mount
+	useEffect(() => {
+		console.log('CalendarPage - connectionStatus:', connectionStatus);
+		console.log('CalendarPage - loading.connection:', loading.connection);
+		
+		if (!connectionStatus) {
+			// Try to load data directly - if it succeeds, we're connected
+			checkConnectionStatus().catch(() => {
+				// If checking status fails, assume not connected
+				console.log('Connection status check failed, assuming not connected');
+			});
+		}
+	}, [connectionStatus, checkConnectionStatus]);
 
 	const handleConnect = () => {
 		initiateOAuth();
@@ -168,27 +103,36 @@ export default function CalendarPage() {
 			<div className="border-2 border-[#0077B6] rounded-lg bg-white">
 				<div className="p-8">
 					<h3 className="text-2xl font-semibold text-[#0077B6] mb-8">
-						Scheduling Integration
+						Calendar Management
 					</h3>
 
-					{isStatusLoading ? (
-						<div className="flex items-center justify-center py-16">
-							<RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-							<span className="ml-2 text-gray-600">
-								Loading calendar status...
-							</span>
-						</div>
-					) : calendlyStatus?.isConnected ? (
-						<CalendlyConnectedState
-							schedulingUrl={calendlyStatus.schedulingUrl}
-							userName={calendlyStatus.userName}
-						/>
-					) : (
-						<CalendlyConnectState
-							onConnect={handleConnect}
-							isLoading={isPending}
-						/>
-					)}
+					{(() => {
+						console.log('Render decision:', {
+							loadingConnection: loading.connection,
+							isConnected: connectionStatus?.is_connected,
+							connectionStatus: connectionStatus
+						});
+						
+						if (loading.connection) {
+							return (
+								<div className="flex flex-col items-center justify-center py-16 px-8">
+									<RefreshCw className="w-8 h-8 text-blue-600 animate-spin mb-4" />
+									<p className="text-gray-600">Checking Calendly connection...</p>
+								</div>
+							);
+						}
+						
+						if (connectionStatus?.is_connected) {
+							return <CalendlyDashboard />;
+						}
+						
+						return (
+							<CalendlyConnectState
+								onConnect={handleConnect}
+								isLoading={isPending}
+							/>
+						);
+					})()}
 				</div>
 			</div>
 		</DashboardLayout>

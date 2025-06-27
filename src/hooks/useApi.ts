@@ -95,7 +95,7 @@ export function useLogin() {
     { email: string; password: string }
   >({
     mutationFn: async (credentials) => {
-      const response = await apiClient.post("/auth/auth/login/", credentials);
+      const response = await apiClient.post("/auth/organizations/login/", credentials);
       return response.data;
     },
     onSuccess: (data) => {

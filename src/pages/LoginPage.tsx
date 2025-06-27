@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { User, Eye, EyeOff } from "lucide-react";
-// Old import - commented
-// import { useOrganizationLogin } from "@/hooks/useApi";
-// New unified import
-import { useLogin } from "@/hooks/useApi";
+import { User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth, useAuthActions } from "@/stores/authStore";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,24 +14,34 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Old login mutation - commented
-  // const loginMutation = useOrganizationLogin();
-  // New unified login mutation
-  const loginMutation = useLogin();
+  const { isAuthenticated, isLoading, error } = useAuth();
+  const { login, clearError } = useAuthActions();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/calendar");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      await loginMutation.mutateAsync({
-        email,
-        password,
-      });
+    if (!email || !password) {
+      return;
+    }
 
-      // Navigate to dashboard on successful login
-      navigate("/dashboard");
+    try {
+      await login(email, password);
+      // Navigation will happen automatically via useEffect
     } catch (error) {
       console.error("Login failed:", error);
+    }
+  };
+
+  const handleInputChange = () => {
+    if (error) {
+      clearError();
     }
   };
 
@@ -104,6 +112,15 @@ export default function LoginPage() {
                   Platform Admin Login
                 </h2>
 
+                {error && (
+                  <Alert className="border-red-200 bg-red-50 mb-6">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <form onSubmit={handleSubmit} className="w-[50%] space-y-6">
                   <div className="space-y-2">
                     <Label
@@ -116,7 +133,10 @@ export default function LoginPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        handleInputChange();
+                      }}
                       required
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter your email"
@@ -135,7 +155,10 @@ export default function LoginPage() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          handleInputChange();
+                        }}
                         required
                         className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter your password"
@@ -154,20 +177,13 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  {loginMutation.error && (
-                    <div className="text-red-600 text-sm text-center">
-                      {loginMutation.error.message ||
-                        "Login failed. Please check your credentials."}
-                    </div>
-                  )}
-
                   <Button
                     type="submit"
-                    disabled={loginMutation.isPending}
+                    disabled={isLoading || !email || !password}
                     className="w-full px-16 py-3 text-white font-medium rounded-full h-12 text-base disabled:opacity-50"
                     style={{ backgroundColor: "#03045E" }}
                   >
-                    {loginMutation.isPending ? "Logging in..." : "Log In"}
+                    {isLoading ? "Logging in..." : "Log In"}
                   </Button>
                 </form>
               </CardContent>

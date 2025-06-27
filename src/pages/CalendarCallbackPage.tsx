@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { useCalendlyConnect } from "@/hooks/useCalendly";
+import { useCalendlyActions } from "@/stores/calendlyStore";
+import { calendlyAuth } from "@/lib/calendly-api";
 
 export default function CalendarCallbackPage() {
 	const navigate = useNavigate();
@@ -11,21 +13,44 @@ export default function CalendarCallbackPage() {
 	const [isConnected, setIsConnected] = useState(false);
 
 	const { connect, isPending, error, isSuccess } = useCalendlyConnect();
+	const actions = useCalendlyActions();
+
+	const handleConnection = useCallback(async () => {
+		if (code && !isPending && !isConnected) {
+			try {
+				// Check if we have a code verifier (PKCE)
+				const codeVerifier = calendlyAuth.getCodeVerifier();
+				if (!codeVerifier) {
+					throw new Error("Missing code verifier. Please restart the OAuth flow.");
+				}
+				
+				await connect(code);
+				setIsConnected(true);
+				
+				// Clear the code verifier after successful connection
+				calendlyAuth.clearCodeVerifier();
+				
+				// Load initial data after successful connection
+				await actions?.refreshAll?.();
+				
+				setTimeout(() => {
+					navigate("/calendar");
+				}, 2000);
+			} catch (err) {
+				console.error("Connection failed:", err);
+				// Clear code verifier on error
+				calendlyAuth.clearCodeVerifier();
+			}
+		}
+	}, [code, isPending, isConnected, connect, actions, navigate]);
 
 	useEffect(() => {
-		if (code && !isPending && !isConnected) {
-			connect(code)
-				.then(() => {
-					setIsConnected(true);
-					setTimeout(() => {
-						navigate("/calendar");
-					}, 2000);
-				})
-				.catch(console.error);
+		if (code && !isConnected) {
+			handleConnection();
 		} else if (errorParam) {
 			console.error("OAuth error:", errorParam);
 		}
-	}, [code, errorParam, connect, isPending, isConnected, navigate]);
+	}, [code, errorParam, isConnected, handleConnection]);
 
 	return (
 		<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
