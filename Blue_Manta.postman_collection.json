@@ -1,0 +1,376 @@
+{
+	"info": {
+		"_postman_id": "508c4dc0-d3d2-49d9-be17-369f0b6f6ea7",
+		"name": "Blue_Manta",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39738671"
+	},
+	"item": [
+		{
+			"name": "accounts",
+			"item": [
+				{
+					"name": "Register Platform Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"test@gmail.com\",\r\n  \"username\": \"Test\",\r\n  \"password\": \"admin001\",\r\n  \"password_confirm\": \"admin001\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/platform-admins/register/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"platform-admins",
+								"register",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Platform Admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"email\": \"test@gmail.com\",\r\n  \"password\": \"admin001\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/platform-admins/login/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"platform-admins",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Organization",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzMxMTMzLCJpYXQiOjE3NTAzMjc1MzMsImp0aSI6IjJhODJkOTdhNWNkZDQ2MGFiZGQ1MDkxY2UyYThmZDY3IiwidXNlcl9pZCI6IjIwIiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsInR5cGUiOiJwbGF0Zm9ybV9hZG1pbiJ9.xRd0UqvxQvVZrYFCx8vwPbuqK0PuuEs2hcYas5rJDrA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"Cortech\",\r\n    \"last_name\": \"Sols\",\r\n    \"phone_number\": \"+1234567890\",\r\n    \"contact_email\": \"cortechsolss@gmail.com\",\r\n    \"password\": \"cortechsols123\",\r\n    \"colors\": [\"#FF0000\", \"#00FF00\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/organizations/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"organizations",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Organizations",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzI2MzEyLCJpYXQiOjE3NTAzMjI3MTIsImp0aSI6IjVmNTQzZmUwYTcxNjRhODk4ODkyMjBiZDIwNzg2NzNmIiwidXNlcl9pZCI6IjIwIiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsInR5cGUiOiJwbGF0Zm9ybV9hZG1pbiJ9.AdETXUZJBLRe-ypK712GItWksR_IqkRBPG737EfIm-4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"first_name\": \"Mujtaba\",\r\n    \"last_name\": \"Sunny\",\r\n    \"phone_number\": \"+1234567890\",\r\n    \"contact_email\": \"mujtaba0@gmail.com\",\r\n    \"password\": \"mujtaba001\",\r\n    \"colors\": [\"#FF0000\", \"#00FF00\"]\r\n}"
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/organizations/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"organizations",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Organization",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{new_token}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"cortechsolss@gmail.com\",\r\n    \"password\": \"cortechsols123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/organizations/login/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"organizations",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Organization",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzI2MzEyLCJpYXQiOjE3NTAzMjI3MTIsImp0aSI6IjVmNTQzZmUwYTcxNjRhODk4ODkyMjBiZDIwNzg2NzNmIiwidXNlcl9pZCI6IjIwIiwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsInR5cGUiOiJwbGF0Zm9ybV9hZG1pbiJ9.AdETXUZJBLRe-ypK712GItWksR_IqkRBPG737EfIm-4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/auth/organizations/5/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"organizations",
+								"5",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Integrations",
+			"item": [
+				{
+					"name": "Login calendly",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzIxOTE2LCJpYXQiOjE3NTAzMTgzMTYsImp0aSI6IjU2ZDhhZTc2MGMwMTQzODc4NzUyY2U4NTA4NWIxOTVhIiwidHlwZSI6Im9yZ2FuaXphdGlvbiIsIm9yZ2FuaXphdGlvbl9pZCI6IjQifQ.YhIjyCcDCOIyiHMPrSYQkTLRUEhGvElKogCHaoyHc9g",
+								"type": "text"
+							}
+						]
+					},
+					"response": []
+				},
+				{
+					"name": "Connect Calendly",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Calendly Events",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chatbots",
+			"item": [
+				{
+					"name": "Create Chatbot",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzMzNDA2LCJpYXQiOjE3NTAzMjk4MDYsImp0aSI6ImMxOWVjNWFjNDNiMDQ2YjViMzlkMjY4ZDYyNGM3OWNiIiwidHlwZSI6Im9yZ2FuaXphdGlvbiIsIm9yZ2FuaXphdGlvbl9pZCI6IjcifQ.zk1K_kf617-9CQDDNtR8Y6kqjCIlAvb28vDTTACq_nk",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"name\": \"Bluepool Chatbot\",\r\n     \"system_prompt\": \"You will be act as bluepool chatbot\",\r\n     \"conversation_limit\": \"1000\"\r\n   }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/chatbots/chatbots/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"chatbots",
+								"chatbots",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Chatbots",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwMzMxMjUwLCJpYXQiOjE3NTAzMjc2NTAsImp0aSI6ImQ2ZDBhZjliZGNkNDRmNTlhNTc3OGQzYzExM2YyMjhkIiwidHlwZSI6Im9yZ2FuaXphdGlvbiIsIm9yZ2FuaXphdGlvbl9pZCI6IjYifQ.yfccu2QOjF5sfaXV5TvAwpxRD9K4kesUNoz_15WwnV0",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://127.0.0.1:8000/api/v1/chatbots/chatbots/",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"v1",
+								"chatbots",
+								"chatbots",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Chatbot",
+					"request": {
+						"method": "DELETE",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
