@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom";
 import {
   BarChart3,
   Calendar,
@@ -9,17 +9,17 @@ import {
   UserCircle,
   ShieldCheck,
   Settings,
-} from "lucide-react"
+} from "lucide-react";
 
-import { cn } from "@/lib/utils"
-import { Logo } from "./Logo"
+import { cn } from "@/lib/utils";
+import { Logo } from "./Logo";
 
 interface SidebarProps {
-  className?: string
+  className?: string;
 }
 
 export function Sidebar({ className }: SidebarProps) {
-  const location = useLocation()
+  const location = useLocation();
 
   const routes = [
     {
@@ -70,7 +70,7 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/quality-assurance",
       active: location.pathname === "/quality-assurance",
     },
-  ]
+  ];
 
   return (
     <div className={cn("flex h-full w-64 flex-col bg-sky-50", className)}>
@@ -85,7 +85,7 @@ export function Sidebar({ className }: SidebarProps) {
               to={route.href}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-blue-600",
-                route.active ? "bg-sky-100 text-blue-600" : "",
+                route.active ? "bg-sky-100 text-blue-600" : ""
               )}
             >
               <route.icon className="h-4 w-4" />
@@ -104,5 +104,5 @@ export function Sidebar({ className }: SidebarProps) {
         </Link>
       </div>
     </div>
-  )
+  );
 }

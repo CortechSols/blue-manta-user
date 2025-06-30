@@ -1,63 +1,15 @@
-import { useState } from "react";
 import type { ReactNode } from "react";
-import {
-  BarChart3,
-  Calendar,
-  FileText,
-  Database,
-  Users,
-  History,
-  UserCircle,
-  ShieldCheck,
-  Settings,
-  Search,
-  Bell,
-  User,
-  ChevronDown,
-  X,
-} from "lucide-react";
+import { Search, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Link, useLocation } from "react-router-dom";
-import {
-  useOrganizations,
-  getOrganizationFullName,
-} from "@/hooks/useOrganizations";
 
 const sidebarItems = [
-  { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
-  { icon: Calendar, label: "App Calendar", path: "/calendar" },
-  { icon: FileText, label: "Content Generator", path: "/content" },
-  { icon: Database, label: "Data Sources", path: "/data" },
-  { icon: Users, label: "Train Chatbot !!!", path: "/train-chatbot" },
-  { icon: History, label: "Chat History", path: "/chat-history" },
-  { icon: UserCircle, label: "Client Profile", path: "/client-profile" },
-  { icon: ShieldCheck, label: "Quality Assurance", path: "/qa" },
+  { image: "/Img5.png", label: "Dashboard", path: "/dashboard" },
+  { image: "/Img1.png", label: "Train Chatbot", path: "/train-chatbot" },
+  { image: "/Img2.png", label: "Calendar", path: "/calendar" },
+  { image: "/Img3.png", label: "Data Sources", path: "/data" },
+  { image: "/Img4.png", label: "Chat History", path: "/chat-history" },
 ];
-
-// Old customers array - commented out
-/*
-const customers = [
-	"All Clients",
-	"ABC HVAC Supplies",
-	"All Around Wellness",
-	"Baby Blue Pool Cleaning",
-	"Contractor Supply, Inc.",
-	"Fallen Heros Landscaping",
-	"Graven Contractor Depo",
-	"Maple Leaf Landscaping",
-	"Neptune Pool & Spas",
-	"Sparkle Blue Pool Services",
-	"Telon Bay CPA Services",
-	"Welton's Heating & Cooling",
-	"Zambia Health and Design",
-];
-*/
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -72,48 +24,42 @@ export function DashboardLayout({
   subtitle,
   activePath,
 }: DashboardLayoutProps) {
-  // Fetch organizations data
-  const { data: organizations, isLoading, error } = useOrganizations();
-  const [selectedCustomer, setSelectedCustomer] =
-    useState<string>("All Clients");
-
   const location = useLocation();
   const pathname = location.pathname;
   const isAdmin = pathname.includes("/settings");
 
-  // Handle delete organization (placeholder for future implementation)
-  const handleDeleteOrganization = (
-    organizationId: number,
-    event: React.MouseEvent
-  ) => {
-    event.stopPropagation();
-    // TODO: Implement delete functionality
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex max-h-screen ">
       {/* Icon Sidebar */}
-      <div className="w-20 flex flex-col items-center py-6 bg-[#CAF0F8] max-h-screen overflow-y-auto ">
+      <div
+        className="w-20 flex flex-col items-center py-6 max-h-screen overflow-y-auto border-r border-gray-200"
+        style={{
+          backgroundColor: "#EBF9FC",
+          boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+        }}
+      >
         {/* Logo */}
         <div className="mb-8">
-          <img
-            src="/bml-side-logo.png"
-            alt="Blue Manta Labs"
-            className="w-12 h-12 object-contain"
-          />
+          <Link to="/dashboard">
+            <img
+              src="/bml-side-logo.png"
+              alt="Blue Manta Labs"
+              className="w-12 h-12 object-contain"
+            />
+          </Link>
         </div>
 
         {/* Navigation Icons */}
-        <div className="flex flex-col gap-4 flex-1">
+        <div className="flex flex-col gap-8 flex-1">
           {sidebarItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer transition-colors text-[#0077B6] ${
-                activePath === item.path ? "bg-[#CAF0F8]" : ""
+              className={`cursor-pointer transition-opacity hover:opacity-75 ${
+                activePath === item.path ? "opacity-100" : "opacity-80"
               }`}
             >
-              <item.icon className="w-6 h-6" />
+              <img src={item.image} alt={item.label} className="w-7 h-7" />
             </Link>
           ))}
         </div>
@@ -121,9 +67,9 @@ export function DashboardLayout({
         {/* Settings at bottom */}
         <Link
           to="/settings"
-          className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-white/20"
+          className="cursor-pointer transition-opacity hover:opacity-75"
         >
-          <Settings className="w-6 h-6" />
+          <img src="/Img6.png" alt="Settings" className="w-7 h-7" />
         </Link>
       </div>
 
@@ -131,7 +77,12 @@ export function DashboardLayout({
       {!isAdmin && (
         <div className="w-40 bg-[#EBF9FC] flex flex-col gap-4">
           {/* Header */}
-          <div className="flex items-center justify-center flex-col gap-2">
+          <div
+            className="flex items-center justify-center flex-col gap-2 bg-[#90E0EF]"
+            style={{
+              boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
+            }}
+          >
             <img src="/bml-logo.png" alt="Manta" className="w-8 mt-4" />
             <span
               className="font-semibold text-lg"
@@ -161,81 +112,17 @@ export function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Top Navbar */}
-        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-          {/* Customer Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border-2"
-                style={{
-                  backgroundColor: "#CAF0F8",
-                  borderColor: "#0077B6",
-                  color: "#0077B6",
-                }}
-              >
-                {isLoading ? "Loading..." : selectedCustomer}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64">
-              {/* All Clients option */}
-              <DropdownMenuItem
-                onClick={() => setSelectedCustomer("All Clients")}
-                className="text-blue-600"
-              >
-                All Clients
-              </DropdownMenuItem>
-
-              {/* Organizations from API */}
-              {organizations?.map((organization) => (
-                <DropdownMenuItem
-                  key={organization.id}
-                  onClick={() =>
-                    setSelectedCustomer(getOrganizationFullName(organization))
-                  }
-                  className="text-blue-600 flex items-center justify-between group"
-                >
-                  <span>{getOrganizationFullName(organization)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 h-4 w-4 p-0 hover:bg-red-100"
-                    onClick={(e) =>
-                      handleDeleteOrganization(organization.id, e)
-                    }
-                  >
-                    <X className="w-3 h-3 text-red-500" />
-                  </Button>
-                </DropdownMenuItem>
-              ))}
-
-              {/* Loading state */}
-              {isLoading && (
-                <DropdownMenuItem disabled className="text-gray-400">
-                  Loading organizations...
-                </DropdownMenuItem>
-              )}
-
-              {/* Error state */}
-              {error && (
-                <DropdownMenuItem disabled className="text-red-400">
-                  Error loading organizations
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
+        <div className="h-16 bg-white border-b border-gray-200 flex items-center px-6  justify-end">
           {/* Right Icons */}
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="text-blue-600">
-              <Search className="w-5 h-5" />
+            <Button variant="ghost" className="text-blue-600">
+              <Search className="w-5 h-5 cursor-pointer" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-blue-600">
-              <Bell className="w-5 h-5" />
+            <Button variant="ghost" className="text-blue-600">
+              <Bell className="w-5 h-5 cursor-pointer" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-blue-600">
-              <User className="w-5 h-5" />
+            <Button variant="ghost" className="text-blue-600">
+              <User className="w-5 h-5 cursor-pointer" />
             </Button>
           </div>
         </div>

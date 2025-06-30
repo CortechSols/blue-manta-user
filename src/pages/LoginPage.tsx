@@ -31,7 +31,7 @@ export default function LoginPage() {
       });
 
       // Navigate to dashboard on successful login
-      navigate("/dashboard");
+      navigate("/welcome");
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -69,42 +69,66 @@ export default function LoginPage() {
 
         {/* Main Content */}
         <div className="flex-1 relative">
-          {/* Company Branding - positioned at top center */}
-          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
+          {/* Company Branding - positioned at top center - visible on lg+ screens */}
+          <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 text-center px-4 hidden lg:block">
             <h1
-              className="text-4xl font-bold mb-2"
+              className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 md:mb-2"
               style={{ color: "#0077B6" }}
             >
               Blue Manta Labs
             </h1>
-            <p className="text-2xl" style={{ color: "#00B4D8" }}>
+            <p
+              className="text-sm md:text-lg lg:text-xl xl:text-2xl"
+              style={{ color: "#00B4D8" }}
+            >
               Manta Engage
             </p>
           </div>
 
-          {/* Background Logo */}
-          <div className="absolute left-0 ">
+          {/* Background Logo - visible only on large devices */}
+          <div
+            className="absolute left-0 top-1/2 transform -translate-y-1/2 hidden xl:block"
+            style={{ width: "40%", maxWidth: "500px" }}
+          >
             <img
               src="/bml-side-logo.png"
               alt="Blue Manta Labs Logo"
-              className="w-full h-full object-contain"
+              className="w-full h-auto object-contain"
             />
           </div>
 
-          <div className="grid place-items-center h-full w-full">
+          <div className="grid place-items-center h-full w-full px-4">
+            {/* Company Branding - inside card - visible on small/medium screens */}
+            <div className="flex flex-col items-center justify-center block lg:hidden mb-6">
+              <h1
+                className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 md:mb-2"
+                style={{ color: "#0077B6" }}
+              >
+                Blue Manta Labs
+              </h1>
+              <p
+                className="text-sm md:text-lg lg:text-xl xl:text-2xl"
+                style={{ color: "#00B4D8" }}
+              >
+                Manta Engage
+              </p>
+            </div>
             <Card
-              className="shadow-lg rounded-2xl border-0 min-w-[60%] max-w-md"
+              className="shadow-lg rounded-2xl border-0 w-full max-w-md md:min-w-[60%]"
               style={{ backgroundColor: "#EBF9FC" }}
             >
-              <CardContent className="flex flex-col items-center justify-center h-full p-8">
+              <CardContent className="flex flex-col items-center justify-center h-full p-6 md:p-8">
                 <h2
-                  className="text-4xl font-semibold mb-8"
+                  className="text-2xl md:text-4xl font-semibold mb-6 md:mb-8 text-center"
                   style={{ color: "#0077B6" }}
                 >
-                  Platform Admin Login
+                  Platform Login
                 </h2>
 
-                <form onSubmit={handleSubmit} className="w-[50%] space-y-6">
+                <form
+                  onSubmit={handleSubmit}
+                  className="w-full md:w-[50%] space-y-6"
+                >
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
