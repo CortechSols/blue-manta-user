@@ -13,7 +13,7 @@ import type {
 } from '../types/calendly';
 import { calendlyService } from '../lib/calendly-service';
 import { shouldUseDemoData, demoConnectionStatus, demoEvents, demoMeetings, demoEventTypes } from '../lib/demo-data';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 
 interface CalendlyStore extends CalendlyState {
   // UI State
@@ -53,6 +53,7 @@ interface CalendlyStore extends CalendlyState {
   actions: {
     // Connection Management
     setConnectionStatus: (status: ConnectionStatus) => void;
+    checkConnectionStatus: () => Promise<void>;
     connectCalendly: (code: string) => Promise<void>;
     disconnectCalendly: () => Promise<void>;
     
@@ -69,6 +70,7 @@ interface CalendlyStore extends CalendlyState {
     batchCancelMeetings: (meetingUris: string[], reason: string) => Promise<void>;
     
     // Event Type Management
+    createEventType: (eventTypeData: any) => Promise<any>;
     updateEventType: (eventTypeUri: string, updates: Partial<EventType>) => Promise<void>;
     
     // UI Actions
@@ -200,7 +202,7 @@ export const useCalendlyStore = create<CalendlyStore>()(
                 state.loading.connection = false;
               });
             }
-          },
+                     },
             
           connectCalendly: async (code) => {
             set((state) => {
@@ -264,6 +266,12 @@ export const useCalendlyStore = create<CalendlyStore>()(
             const start = startDate || startOfMonth(get().selectedDate);
             const end = endDate || endOfMonth(get().selectedDate);
             
+            console.log('Loading events for date range:', {
+              start: format(start, 'yyyy-MM-dd'),
+              end: format(end, 'yyyy-MM-dd'),
+              selectedDate: get().selectedDate
+            });
+            
             set((state) => {
               state.loading.events = true;
               state.error = null;
@@ -280,7 +288,76 @@ export const useCalendlyStore = create<CalendlyStore>()(
               set((state) => {
                 // Safely handle the response
                 if (response && response.events_by_date) {
-                  state.events = Object.values(response.events_by_date).flat();
+                  // Handle new array format
+                  if (Array.isArray(response.events_by_date)) {
+                    const extractedEvents = response.events_by_date
+                      .filter(dateEntry => dateEntry.has_events && Array.isArray(dateEntry.events))
+                      .flatMap(dateEntry => dateEntry.events);
+                    
+                    // Separate events and meetings based on invitees_counter
+                    const actualEvents = [];
+                    const actualMeetings = [];
+                    
+                    extractedEvents.forEach(event => {
+                      console.log('Processing event:', {
+                        name: event.name,
+                        start_time: event.start_time,
+                        invitees_counter: event.invitees_counter,
+                        event_memberships: event.event_memberships
+                      });
+                      
+                      // If the event has active invitees, treat it as a meeting
+                      if (event.invitees_counter && event.invitees_counter.active > 0) {
+                        // Convert to meeting format by adding invitees array
+                        const meeting = {
+                          ...event,
+                          invitees: event.event_memberships?.map(membership => ({
+                            uri: `invitee-${membership.user}`,
+                            email: membership.user_email,
+                            name: membership.user_name,
+                            status: 'active',
+                            created_at: event.created_at,
+                            updated_at: event.updated_at,
+                          })) || []
+                        };
+                        console.log('Converting event to meeting:', meeting.name);
+                        actualMeetings.push(meeting);
+                      } else {
+                        console.log('Keeping as event:', event.name);
+                        actualEvents.push(event);
+                      }
+                    });
+                    
+                    console.log('Final processing result:', {
+                      actualEvents: actualEvents.length,
+                      actualMeetings: actualMeetings.length
+                    });
+                    
+                    state.events = actualEvents;
+                    // Also update meetings if we found any
+                    if (actualMeetings.length > 0) {
+                      state.meetings = [...state.meetings, ...actualMeetings];
+                      
+                      // If we have meetings and the current selected date doesn't have any events,
+                      // navigate to the first meeting date
+                      const firstMeeting = actualMeetings[0];
+                      if (firstMeeting && firstMeeting.start_time) {
+                        const firstMeetingDate = new Date(firstMeeting.start_time);
+                        const currentMonth = startOfMonth(state.selectedDate);
+                        const firstMeetingMonth = startOfMonth(firstMeetingDate);
+                        
+                        // If the first meeting is in a different month, navigate to it
+                        if (currentMonth.getTime() !== firstMeetingMonth.getTime()) {
+                          console.log('Navigating to first meeting date:', firstMeetingDate);
+                          state.selectedDate = firstMeetingDate;
+                          state.calendarView.date = firstMeetingDate;
+                        }
+                      }
+                    }
+                  } else {
+                    // Handle old object format
+                    state.events = Object.values(response.events_by_date).flat();
+                  }
                 } else if (response && Array.isArray(response.events)) {
                   state.events = response.events;
                 } else {
@@ -318,8 +395,11 @@ export const useCalendlyStore = create<CalendlyStore>()(
               set((state) => {
                 // Safely handle the response
                 if (response && Array.isArray(response.meetings)) {
+                  console.log('Raw meetings from API:', response.meetings);
+                  console.log('First meeting properties:', response.meetings[0] ? Object.keys(response.meetings[0]) : 'No meetings');
                   state.meetings = response.meetings;
                 } else if (response && Array.isArray(response)) {
+                  console.log('Raw meetings from API (array format):', response);
                   state.meetings = response;
                 } else {
                   state.meetings = [];
@@ -404,8 +484,13 @@ export const useCalendlyStore = create<CalendlyStore>()(
           
           refreshAll: async () => {
             const actions = get().actions;
+            
+            // Load data for a broader range to catch future events
+            const now = new Date();
+            const sixMonthsFromNow = addMonths(now, 6);
+            
             await Promise.all([
-              actions.loadEvents(),
+              actions.loadEvents(now, sixMonthsFromNow), // Load next 6 months
               actions.loadMeetings(),
               actions.loadEventTypes(),
               actions.loadAvailability(),
@@ -481,6 +566,43 @@ export const useCalendlyStore = create<CalendlyStore>()(
           },
           
           // Event Type Management
+          createEventType: async (eventTypeData) => {
+            try {
+              const response = await calendlyService.createEventType(eventTypeData);
+              
+              // The new API returns the created event type directly
+              if (response.uri) {
+                // Convert the response to EventType format for the store
+                const newEventType = {
+                  uri: response.uri,
+                  name: response.name,
+                  description: response.description,
+                  duration: response.duration,
+                  kind: response.kind,
+                  scheduling_url: response.scheduling_url,
+                  active: true, // One-off events are active by default
+                  color: '#0069ff', // Default color
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                };
+                
+                // Add to event types list
+                set((state) => {
+                  state.eventTypes.push(newEventType);
+                });
+                
+                return response;
+              } else {
+                throw new Error('Invalid response from server');
+              }
+            } catch (error) {
+              set((state) => {
+                state.error = error instanceof Error ? error.message : 'Failed to create event type';
+              });
+              throw error;
+            }
+          },
+
           updateEventType: async (eventTypeUri, updates) => {
             try {
               await calendlyService.updateEventType(eventTypeUri, updates);

@@ -129,13 +129,25 @@ export interface ConnectionStatus {
 }
 
 // API Request/Response Types
+export interface CalendlyEventsByDate {
+  date: string;
+  has_events: boolean;
+  events: CalendlyEvent[];
+}
+
 export interface CalendlyEventsResponse {
-  events_by_date: Record<string, CalendlyEvent[]>;
+  events_by_date: CalendlyEventsByDate[] | Record<string, CalendlyEvent[]>; // Support both formats
   metadata: {
-    total_count: number;
+    total_events?: number;
+    total_count?: number;
     date_range: {
       start_date: string;
       end_date: string;
+    };
+    connected_user?: {
+      name: string;
+      uri: string;
+      scheduling_url: string;
     };
   };
 }
@@ -244,4 +256,28 @@ export interface BookingRequest {
   start_time: string;
   end_time: string;
   invitee: BookingFormData;
+}
+
+export interface EventTypeFormData {
+  name: string;
+  description: string;
+  duration: number;
+  days_available?: number;
+}
+
+export interface EventTypeFormDataExtended {
+  name: string;
+  description: string;
+  duration: number;
+  kind: 'solo' | 'group';
+  color: string;
+  active: boolean;
+  booking_method: 'instant' | 'confirmation_required';
+  location_type: 'ask_invitee' | 'phone' | 'video' | 'in_person' | 'custom';
+  location_details?: string;
+  buffer_time_before?: number;
+  buffer_time_after?: number;
+  minimum_notice?: number;
+  maximum_notice?: number;
+  days_available?: number;
 } 

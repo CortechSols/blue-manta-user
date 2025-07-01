@@ -16,6 +16,7 @@ import {
   Square,
   Download,
   RefreshCw,
+  Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,8 @@ import {
   useCalendlySelectedMeetings,
   useCalendlyLoading 
 } from '@/stores/calendlyStore';
+import { BulkCancelMeetingsModal } from './BulkCancelMeetingsModal';
+import { MeetingCancellationGuide } from './MeetingCancellationGuide';
 
 interface MeetingsListProps {
   className?: string;
@@ -59,7 +62,8 @@ const MeetingCard: React.FC<{
   const getStatusBadge = () => {
     switch (meeting.status) {
       case 'active':
-        return isPast(parseISO(meeting.start_time)) ? (
+        const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+        return meetingStartTime && isPast(parseISO(meetingStartTime)) ? (
           <Badge variant="secondary">Completed</Badge>
         ) : (
           <Badge variant="success">Scheduled</Badge>
@@ -87,8 +91,10 @@ const MeetingCard: React.FC<{
   };
 
   const primaryInvitee = meeting.invitees?.[0];
-  const startTime = parseISO(meeting.start_time);
-  const endTime = parseISO(meeting.end_time);
+  const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+  const meetingEndTime = meeting.end_time || (meeting as any).endTime;
+  const startTime = meetingStartTime ? parseISO(meetingStartTime) : new Date();
+  const endTime = meetingEndTime ? parseISO(meetingEndTime) : new Date();
   const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 
   return (
@@ -158,7 +164,7 @@ const MeetingCard: React.FC<{
               <DropdownMenuItem onClick={() => actions.openMeetingDetailsModal(meeting)}>
                 View Details
               </DropdownMenuItem>
-              {meeting.status === 'active' && isFuture(startTime) && (
+              {meeting.status === 'active' && meetingStartTime && isFuture(startTime) && (
                 <>
                   <DropdownMenuItem onClick={() => actions.openRescheduleMeetingModal(meeting.uri)}>
                     Reschedule
@@ -197,6 +203,8 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
   
   const [searchQuery, setSearchQuery] = useState('');
   const [localFilters, setLocalFilters] = useState<MeetingFilters>(meetingFilters);
+  const [isBulkCancelModalOpen, setIsBulkCancelModalOpen] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Filter and search meetings
   const filteredMeetings = useMemo(() => {
@@ -205,13 +213,15 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
     // Apply status filter
     if (localFilters.status && localFilters.status !== 'all') {
       if (localFilters.status === 'upcoming') {
-        filtered = filtered.filter(m => 
-          m.status === 'active' && isFuture(parseISO(m.start_time))
-        );
+        filtered = filtered.filter(m => {
+          const startTime = m.start_time || (m as any).startTime;
+          return m.status === 'active' && startTime && isFuture(parseISO(startTime));
+        });
       } else if (localFilters.status === 'past') {
-        filtered = filtered.filter(m => 
-          m.status === 'active' && isPast(parseISO(m.start_time))
-        );
+        filtered = filtered.filter(m => {
+          const startTime = m.start_time || (m as any).startTime;
+          return m.status === 'active' && startTime && isPast(parseISO(startTime));
+        });
       } else {
         filtered = filtered.filter(m => m.status === localFilters.status);
       }
@@ -228,7 +238,9 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
       const endDate = localFilters.dateRange.end ? parseISO(localFilters.dateRange.end) : null;
       
       filtered = filtered.filter(m => {
-        const meetingDate = parseISO(m.start_time);
+        const startTime = m.start_time || (m as any).startTime;
+        if (!startTime) return false;
+        const meetingDate = parseISO(startTime);
         return (!startDate || meetingDate >= startDate) && 
                (!endDate || meetingDate <= endDate);
       });
@@ -248,9 +260,16 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
 
     // Sort by start time (upcoming first, then past)
     return filtered.sort((a, b) => {
-      const aTime = parseISO(a.start_time);
-      const bTime = parseISO(b.start_time);
-      const now = new Date();
+      const aStartTime = a.start_time || (a as any).startTime;
+      const bStartTime = b.start_time || (b as any).startTime;
+      
+      // Handle missing dates
+      if (!aStartTime && !bStartTime) return 0;
+      if (!aStartTime) return 1;
+      if (!bStartTime) return -1;
+      
+      const aTime = parseISO(aStartTime);
+      const bTime = parseISO(bStartTime);
       
       const aIsFuture = isFuture(aTime);
       const bIsFuture = isFuture(bTime);
@@ -285,8 +304,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
 
   const handleBulkCancel = () => {
     if (selectedMeetings.length > 0) {
-      // This would typically open a bulk cancel modal
-      console.log('Bulk cancel:', selectedMeetings);
+      setIsBulkCancelModalOpen(true);
     }
   };
 
@@ -329,6 +347,16 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           >
             <Download className="w-4 h-4 mr-2" />
             Export
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowGuide(!showGuide)}
+            className="text-blue-600 border-blue-300 hover:bg-blue-50"
+          >
+            <Info className="w-4 h-4 mr-2" />
+            {showGuide ? 'Hide Guide' : 'How to Cancel'}
           </Button>
         </div>
       </div>
@@ -379,6 +407,9 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           </div>
         </CardContent>
       </Card>
+
+      {/* Meeting Cancellation Guide */}
+      {showGuide && <MeetingCancellationGuide />}
 
       {/* Bulk Actions */}
       {selectedMeetings.length > 0 && (
@@ -448,6 +479,12 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           ))
         )}
       </div>
+      
+      {/* Bulk Cancel Modal */}
+      <BulkCancelMeetingsModal 
+        isOpen={isBulkCancelModalOpen}
+        onClose={() => setIsBulkCancelModalOpen(false)}
+      />
     </div>
   );
 }; 

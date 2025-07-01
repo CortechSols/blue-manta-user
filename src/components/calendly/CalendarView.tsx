@@ -1,210 +1,28 @@
 import React, { useMemo, useCallback } from 'react';
-import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
-import moment from 'moment';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
   Users, 
-  MapPin, 
-  Video,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { CalendlyEvent, CalendlyMeeting } from '@/types/calendly';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { CalendlyEvent, CalendlyMeeting, CalendarViewEvent } from '@/types/calendly';
-import { useCalendlyEvents, useCalendlyMeetings, useCalendlyActions, useCalendlyCalendarView } from '@/stores/calendlyStore';
-
-// Setup moment localizer for react-big-calendar
-const localizer = momentLocalizer(moment);
+  useCalendlyEvents, 
+  useCalendlyMeetings, 
+  useCalendlyActions, 
+  useCalendlyCalendarView 
+} from '@/stores/calendlyStore';
 
 interface CalendarViewProps {
   onEventClick?: (event: CalendlyEvent | CalendlyMeeting) => void;
   onSlotClick?: (slotInfo: { start: Date; end: Date; slots: Date[] }) => void;
   className?: string;
 }
-
-// Custom event component
-const EventComponent: React.FC<{ event: CalendarViewEvent }> = ({ event }) => {
-  const actions = useCalendlyActions();
-  
-  const getEventIcon = () => {
-    if (event.resource?.type === 'meeting') {
-      return event.resource.event.location?.type === 'video' ? 
-        <Video className="w-3 h-3" /> : 
-        <MapPin className="w-3 h-3" />;
-    }
-    return <CalendarIcon className="w-3 h-3" />;
-  };
-
-  const getEventColor = () => {
-    if (event.resource?.type === 'meeting') {
-      const meeting = event.resource.event as CalendlyMeeting;
-      switch (meeting.status) {
-        case 'active':
-          return 'bg-blue-500 text-white';
-        case 'cancelled':
-          return 'bg-red-500 text-white';
-        default:
-          return 'bg-gray-500 text-white';
-      }
-    }
-    return 'bg-green-500 text-white';
-  };
-
-  const handleEventAction = (action: 'view' | 'cancel' | 'reschedule', e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (event.resource?.type === 'meeting') {
-      const meeting = event.resource.event as CalendlyMeeting;
-      switch (action) {
-        case 'view':
-          actions.openMeetingDetailsModal(meeting);
-          break;
-        case 'cancel':
-          actions.openCancelMeetingModal(meeting.uri);
-          break;
-        case 'reschedule':
-          actions.openRescheduleMeetingModal(meeting.uri);
-          break;
-      }
-    }
-  };
-
-  return (
-    <div className={`flex items-center justify-between p-1 rounded text-xs ${getEventColor()}`}>
-      <div className="flex items-center gap-1 min-w-0">
-        {getEventIcon()}
-        <span className="truncate">{event.title}</span>
-      </div>
-      {event.resource?.type === 'meeting' && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-4 w-4 p-0 text-white hover:bg-white/20">
-              <MoreHorizontal className="w-3 h-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={(e) => handleEventAction('view', e)}>
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={(e) => handleEventAction('reschedule', e)}>
-              Reschedule
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={(e) => handleEventAction('cancel', e)}
-              className="text-red-600"
-            >
-              Cancel
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </div>
-  );
-};
-
-// Custom toolbar component
-const CustomToolbar: React.FC<{
-  date: Date;
-  view: string;
-  views: string[];
-  onNavigate: (action: 'PREV' | 'NEXT' | 'TODAY') => void;
-  onView: (view: string) => void;
-}> = ({ date, view, views, onNavigate, onView }) => {
-  const formatDate = () => {
-    switch (view) {
-      case Views.MONTH:
-        return format(date, 'MMMM yyyy');
-      case Views.WEEK:
-        return `Week of ${format(date, 'MMM d, yyyy')}`;
-      case Views.DAY:
-        return format(date, 'EEEE, MMMM d, yyyy');
-      case Views.AGENDA:
-        return 'Agenda';
-      default:
-        return format(date, 'MMMM yyyy');
-    }
-  };
-
-  return (
-    <div className="flex items-center justify-between mb-4 p-4 bg-white border-b">
-      <div className="flex items-center gap-4">
-        <h2 className="text-xl font-semibold text-gray-900">{formatDate()}</h2>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('PREV')}
-            className="p-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('TODAY')}
-          >
-            Today
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onNavigate('NEXT')}
-            className="p-2"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {views.map((viewName) => (
-          <Button
-            key={viewName}
-            variant={view === viewName ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onView(viewName)}
-            className="capitalize"
-          >
-            {viewName}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Custom day prop getter for styling
-const dayPropGetter = (date: Date) => {
-  const isToday = moment(date).isSame(moment(), 'day');
-  const isWeekend = moment(date).day() === 0 || moment(date).day() === 6;
-  
-  return {
-    className: `
-      ${isToday ? 'bg-blue-50 border-blue-200' : ''}
-      ${isWeekend ? 'bg-gray-50' : ''}
-    `,
-  };
-};
-
-// Custom slot prop getter
-const slotPropGetter = (date: Date) => {
-  const hour = moment(date).hour();
-  const isBusinessHour = hour >= 9 && hour <= 17;
-  
-  return {
-    className: isBusinessHour ? 'bg-green-50' : 'bg-gray-50',
-  };
-};
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
   onEventClick,
@@ -216,57 +34,39 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const calendarView = useCalendlyCalendarView();
   const actions = useCalendlyActions();
 
-  // Transform Calendly events and meetings into calendar events
-  const calendarEvents = useMemo((): CalendarViewEvent[] => {
-    const eventList: CalendarViewEvent[] = [];
 
-    // Add regular events (available times)
-    events.forEach((event) => {
-      eventList.push({
-        id: event.uri,
-        title: event.name,
-        start: parseISO(event.start_time),
-        end: parseISO(event.end_time),
-        resource: {
-          type: 'available',
-          event,
-          status: event.status,
-        },
-        color: '#10B981', // Green for available
-      });
+
+  const views = ["Month", "Week", "Day", "Agenda"];
+
+  // Load data when component mounts
+  React.useEffect(() => {
+    actions.refreshAll();
+  }, []);
+
+  // Navigate to month with meetings when meetings are loaded (removed to prevent infinite rendering)
+
+  const handleViewChange = (view: string) => {
+    actions.setCalendarView({ 
+      ...calendarView, 
+      view: view.toLowerCase() as 'month' | 'week' | 'day' | 'agenda'
     });
+  };
 
-    // Add meetings (busy times)
-    meetings.forEach((meeting) => {
-      eventList.push({
-        id: meeting.uri,
-        title: `${meeting.name} ${meeting.invitees.length > 0 ? `(${meeting.invitees[0].name})` : ''}`,
-        start: parseISO(meeting.start_time),
-        end: parseISO(meeting.end_time),
-        resource: {
-          type: 'meeting',
-          event: meeting,
-          status: meeting.status,
-        },
-        color: meeting.status === 'cancelled' ? '#EF4444' : '#3B82F6', // Red for cancelled, blue for active
-      });
-    });
-
-    return eventList;
-  }, [events, meetings]);
-
-  const handleNavigate = useCallback((action: 'PREV' | 'NEXT' | 'TODAY') => {
-    const currentDate = calendarView.date;
+  const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
+    // Ensure we have a proper Date object
+    const currentDate = new Date(calendarView.date);
     let newDate: Date;
 
-    switch (action) {
-      case 'PREV':
-        newDate = moment(currentDate).subtract(1, calendarView.view).toDate();
+    switch (direction) {
+      case 'prev':
+        newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() - 1);
         break;
-      case 'NEXT':
-        newDate = moment(currentDate).add(1, calendarView.view).toDate();
+      case 'next':
+        newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() + 1);
         break;
-      case 'TODAY':
+      case 'today':
         newDate = new Date();
         break;
       default:
@@ -275,108 +75,393 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
     actions.setCalendarView({ ...calendarView, date: newDate });
     actions.setSelectedDate(newDate);
-  }, [calendarView, actions]);
+    
+    // Load events for the new date range
+    actions.loadEvents();
+  };
 
-  const handleViewChange = useCallback((view: string) => {
-    actions.setCalendarView({ ...calendarView, view: view as any });
-  }, [calendarView, actions]);
+  const getCurrentViewName = () => {
+    return calendarView.view.charAt(0).toUpperCase() + calendarView.view.slice(1);
+  };
 
-  const handleSelectEvent = useCallback((event: CalendarViewEvent) => {
-    if (event.resource) {
-      onEventClick?.(event.resource.event);
+  // Get meetings for the current date
+  const getMeetingsForDate = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    
+    return meetings.filter(meeting => {
+      // Check for both possible field names: start_time (snake_case) or startTime (camelCase)
+      const meetingStartTime = meeting.start_time || (meeting as any).startTime;
       
-      // Auto-open appropriate modal
-      if (event.resource.type === 'meeting') {
-        actions.openMeetingDetailsModal(event.resource.event as CalendlyMeeting);
+      // Validate meeting has a start time and it's a valid date
+      if (!meetingStartTime || meetingStartTime === 'null' || meetingStartTime === '') {
+        return false;
       }
+      
+      try {
+        const meetingDate = new Date(meetingStartTime);
+        // Check if the date is valid
+        if (isNaN(meetingDate.getTime())) {
+          return false;
+        }
+        const meetingDateStr = format(meetingDate, 'yyyy-MM-dd');
+        return meetingDateStr === dateStr && meeting.status === 'active';
+      } catch (error) {
+        console.warn('Error processing meeting date:', meetingStartTime, error);
+        return false;
+      }
+    });
+  };
+
+  // Generate calendar days for the current month
+  const generateCalendarDays = () => {
+    // Ensure we have a proper Date object
+    const currentDate = new Date(calendarView.date);
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // First day of the month
+    const firstDay = new Date(year, month, 1);
+    
+    // Start from the Sunday before the first day
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    // Generate 42 days (6 weeks) to fill the calendar grid
+    const days = [];
+    for (let i = 0; i < 42; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      
+      const isCurrentMonth = date.getMonth() === month;
+      const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+      const dayMeetings = getMeetingsForDate(date);
+      
+      days.push({
+        date,
+        dayNumber: date.getDate(),
+        isCurrentMonth,
+        isToday,
+        meetings: dayMeetings,
+      });
     }
-  }, [onEventClick, actions]);
+    
+    return days;
+  };
 
-  const handleSelectSlot = useCallback((slotInfo: { start: Date; end: Date; slots: Date[] }) => {
-    onSlotClick?.(slotInfo);
-  }, [onSlotClick]);
+  const handleDayClick = (day: any) => {
+    if (day.meetings.length > 0) {
+      // If there are meetings, we could show a detailed view
+      onSlotClick?.({
+        start: day.date,
+        end: new Date(day.date.getTime() + 24 * 60 * 60 * 1000),
+        slots: [day.date]
+      });
+    }
+  };
 
-  const eventStyleGetter = useCallback((event: CalendarViewEvent) => {
-    return {
-      style: {
-        backgroundColor: event.color || '#3B82F6',
-        borderRadius: '4px',
-        opacity: event.resource?.status === 'cancelled' ? 0.6 : 1,
-        border: 'none',
-        color: 'white',
-        fontSize: '12px',
-      },
-    };
-  }, []);
+  const handleMeetingClick = (meeting: CalendlyMeeting, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEventClick?.(meeting);
+    actions.openMeetingDetailsModal(meeting);
+  };
 
   return (
-    <Card className={`h-full ${className}`}>
-      <div className="h-full flex flex-col">
-        <CustomToolbar
-          date={calendarView.date}
-          view={calendarView.view}
-          views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
-          onNavigate={handleNavigate}
-          onView={handleViewChange}
-        />
-        
-        <div className="flex-1 p-4">
-          <Calendar
-            localizer={localizer}
-            events={calendarEvents}
-            startAccessor="start"
-            endAccessor="end"
-            titleAccessor="title"
-            view={calendarView.view}
-            date={calendarView.date}
-            onNavigate={() => {}} // Handled by custom toolbar
-            onView={() => {}} // Handled by custom toolbar
-            onSelectEvent={handleSelectEvent}
-            onSelectSlot={handleSelectSlot}
-            selectable
-            popup
-            popupOffset={30}
-            eventPropGetter={eventStyleGetter}
-            dayPropGetter={dayPropGetter}
-            slotPropGetter={slotPropGetter}
-            components={{
-              event: EventComponent,
-            }}
-            formats={{
-              timeGutterFormat: 'HH:mm',
-              eventTimeRangeFormat: ({ start, end }) => 
-                `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`,
-              agendaTimeFormat: 'HH:mm',
-              agendaDateFormat: 'MMM dd',
-            }}
-            step={30}
-            timeslots={2}
-            min={new Date(2024, 0, 1, 8, 0)} // 8 AM
-            max={new Date(2024, 0, 1, 20, 0)} // 8 PM
-            scrollToTime={new Date(2024, 0, 1, 9, 0)} // Scroll to 9 AM
-            className="h-full"
-            style={{ height: '600px' }}
-          />
-        </div>
-        
-        {/* Legend */}
-        <div className="p-4 border-t bg-gray-50">
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded"></div>
-              <span>Available</span>
+    <Card className={`bg-white border border-gray-100 shadow-sm ${className}`}>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-800">
+            Calendar View
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>Users:</span>
+              <div className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                <span className="font-medium">1 selected</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span>Scheduled</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded opacity-60"></div>
-              <span>Cancelled</span>
+            <div className="flex items-center gap-1">
+              {views.map((view) => (
+                <Button
+                  key={view}
+                  variant={getCurrentViewName() === view ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleViewChange(view)}
+                  className={`text-xs px-3 py-1 ${
+                    getCurrentViewName() === view
+                      ? "!bg-blue-600 !text-white hover:!bg-blue-700 !border-blue-600"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {view}
+                </Button>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {format(new Date(calendarView.date), 'MMMM yyyy')}
+            </h3>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                className="p-2 border-gray-200 hover:bg-gray-50"
+                onClick={() => handleNavigate('prev')}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="px-4 border-gray-200 hover:bg-gray-50"
+                onClick={() => handleNavigate('today')}
+              >
+                Today
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="p-2 border-gray-200 hover:bg-gray-50"
+                onClick={() => handleNavigate('next')}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Calendar Grid - Only show for Month view */}
+          {getCurrentViewName() === 'Month' && (
+            <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
+              {/* Days of week header */}
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div
+                  key={day}
+                  className="bg-gray-50 p-3 text-center text-sm font-medium text-gray-700"
+                >
+                  {day}
+                </div>
+              ))}
+              
+              {/* Calendar days */}
+              {generateCalendarDays().map((day, i) => (
+                <div
+                  key={i}
+                  className={`bg-white aspect-square p-2 text-center text-sm border-0 relative cursor-pointer ${
+                    day.isCurrentMonth
+                      ? "hover:bg-gray-50 text-gray-900"
+                      : "text-gray-300"
+                  } ${
+                    day.isToday
+                      ? "bg-blue-50 text-blue-700 font-semibold"
+                      : ""
+                  }`}
+                  onClick={() => handleDayClick(day)}
+                >
+                  <div className="font-medium">
+                    {day.dayNumber.toString().padStart(2, "0")}
+                  </div>
+                  
+                  {/* Meeting indicators */}
+                  {day.meetings.length > 0 && (
+                    <div className="mt-1 space-y-1">
+                      {day.meetings.slice(0, 2).map((meeting, idx) => {
+                        const formatMeetingTime = () => {
+                          try {
+                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return 'Time TBD';
+                            const meetingDate = new Date(meetingStartTime);
+                            if (isNaN(meetingDate.getTime())) return 'Invalid time';
+                            return format(meetingDate, 'h:mm a');
+                          } catch {
+                            return 'Invalid time';
+                          }
+                        };
+                        
+                        return (
+                          <div
+                            key={idx}
+                            className="w-full h-1 bg-blue-500 rounded-full cursor-pointer hover:bg-blue-600"
+                            title={`${meeting.name} - ${formatMeetingTime()}`}
+                            onClick={(e) => handleMeetingClick(meeting, e)}
+                          />
+                        );
+                      })}
+                      {day.meetings.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{day.meetings.length - 2} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Week View */}
+          {getCurrentViewName() === 'Week' && (
+            <div className="space-y-4">
+              <div className="text-center py-8 text-gray-500">
+                <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Week View</h3>
+                <p>Week view for {format(new Date(calendarView.date), 'MMM d, yyyy')}</p>
+                {meetings.length > 0 && (
+                  <p className="text-sm mt-2">
+                    {meetings.filter(m => m.status === 'active').length} active meetings this period
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Day View */}
+          {getCurrentViewName() === 'Day' && (
+            <div className="space-y-4">
+              <div className="text-center py-8 text-gray-500">
+                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Day View</h3>
+                <p>Day view for {format(new Date(calendarView.date), 'EEEE, MMM d, yyyy')}</p>
+                {(() => {
+                  const dayMeetings = getMeetingsForDate(new Date(calendarView.date));
+                  return dayMeetings.length > 0 ? (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium">Meetings today:</p>
+                      {dayMeetings.map((meeting, idx) => {
+                        const formatMeetingTime = () => {
+                          try {
+                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return 'Time TBD';
+                            const meetingDate = new Date(meetingStartTime);
+                            if (isNaN(meetingDate.getTime())) return 'Invalid time';
+                            return format(meetingDate, 'h:mm a');
+                          } catch {
+                            return 'Invalid time';
+                          }
+                        };
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className="text-sm bg-blue-50 p-2 rounded cursor-pointer hover:bg-blue-100"
+                            onClick={() => handleMeetingClick(meeting, {} as React.MouseEvent)}
+                          >
+                            {meeting.name} - {formatMeetingTime()}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm mt-2">No meetings scheduled for this day</p>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Agenda View */}
+          {getCurrentViewName() === 'Agenda' && (
+            <div className="space-y-4">
+              <div className="py-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-700">Upcoming Meetings</h3>
+                  <span className="text-sm text-gray-500">
+                    {meetings.filter(m => m.status === 'active').length} active meetings
+                  </span>
+                </div>
+                
+                {meetings.filter(m => m.status === 'active').length > 0 ? (
+                  <div className="space-y-3">
+                    {meetings
+                      .filter(m => {
+                        const meetingStartTime = m.start_time || (m as any).startTime;
+                        return m.status === 'active' && meetingStartTime && meetingStartTime !== 'null' && meetingStartTime !== '';
+                      })
+                      .sort((a, b) => {
+                        try {
+                          const aStartTime = a.start_time || (a as any).startTime;
+                          const bStartTime = b.start_time || (b as any).startTime;
+                          const aTime = new Date(aStartTime).getTime();
+                          const bTime = new Date(bStartTime).getTime();
+                          // Handle invalid dates
+                          if (isNaN(aTime) && isNaN(bTime)) return 0;
+                          if (isNaN(aTime)) return 1;
+                          if (isNaN(bTime)) return -1;
+                          return aTime - bTime;
+                        } catch {
+                          return 0;
+                        }
+                      })
+                      .slice(0, 10)
+                      .map((meeting, idx) => {
+                        const formatMeetingDateTime = () => {
+                          try {
+                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return 'Date/Time TBD';
+                            const meetingDate = new Date(meetingStartTime);
+                            if (isNaN(meetingDate.getTime())) return 'Invalid date/time';
+                            return format(meetingDate, 'MMM d, yyyy • h:mm a');
+                          } catch {
+                            return 'Invalid date/time';
+                          }
+                        };
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100"
+                            onClick={() => handleMeetingClick(meeting, {} as React.MouseEvent)}
+                          >
+                            <div>
+                              <h4 className="font-medium text-gray-900">{meeting.name}</h4>
+                              <p className="text-sm text-gray-600">
+                                {formatMeetingDateTime()}
+                              </p>
+                              {meeting.invitees && meeting.invitees[0] && (
+                                <p className="text-xs text-gray-500">
+                                  with {meeting.invitees[0].name}
+                                </p>
+                              )}
+                            </div>
+                            <Badge variant="outline" className="text-blue-600 border-blue-200">
+                              {meeting.location?.type || 'Meeting'}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p>No upcoming meetings scheduled</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Legend */}
+          <div className="flex items-center gap-8 pt-4 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Available</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Scheduled</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span className="text-sm text-gray-600">Cancelled</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }; 

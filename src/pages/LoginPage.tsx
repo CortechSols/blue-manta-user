@@ -109,7 +109,7 @@ export default function LoginPage() {
                   className="text-4xl font-semibold mb-8"
                   style={{ color: "#0077B6" }}
                 >
-                  Platform Admin Login
+                  Organization Login
                 </h2>
 
                 {error && (

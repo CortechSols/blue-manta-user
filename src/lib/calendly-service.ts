@@ -207,6 +207,64 @@ export class CalendlyService {
     return this.makeRequest<CalendlyEventTypesResponse>('/event_types/');
   }
 
+  async createEventType(eventTypeData: {
+    name: string;
+    description: string;
+    duration: number;
+    days_available?: number;
+  }): Promise<{
+    uri: string;
+    name: string;
+    description: string;
+    duration: number;
+    kind: string;
+    scheduling_url: string;
+    date_setting: {
+      type: string;
+      start_date: string;
+      end_date: string;
+    };
+    note: string;
+  }> {
+    // Use simplified API format - only send required fields
+    const payload = {
+      name: eventTypeData.name,
+      description: eventTypeData.description,
+      duration: eventTypeData.duration,
+      days_available: eventTypeData.days_available || 30, // Default to 30 days
+    };
+    
+    return this.makeRequest<{
+      uri: string;
+      name: string;
+      description: string;
+      duration: number;
+      kind: string;
+      scheduling_url: string;
+      date_setting: {
+        type: string;
+        start_date: string;
+        end_date: string;
+      };
+      note: string;
+    }>('/event_types/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getEventTypesInfo(): Promise<{
+    limitations: string[];
+    supported_features: string[];
+    notes: string[];
+  }> {
+    return this.makeRequest<{
+      limitations: string[];
+      supported_features: string[];
+      notes: string[];
+    }>('/event_types_info/');
+  }
+
   async updateEventType(
     eventTypeUri: string,
     updates: Partial<{
