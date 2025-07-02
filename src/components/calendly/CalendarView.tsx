@@ -38,10 +38,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const views = ["Month", "Week", "Day", "Agenda"];
 
-  // Load data when component mounts
-  React.useEffect(() => {
-    actions.refreshAll();
-  }, []);
+  // Data loading is handled by the parent CalendarPage
+  // No need to load data here as it creates infinite loops
 
   // Navigate to month with meetings when meetings are loaded (removed to prevent infinite rendering)
 

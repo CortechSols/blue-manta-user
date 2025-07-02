@@ -22,33 +22,35 @@ import { createUIActions, createModalActions, createUtilityActions } from './act
 export const useCalendlyStore = create<CalendlyStore>()(
   devtools(
     persist(
-      immer((set, get) => ({
-        ...createInitialState(),
+      immer((set, get, store) => {
+        const initialState = createInitialState();
         
-        // Combine all action creators into a single actions object
-        actions: {
-          // Connection management
-          ...createConnectionActions(set, get).actions,
-          
-          // Data loading
-          ...createDataActions(set, get).actions,
-          
-          // Meeting management
-          ...createMeetingActions(set, get).actions,
-          
-          // Event type management
-          ...createEventTypeActions(set, get).actions,
-          
-          // UI management
-          ...createUIActions(set, get).actions,
-          
-          // Modal management
-          ...createModalActions(set, get).actions,
-          
-          // Utility functions
-          ...createUtilityActions(set, get).actions,
-        },
-      })),
+        return {
+          ...initialState,
+          actions: {
+            // Connection management
+            ...createConnectionActions(set, get, store).actions,
+            
+            // Data loading
+            ...createDataActions(set, get, store).actions,
+            
+            // Meeting management
+            ...createMeetingActions(set, get, store).actions,
+            
+            // Event type management
+            ...createEventTypeActions(set, get, store).actions,
+            
+            // UI management
+            ...createUIActions(set, get, store).actions,
+            
+            // Modal management
+            ...createModalActions(set, get, store).actions,
+            
+            // Utility functions
+            ...createUtilityActions(set, get, store).actions,
+          },
+        };
+      }),
       createPersistConfig()
     ),
     {

@@ -11,14 +11,12 @@ import {
   EyeOff,
   ExternalLink,
   RefreshCw,
-  Plus,
-  Edit,
-  CalendarPlus,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,22 +24,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { EventType, EventTypeFormData } from '@/types/calendly';
+import type { EventType } from '@/types/calendly';
 import { 
   useCalendlyEventTypes, 
   useCalendlyActions, 
   useCalendlyLoading 
 } from '@/stores/calendlyStore';
 import { BookingModal } from './BookingModal';
-import { CreateEventTypeModal } from './CreateEventTypeModal';
 
 interface EventTypesListProps {
   className?: string;
 }
 
 const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
-  const actions = useCalendlyActions();
-  const [isToggling, setIsToggling] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
   const formatDuration = (minutes: number) => {
@@ -63,25 +58,16 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
     }
   };
 
-  const handleToggleActive = async () => {
-    setIsToggling(true);
-    try {
-      await actions.updateEventType(eventType.uri, { active: !eventType.active });
-    } catch (error) {
-      console.error('Failed to toggle event type:', error);
-    } finally {
-      setIsToggling(false);
-    }
-  };
-
   const generateQRCode = () => {
     // This would typically generate a QR code for the scheduling URL
     console.log('Generate QR code for:', eventType.scheduling_url);
+    // For now, just open a QR code generator with the URL
+    window.open(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(eventType.scheduling_url)}`, '_blank');
   };
 
   const viewAnalytics = () => {
-    // This would open analytics for the event type
-    console.log('View analytics for:', eventType.name);
+    // Redirect to Calendly analytics since API doesn't provide detailed analytics
+    window.open('https://calendly.com/analytics', '_blank');
   };
 
   return (
@@ -110,13 +96,9 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => actions.openEventTypeDetailsModal(eventType)}>
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={viewAnalytics}>
                 <BarChart3 className="w-4 h-4 mr-2" />
-                View Analytics
+                View Analytics (Calendly)
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleCopyUrl}>
@@ -184,12 +166,7 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
         {/* Actions */}
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-2">
-            <Switch
-              checked={eventType.active}
-              onCheckedChange={handleToggleActive}
-              disabled={isToggling}
-              size="sm"
-            />
+            <div className={`w-2 h-2 rounded-full ${eventType.active ? 'bg-green-500' : 'bg-gray-400'}`} />
             <span className="text-sm text-gray-600">
               {eventType.active ? 'Active' : 'Inactive'}
             </span>
@@ -202,7 +179,7 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
               onClick={() => setShowBookingModal(true)}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <CalendarPlus className="w-4 h-4 mr-1" />
+              <ExternalLink className="w-4 h-4 mr-1" />
               Book Now
             </Button>
             
@@ -221,7 +198,7 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
               onClick={viewAnalytics}
             >
               <BarChart3 className="w-4 h-4 mr-1" />
-              Stats
+              Analytics
             </Button>
           </div>
           
@@ -242,28 +219,9 @@ export const EventTypesList: React.FC<EventTypesListProps> = ({ className = '' }
   const eventTypes = useCalendlyEventTypes();
   const actions = useCalendlyActions();
   const loading = useCalendlyLoading();
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
 
   const handleRefresh = () => {
     actions.loadEventTypes();
-  };
-
-  const handleCreateEventType = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleCreateSubmit = async (eventTypeData: EventTypeFormData) => {
-    setIsCreating(true);
-    try {
-      const response = await actions.createEventType(eventTypeData);
-      alert(`Event type created successfully! Available until ${response.date_setting.end_date}`);
-    } catch (error) {
-      console.error('Failed to create event type:', error);
-      alert('Failed to create event type. Please try again.');
-    } finally {
-      setIsCreating(false);
-    }
   };
 
   const activeEventTypes = eventTypes.filter(et => et.active);
@@ -292,14 +250,27 @@ export const EventTypesList: React.FC<EventTypesListProps> = ({ className = '' }
           </Button>
           
           <Button
-            onClick={handleCreateEventType}
+            variant="outline"
             size="sm"
+            onClick={() => window.open('https://calendly.com/event_types', '_blank')}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Event Type
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Manage in Calendly
           </Button>
         </div>
       </div>
+
+      {/* API Limitation Notice */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <p className="font-medium mb-1">Event Type Management</p>
+          <p className="text-sm">
+            Event types can only be created and modified in your Calendly dashboard. 
+            Use the "Manage in Calendly" button above to create new event types or modify existing ones.
+          </p>
+        </AlertDescription>
+      </Alert>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -363,11 +334,11 @@ export const EventTypesList: React.FC<EventTypesListProps> = ({ className = '' }
             <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No event types found</h3>
             <p className="text-gray-600 mb-4">
-              Create your first event type to start accepting bookings
+              Create your first event type in your Calendly dashboard
             </p>
-            <Button onClick={handleCreateEventType}>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Event Type
+            <Button onClick={() => window.open('https://calendly.com/event_types', '_blank')}>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Create in Calendly
             </Button>
           </CardContent>
         </Card>
@@ -404,14 +375,6 @@ export const EventTypesList: React.FC<EventTypesListProps> = ({ className = '' }
           )}
         </div>
       )}
-
-      {/* Create Event Type Modal */}
-      <CreateEventTypeModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={handleCreateSubmit}
-        isLoading={isCreating}
-      />
     </div>
   );
 }; 

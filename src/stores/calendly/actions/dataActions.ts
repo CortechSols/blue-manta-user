@@ -129,6 +129,7 @@ export const createDataActions: StateCreator<
 
         set((state) => {
           const extractedEventTypes = extractEventTypesFromResponse(response);
+          console.log('Extracted event types:', extractedEventTypes);
           state.eventTypes = extractedEventTypes;
           state.loading.eventTypes = false;
         });

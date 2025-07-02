@@ -9,27 +9,59 @@
  * - Scalable architecture
  */
 
-// Main store
-export { useCalendlyStore } from './store';
+import { useCalendlyStore } from './store';
 
-// Selector hooks for better performance
-export * from './selectors';
+// Selector exports (using the hook pattern)
+export const useCalendlyConnection = () => useCalendlyStore((state) => state.connectionStatus);
+export const useCalendlyEvents = () => useCalendlyStore((state) => state.events);
+export const useCalendlyMeetings = () => useCalendlyStore((state) => state.meetings);
+export const useCalendlyEventTypes = () => useCalendlyStore((state) => state.eventTypes);
+export const useCalendlyAvailability = () => useCalendlyStore((state) => state.availabilitySchedules);
+export const useCalendlyLoading = () => useCalendlyStore((state) => state.loading);
+export const useCalendlyError = () => useCalendlyStore((state) => state.error);
 
-// Types for external usage
+// UI selectors
+export const useCalendlySelectedDate = () => useCalendlyStore((state) => state.selectedDate);
+export const useCalendlyCalendarView = () => useCalendlyStore((state) => state.calendarView);
+export const useCalendlyMeetingFilters = () => useCalendlyStore((state) => state.meetingFilters);
+export const useCalendlySelectedMeetings = () => useCalendlyStore((state) => state.selectedMeetings);
+export const useCalendlyModals = () => useCalendlyStore((state) => state.modals);
+
+// Individual action selectors to prevent infinite loops
+export const useSetCalendarView = () => useCalendlyStore((state) => state.actions.setCalendarView);
+export const useSetSelectedDate = () => useCalendlyStore((state) => state.actions.setSelectedDate);
+export const useLoadEvents = () => useCalendlyStore((state) => state.actions.loadEvents);
+
+// Action selectors (only supported operations) - cached to prevent infinite loops
+export const useCalendlyActions = () => useCalendlyStore((state) => state.actions);
+
+// Combined dashboard data - using individual selectors to prevent infinite loops
+export const useCalendlyDashboard = () => {
+  const connectionStatus = useCalendlyConnection();
+  const events = useCalendlyEvents();
+  const meetings = useCalendlyMeetings();
+  const eventTypes = useCalendlyEventTypes();
+  const loading = useCalendlyLoading();
+  const error = useCalendlyError();
+
+  return {
+    connectionStatus,
+    events,
+    meetings,
+    eventTypes,
+    loading,
+    error,
+  };
+};
+
+// Type exports
 export type {
   CalendlyStore,
-  CalendlyUIState,
-  CalendlyModals,
-  CreateEventTypeResponse,
-  BatchCancelResult,
-  ConnectionActions,
-  DataLoadingActions,
-  MeetingManagementActions,
-  EventTypeManagementActions,
-  UIActions,
-  ModalActions,
-  UtilityActions,
+  CalendlyState,
   CalendlyActions,
+  CalendlyModals,
+  MeetingFilters,
+  CalendarViewType,
 } from './types';
 
 // Utility functions (if needed externally)
@@ -40,31 +72,3 @@ export {
   formatDateForAPI,
   createErrorMessage,
 } from './utils';
-
-/**
- * Migration Guide:
- * 
- * OLD USAGE:
- * ```typescript
- * import { useCalendlyStore, useCalendlyActions, useCalendlyEvents } from '../stores/calendlyStore';
- * ```
- * 
- * NEW USAGE:
- * ```typescript
- * import { 
- *   useCalendlyStore,
- *   useCalendlyActions,
- *   useCalendlyEvents,
- *   useCalendlyConnectionActions,
- *   useCalendlyDataActions,
- *   // ... other specific selectors
- * } from '../stores/calendly';
- * ```
- * 
- * BENEFITS:
- * - Better tree-shaking
- * - More granular subscriptions (less re-renders)
- * - Clearer action organization
- * - Type safety improvements
- * - Easier testing and maintenance
- */ 

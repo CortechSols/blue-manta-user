@@ -32,7 +32,6 @@ import { CalendarView } from "./CalendarView";
 import { MeetingsList } from "./MeetingsList";
 import { EventTypesList } from "./EventTypesList";
 import { BookingModal } from "./BookingModal";
-import { CreateEventTypeModal } from "./CreateEventTypeModal";
 import { CancelMeetingModal } from "./CancelMeetingModal";
 import type { EventTypeFormData } from "@/types/calendly";
 import {
@@ -40,6 +39,9 @@ import {
   useCalendlyActions,
   useCalendlyConnection,
   useCalendlyCalendarView,
+  useSetCalendarView,
+  useSetSelectedDate,
+  useLoadEvents,
 } from "@/stores/calendlyStore";
 import { format, addDays, subDays } from "date-fns";
 import { shouldUseDemoData } from "@/lib/demo-data";
@@ -102,7 +104,7 @@ const QuickActionsSection: React.FC = () => {
           }
         >
           <BarChart3 className="w-4 h-4 mr-2" />
-          View Analytics
+          View Analytics (Calendly)
         </Button>
 
         <Button
@@ -117,10 +119,10 @@ const QuickActionsSection: React.FC = () => {
         <Button
           variant="outline"
           className="w-full border-gray-200 hover:bg-gray-50 text-gray-700"
-          onClick={() => console.log("Bulk operations")}
+          onClick={() => window.open("https://calendly.com/event_types", "_blank")}
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Bulk Operations
+          <ExternalLink className="w-4 h-4 mr-2" />
+          Manage Event Types
         </Button>
       </CardContent>
     </Card>
@@ -173,9 +175,25 @@ const ConnectionStatusSection: React.FC = () => {
 
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">Last Sync:</span>
-            <span className="font-medium text-gray-900">30/06/2025</span>
+            <span className="font-medium text-gray-900">
+              {format(new Date(), 'dd/MM/yyyy')}
+            </span>
           </div>
         </div>
+
+        {connectionStatus?.is_connected && (
+          <div className="pt-2 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
+              onClick={() => window.open("https://calendly.com/integrations", "_blank")}
+            >
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Manage in Calendly
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -190,37 +208,24 @@ const UserSelectionSection: React.FC = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <Users className="w-5 h-5 text-gray-600" />
-            User Selection
+            Connected User
           </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="!text-blue-600 hover:!text-blue-700 hover:!bg-blue-50 text-xs"
-            >
-              Show All
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="!text-blue-600 hover:!text-blue-700 hover:!bg-blue-50 text-xs"
-            >
-              Deselect All
-            </Button>
-          </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg hover:bg-gray-50">
+          <div className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50">
             <input
               type="checkbox"
               defaultChecked
+              disabled
               className="w-4 h-4 text-blue-600 rounded border-gray-300"
             />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-gray-900">Waleed Amjad</span>
+                <span className="font-medium text-gray-900">
+                  {connectionStatus?.user_name || "Connected User"}
+                </span>
                 <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1">
                   Connected
                 </Badge>
@@ -231,11 +236,13 @@ const UserSelectionSection: React.FC = () => {
                   user
                 </Badge>
               </div>
-              <p className="text-sm text-gray-500">waleedamjad56@gmail.com</p>
+              <p className="text-sm text-gray-500">
+                {connectionStatus?.scheduling_url || "Calendly User"}
+              </p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 mt-3">1 user selected</p>
+          <p className="text-sm text-gray-500 mt-3">1 user connected</p>
         </div>
       </CardContent>
     </Card>
@@ -245,17 +252,17 @@ const UserSelectionSection: React.FC = () => {
 const CalendarOverviewSection: React.FC = () => {
   const { meetings } = useCalendlyDashboard();
   const calendarView = useCalendlyCalendarView();
-  const actions = useCalendlyActions();
+  const setCalendarView = useSetCalendarView();
+  const setSelectedDate = useSetSelectedDate();
+  const loadEvents = useLoadEvents();
 
   const views = ["Month", "Week", "Day", "Agenda"];
 
-  // Load data when component mounts
-  React.useEffect(() => {
-    actions.refreshAll();
-  }, []);
+  // Data loading is handled by the parent CalendarPage
+  // No need to load data here as it creates infinite loops
 
   const handleViewChange = (view: string) => {
-    actions.setCalendarView({ 
+    setCalendarView({ 
       ...calendarView, 
       view: view.toLowerCase() as any 
     });
@@ -282,11 +289,11 @@ const CalendarOverviewSection: React.FC = () => {
         newDate = currentDate;
     }
 
-    actions.setCalendarView({ ...calendarView, date: newDate });
-    actions.setSelectedDate(newDate);
+    setCalendarView({ ...calendarView, date: newDate });
+    setSelectedDate(newDate);
     
     // Load events for the new date range
-    actions.loadEvents();
+    loadEvents();
   };
 
   const getCurrentViewName = () => {
@@ -509,68 +516,18 @@ const CalendarOverviewSection: React.FC = () => {
           {/* Agenda View */}
           {getCurrentViewName() === 'Agenda' && (
             <div className="space-y-4">
-              <div className="py-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-700">Upcoming Meetings</h3>
-                  <span className="text-sm text-gray-500">
-                    {meetings.filter(m => m.status === 'active').length} active meetings
-                  </span>
-                </div>
-                
-                {meetings.filter(m => m.status === 'active').length > 0 ? (
-                  <div className="space-y-3">
-                    {meetings
-                      .filter(m => m.status === 'active')
-                      .sort((a, b) => {
-                        const aTime = new Date(a.start_time || a.startTime).getTime();
-                        const bTime = new Date(b.start_time || b.startTime).getTime();
-                        return aTime - bTime;
-                      })
-                      .slice(0, 5)
-                      .map((meeting, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <h4 className="font-medium text-gray-900">{meeting.name}</h4>
-                            <p className="text-sm text-gray-600">
-                              {format(new Date(meeting.start_time || meeting.startTime), 'MMM d, yyyy • h:mm a')}
-                            </p>
-                            {meeting.invitees && meeting.invitees[0] && (
-                              <p className="text-xs text-gray-500">
-                                with {meeting.invitees[0].name}
-                              </p>
-                            )}
-                          </div>
-                          <Badge variant="outline" className="text-blue-600 border-blue-200">
-                            {meeting.location?.type || 'Meeting'}
-                          </Badge>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                    <p>No upcoming meetings scheduled</p>
-                  </div>
+              <div className="text-center py-8 text-gray-500">
+                <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-700 mb-2">Agenda View</h3>
+                <p>Upcoming meetings and events</p>
+                {meetings.length > 0 && (
+                  <p className="text-sm mt-2">
+                    {meetings.filter(m => m.status === 'active').length} total meetings
+                  </p>
                 )}
               </div>
             </div>
           )}
-
-          {/* Legend */}
-          <div className="flex items-center gap-8 pt-4 border-t border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Scheduled</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">Cancelled</span>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -629,6 +586,18 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
       <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* API Limitations Notice */}
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <p className="font-medium mb-1">Calendly API v2 Integration</p>
+            <p className="text-sm">
+              This dashboard provides read-only access to your Calendly data with limited management capabilities. 
+              For full event type management and advanced features, use your Calendly dashboard directly.
+            </p>
+          </AlertDescription>
+        </Alert>
+
         {/* Header Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
@@ -665,8 +634,6 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="meetings">Meetings</TabsTrigger>
             <TabsTrigger value="event-types">Event Types</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="connections">Connections</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -692,40 +659,6 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
 
           <TabsContent value="event-types" className="space-y-6">
             <EventTypesList />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6">
-            <Card className="bg-white border border-gray-100 shadow-sm">
-              <CardContent className="p-12">
-                <div className="text-center">
-                  <BarChart3 className="w-16 h-16 mx-auto text-gray-300 mb-6" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Analytics Coming Soon
-                  </h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
-                    Detailed analytics and insights will be available here to
-                    help you understand your meeting patterns and performance.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="connections" className="space-y-6">
-            <Card className="bg-white border border-gray-100 shadow-sm">
-              <CardContent className="p-12">
-                <div className="text-center">
-                  <Settings className="w-16 h-16 mx-auto text-gray-300 mb-6" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    Connection Management
-                  </h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
-                    Manage your Calendly connections and integrations here to
-                    ensure seamless synchronization.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>

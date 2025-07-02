@@ -134,4 +134,21 @@ export interface CalendlyActions extends
 export interface CalendlyStore extends CalendlyState, CalendlyUIState {
   modals: CalendlyModals;
   actions: CalendlyActions;
+}
+
+// Event Type Actions (Read Only)
+export interface EventTypeActions {
+  // Note: loadEventTypes is handled in DataLoadingActions to avoid duplication
+  // Note: createEventType and updateEventType removed - not supported by Calendly API v2
+}
+
+// Meeting Actions (Limited)
+export interface MeetingActions {
+  loadMeetings: (filters?: MeetingFilters) => Promise<void>;
+  cancelMeeting: (meetingUri: string, reason: string) => Promise<void>;
+  setMeetingFilters: (filters: MeetingFilters) => void;
+  toggleMeetingSelection: (meetingUri: string) => void;
+  selectAllMeetings: () => void;
+  clearMeetingSelection: () => void;
+  // Note: openRescheduleMeetingModal removed - use reschedule URLs instead
 } 

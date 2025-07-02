@@ -156,20 +156,48 @@ export const shouldNavigateToMeetingDate = (
 };
 
 /**
+ * Normalizes event type data to match the expected interface format
+ */
+const normalizeEventType = (eventType: any): any => {
+  return {
+    uri: eventType.uri,
+    name: eventType.name,
+    description: eventType.description,
+    duration: eventType.duration,
+    kind: eventType.kind,
+    slug: eventType.slug,
+    color: eventType.color,
+    active: eventType.active,
+    // Handle both camelCase and snake_case
+    scheduling_url: eventType.schedulingUrl || eventType.scheduling_url,
+    internal_note: eventType.internalNote || eventType.internal_note,
+    profile: eventType.profile,
+  };
+};
+
+/**
  * Safely extracts event types from API response
  */
 export const extractEventTypesFromResponse = (response: any): any[] => {
   if (!response) return [];
 
-  if (Array.isArray(response.event_types)) {
-    return response.event_types;
+  let eventTypes: any[] = [];
+
+  // Handle camelCase format (eventTypes)
+  if (Array.isArray(response.eventTypes)) {
+    eventTypes = response.eventTypes;
+  }
+  // Handle snake_case format (event_types) - for backward compatibility
+  else if (Array.isArray(response.event_types)) {
+    eventTypes = response.event_types;
+  }
+  // Handle direct array response
+  else if (Array.isArray(response)) {
+    eventTypes = response;
   }
 
-  if (Array.isArray(response)) {
-    return response;
-  }
-
-  return [];
+  // Normalize all event types to match the expected interface format
+  return eventTypes.map(normalizeEventType);
 };
 
 /**

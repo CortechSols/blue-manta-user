@@ -9,44 +9,86 @@ export const createUIActions: StateCreator<
   CalendlyStore,
   [],
   [],
-  { actions: Pick<CalendlyStore['actions'], keyof UIActions> }
+  Pick<CalendlyStore, 'actions'>
 > = (set, get) => ({
   actions: {
-    setSelectedDate: (date) =>
-      set((state) => {
-        state.selectedDate = date;
-        state.calendarView.date = date;
-      }),
+    setSelectedDate: (date: Date) =>
+      set((state) => ({
+        selectedDate: date,
+      })),
 
-    setCalendarView: (view) =>
-      set((state) => {
-        state.calendarView = view;
-      }),
+    setCalendarView: (view: CalendarViewType) =>
+      set((state) => ({
+        calendarView: view,
+      })),
 
-    setMeetingFilters: (filters) =>
-      set((state) => {
-        state.meetingFilters = filters;
-      }),
+    setMeetingFilters: (filters: MeetingFilters) =>
+      set((state) => ({
+        meetingFilters: filters,
+      })),
 
-    toggleMeetingSelection: (meetingUri) =>
+    toggleMeetingSelection: (meetingUri: string) =>
       set((state) => {
-        const index = state.selectedMeetings.indexOf(meetingUri);
-        if (index > -1) {
-          state.selectedMeetings.splice(index, 1);
-        } else {
-          state.selectedMeetings.push(meetingUri);
-        }
+        const isSelected = state.selectedMeetings.includes(meetingUri);
+        return {
+          selectedMeetings: isSelected
+            ? state.selectedMeetings.filter((uri) => uri !== meetingUri)
+            : [...state.selectedMeetings, meetingUri],
+        };
       }),
 
     selectAllMeetings: () =>
-      set((state) => {
-        state.selectedMeetings = state.meetings.map(m => m.uri);
-      }),
+      set((state) => ({
+        selectedMeetings: state.meetings.map((meeting) => meeting.uri),
+      })),
 
     clearMeetingSelection: () =>
-      set((state) => {
-        state.selectedMeetings = [];
-      }),
+      set(() => ({
+        selectedMeetings: [],
+      })),
+
+    openMeetingDetailsModal: (meeting) =>
+      set(() => ({
+        modals: {
+          meetingDetails: { isOpen: true, meeting },
+          cancelMeeting: { isOpen: false },
+          createEventType: { isOpen: false },
+        },
+      })),
+
+    openCancelMeetingModal: (meetingUri) =>
+      set(() => ({
+        modals: {
+          meetingDetails: { isOpen: false },
+          cancelMeeting: { isOpen: true, meetingUri },
+          createEventType: { isOpen: false },
+        },
+      })),
+
+    openEventTypeDetailsModal: (eventType) =>
+      set(() => ({
+        modals: {
+          meetingDetails: { isOpen: false },
+          cancelMeeting: { isOpen: false },
+          createEventType: { isOpen: false },
+          eventTypeDetails: { isOpen: true, eventType },
+        },
+      })),
+
+    closeAllModals: () =>
+      set(() => ({
+        modals: {
+          meetingDetails: { isOpen: false },
+          cancelMeeting: { isOpen: false },
+          createEventType: { isOpen: false },
+          eventTypeDetails: { isOpen: false },
+        },
+      })),
+
+    clearError: () =>
+      set(() => ({
+        error: null,
+      })),
   },
 });
 

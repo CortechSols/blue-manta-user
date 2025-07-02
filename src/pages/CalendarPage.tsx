@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { CalendlyDashboard } from "@/components/calendly/CalendlyDashboard";
 import { useCalendlyConnect } from "@/hooks/useCalendly";
-import { useCalendlyConnection, useCalendlyActions, useCalendlyLoading } from "@/stores/calendlyStore";
+import { useCalendlyConnection, useCalendlyActions, useCalendlyLoading } from "@/stores/calendly";
 
 const CalendlyConnectState = ({
 	onConnect,

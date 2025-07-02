@@ -17,12 +17,15 @@ import {
   Download,
   RefreshCw,
   Info,
+  ExternalLink,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -164,11 +167,16 @@ const MeetingCard: React.FC<{
               <DropdownMenuItem onClick={() => actions.openMeetingDetailsModal(meeting)}>
                 View Details
               </DropdownMenuItem>
+              
               {meeting.status === 'active' && meetingStartTime && isFuture(startTime) && (
                 <>
-                  <DropdownMenuItem onClick={() => actions.openRescheduleMeetingModal(meeting.uri)}>
-                    Reschedule
+                  {/* Show reschedule URL if available */}
+                  {primaryInvitee?.reschedule_url && (
+                    <DropdownMenuItem onClick={() => window.open(primaryInvitee.reschedule_url, '_blank')}>
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Reschedule (Calendly)
                   </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => actions.openCancelMeetingModal(meeting.uri)}
@@ -178,10 +186,12 @@ const MeetingCard: React.FC<{
                   </DropdownMenuItem>
                 </>
               )}
+              
               {meeting.location?.join_url && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => window.open(meeting.location?.join_url, '_blank')}>
+                    <ExternalLink className="w-4 h-4 mr-2" />
                     Join Meeting
                   </DropdownMenuItem>
                 </>
@@ -360,6 +370,18 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           </Button>
         </div>
       </div>
+
+      {/* API Limitation Notice */}
+      <Alert className="border-blue-200 bg-blue-50">
+        <AlertCircle className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <p className="font-medium mb-1">Meeting Management</p>
+          <p className="text-sm">
+            Meetings can be cancelled through this interface. For rescheduling, use the "Reschedule (Calendly)" 
+            link which will open the Calendly reschedule page. Direct rescheduling via API is not supported.
+          </p>
+        </AlertDescription>
+      </Alert>
 
       {/* Search and Filters */}
       <Card>

@@ -127,7 +127,7 @@ export class CalendlyService {
     });
   }
 
-  // Calendar Events
+  // Calendar Events (Read Only)
   async getEvents(startDate: string, endDate: string): Promise<CalendlyEventsResponse> {
     if (shouldUseDemoData()) {
       return demoApiResponses.events();
@@ -161,7 +161,7 @@ export class CalendlyService {
     );
   }
 
-  // Meeting Management
+  // Meeting Management (Limited)
   async cancelMeeting(request: CancelMeetingRequest): Promise<{ success: boolean; message: string }> {
     return this.makeRequest<{ success: boolean; message: string }>('/cancel_meeting/', {
       method: 'POST',
@@ -169,22 +169,18 @@ export class CalendlyService {
     });
   }
 
+  // Note: Rescheduling is not supported via API - use reschedule URLs from meeting data
   async rescheduleMeeting(
     meetingUri: string,
     newStartTime: string,
     newEndTime: string,
     reason?: string
   ): Promise<{ success: boolean; message: string }> {
-    return this.cancelMeeting({
-      meeting_uri: meetingUri,
-      reason: reason || 'Meeting rescheduled',
-      reschedule: true,
-      new_start_time: newStartTime,
-      new_end_time: newEndTime,
-    });
+    // This method is kept for backwards compatibility but will return an error
+    throw new Error('Rescheduling via API is not supported. Please use the reschedule URL provided in the meeting data.');
   }
 
-  // Availability Management
+  // Availability (Read Only)
   async getAvailability(): Promise<CalendlyAvailabilityResponse> {
     if (shouldUseDemoData()) {
       return demoApiResponses.availability();
@@ -199,7 +195,7 @@ export class CalendlyService {
     });
   }
 
-  // Event Types
+  // Event Types (Read Only)
   async getEventTypes(): Promise<CalendlyEventTypesResponse> {
     if (shouldUseDemoData()) {
       return demoApiResponses.eventTypes();
@@ -207,80 +203,10 @@ export class CalendlyService {
     return this.makeRequest<CalendlyEventTypesResponse>('/event_types/');
   }
 
-  async createEventType(eventTypeData: {
-    name: string;
-    description: string;
-    duration: number;
-    days_available?: number;
-  }): Promise<{
-    uri: string;
-    name: string;
-    description: string;
-    duration: number;
-    kind: string;
-    scheduling_url: string;
-    date_setting: {
-      type: string;
-      start_date: string;
-      end_date: string;
-    };
-    note: string;
-  }> {
-    // Use simplified API format - only send required fields
-    const payload = {
-      name: eventTypeData.name,
-      description: eventTypeData.description,
-      duration: eventTypeData.duration,
-      days_available: eventTypeData.days_available || 30, // Default to 30 days
-    };
-    
-    return this.makeRequest<{
-      uri: string;
-      name: string;
-      description: string;
-      duration: number;
-      kind: string;
-      scheduling_url: string;
-      date_setting: {
-        type: string;
-        start_date: string;
-        end_date: string;
-      };
-      note: string;
-    }>('/event_types/', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  }
+  // Note: Event type creation/modification is not supported via API
+  // Users must use the Calendly dashboard for these operations
 
-  async getEventTypesInfo(): Promise<{
-    limitations: string[];
-    supported_features: string[];
-    notes: string[];
-  }> {
-    return this.makeRequest<{
-      limitations: string[];
-      supported_features: string[];
-      notes: string[];
-    }>('/event_types_info/');
-  }
-
-  async updateEventType(
-    eventTypeUri: string,
-    updates: Partial<{
-      name: string;
-      description: string;
-      duration: number;
-      active: boolean;
-    }>
-  ): Promise<{ success: boolean }> {
-    return this.makeRequest<{ success: boolean }>(`/event_types/${encodeURIComponent(eventTypeUri)}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    });
-  }
-
-  // User Information
+  // User Information (Read Only)
   async getCurrentUser(): Promise<{
     uri: string;
     name: string;
@@ -349,7 +275,7 @@ export class CalendlyService {
     });
   }
 
-  // Analytics and Reporting
+  // Analytics and Reporting (Limited - redirect to Calendly)
   async getEventTypeMetrics(
     eventTypeUri: string,
     startDate: string,
@@ -365,6 +291,7 @@ export class CalendlyService {
       count: number;
     }>;
   }> {
+    // Limited analytics available via API - recommend using Calendly dashboard
     const params = new URLSearchParams({
       event_type_uri: eventTypeUri,
       start_date: startDate,
@@ -405,7 +332,7 @@ export class CalendlyService {
     return parts[parts.length - 1];
   }
 
-  // Batch Operations
+  // Batch Operations (Limited to cancellation)
   async batchCancelMeetings(
     meetingUris: string[],
     reason: string
@@ -426,7 +353,7 @@ export class CalendlyService {
     }));
   }
 
-  // Data Export
+  // Data Export (Basic)
   async exportMeetings(
     format: 'csv' | 'json',
     startDate: string,
@@ -454,6 +381,37 @@ export class CalendlyService {
     }
 
     return response.blob();
+  }
+
+  // API Capability Information
+  getSupportedOperations(): {
+    read: string[];
+    write: string[];
+    limitations: string[];
+  } {
+    return {
+      read: [
+        'Get connection status',
+        'Get events/meetings',
+        'Get event types',
+        'Get user information',
+        'Get availability',
+        'Get webhook subscriptions'
+      ],
+      write: [
+        'Cancel meetings',
+        'Create webhook subscriptions',
+        'Delete webhook subscriptions',
+        'Connect/disconnect Calendly account'
+      ],
+      limitations: [
+        'Cannot create or modify event types',
+        'Cannot schedule events directly',
+        'Cannot reschedule events (use reschedule URLs)',
+        'Cannot modify availability/schedules',
+        'Limited analytics data available'
+      ]
+    };
   }
 }
 
