@@ -123,7 +123,12 @@ export const useAuthStore = create<AuthStore>()(
             } catch (error: any) {
               let errorMessage = 'Login failed';
               
-              if (error.response?.data?.message) {
+              // Check for different error response formats
+              if (error.response?.data?.nonFieldErrors && Array.isArray(error.response.data.nonFieldErrors)) {
+                errorMessage = error.response.data.nonFieldErrors[0];
+              } else if (error.response?.data?.non_field_errors && Array.isArray(error.response.data.non_field_errors)) {
+                errorMessage = error.response.data.non_field_errors[0];
+              } else if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
               } else if (error.response?.data?.detail) {
                 errorMessage = error.response.data.detail;

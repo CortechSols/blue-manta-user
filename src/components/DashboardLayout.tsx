@@ -15,6 +15,7 @@ import {
   User,
   ChevronDown,
   X,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,36 +29,19 @@ import {
   useOrganizations,
   getOrganizationFullName,
 } from "@/hooks/useOrganizations";
+import { useAuthActions } from "@/stores/authStore";
 
 const sidebarItems = [
   { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
+  { icon: UserCircle, label: "Client Profile", path: "/client-profile" },
   { icon: Calendar, label: "App Calendar", path: "/calendar" },
   { icon: FileText, label: "Content Generator", path: "/content" },
   { icon: Database, label: "Data Sources", path: "/data" },
   { icon: Users, label: "Train Chatbot !!!", path: "/train-chatbot" },
   { icon: History, label: "Chat History", path: "/chat-history" },
-  { icon: UserCircle, label: "Client Profile", path: "/client-profile" },
   { icon: ShieldCheck, label: "Quality Assurance", path: "/qa" },
 ];
 
-// Old customers array - commented out
-/*
-const customers = [
-	"All Clients",
-	"ABC HVAC Supplies",
-	"All Around Wellness",
-	"Baby Blue Pool Cleaning",
-	"Contractor Supply, Inc.",
-	"Fallen Heros Landscaping",
-	"Graven Contractor Depo",
-	"Maple Leaf Landscaping",
-	"Neptune Pool & Spas",
-	"Sparkle Blue Pool Services",
-	"Telon Bay CPA Services",
-	"Welton's Heating & Cooling",
-	"Zambia Health and Design",
-];
-*/
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -76,18 +60,21 @@ export function DashboardLayout({
   const { data: organizations, isLoading, error } = useOrganizations();
   const [selectedCustomer, setSelectedCustomer] =
     useState<string>("All Clients");
+  const { logout } = useAuthActions();
 
   const location = useLocation();
   const pathname = location.pathname;
   const isAdmin = pathname.includes("/settings");
 
-  // Handle delete organization (placeholder for future implementation)
   const handleDeleteOrganization = (
     organizationId: number,
     event: React.MouseEvent
   ) => {
     event.stopPropagation();
-    // TODO: Implement delete functionality
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -118,13 +105,22 @@ export function DashboardLayout({
           ))}
         </div>
 
-        {/* Settings at bottom */}
-        <Link
-          to="/settings"
-          className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-white/20"
-        >
-          <Settings className="w-6 h-6" />
-        </Link>
+        {/* Settings and Logout at bottom */}
+        <div className="flex flex-col gap-2">
+          <Link
+            to="/settings"
+            className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-white/20"
+          >
+            <Settings className="w-6 h-6" />
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-red-100 hover:text-red-600 transition-colors"
+            title="Logout"
+          >
+            <LogOut className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       {/* Expanded Sidebar */}
@@ -154,6 +150,22 @@ export function DashboardLayout({
                 <span>{item.label}</span>
               </Link>
             ))}
+          </div>
+
+          {/* Settings and Logout at bottom */}
+          <div className="mt-auto space-y-1">
+            <Link
+              to="/settings"
+              className="flex items-center gap-3 px-3 py-3 cursor-pointer transition-colors text-[#0077B6] hover:bg-[#E0F2FE]"
+            >
+              <span>Settings</span>
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 px-3 py-3 cursor-pointer transition-colors text-[#0077B6] hover:bg-red-50 hover:text-red-600"
+            >
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       )}
