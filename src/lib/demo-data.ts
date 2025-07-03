@@ -5,6 +5,13 @@ import type {
   EventType,
   ConnectionStatus,
 } from "@/types/calendly";
+import type {
+  Chatbot,
+  ChatMessage,
+  ChatResponse,
+  OrganizationChatbotsResponse,
+  OrganizationsListResponse,
+} from "@/types/chatbot";
 
 // Demo connection status
 export const demoConnectionStatus: ConnectionStatus = {
@@ -195,6 +202,8 @@ export const demoMeetings: CalendlyMeeting[] = [
 export const shouldUseDemoData = () => {
   return false;
 };
+
+
 
 // Demo API responses
 export const demoApiResponses = {
