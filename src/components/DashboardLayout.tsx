@@ -16,6 +16,7 @@ import {
   ChevronDown,
   X,
   LogOut,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ const sidebarItems = [
   { icon: Calendar, label: "App Calendar", path: "/calendar" },
   { icon: FileText, label: "Content Generator", path: "/content" },
   { icon: Database, label: "Data Sources", path: "/data" },
+  { icon: Bot, label: "Chatbots", path: "/chatbots" },
   { icon: Users, label: "Train Chatbot !!!", path: "/train-chatbot" },
   { icon: History, label: "Chat History", path: "/chat-history" },
   { icon: ShieldCheck, label: "Quality Assurance", path: "/qa" },

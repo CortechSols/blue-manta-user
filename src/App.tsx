@@ -11,6 +11,7 @@ import AdminProfilePage from "./pages/AdminProfilePage";
 import TrainChatbotPage from "./pages/TrainChatbotPage";
 import DataSourcesPage from "./pages/DataSourcesPage";
 import CalendarCallbackPage from "./pages/CalendarCallbackPage";
+import ChatbotsPage from "./pages/ChatbotsPage";
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -121,6 +122,14 @@ function App() {
 				element={
 					<ProtectedRoute>
 						<DataSourcesPage />
+					</ProtectedRoute>
+				} 
+			/>
+			<Route 
+				path="/chatbots" 
+				element={
+					<ProtectedRoute>
+						<ChatbotsPage />
 					</ProtectedRoute>
 				} 
 			/>
