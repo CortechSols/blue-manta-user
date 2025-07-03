@@ -176,13 +176,13 @@ export function useOrganizationLogin() {
 }
 */
 
-// Chatbots API hooks
+// Chatbots API hooks - Updated to use new chatbot service
 export function useChatbots() {
-  return useApiQuery(["chatbots", "list"], "/chatbots/chatbots/");
+  return useApiQuery(["chatbots", "list"], "/chatbots/");
 }
 
 export function useCreateChatbot() {
-  return useApiMutation("/chatbots/chatbots/", "POST");
+  return useApiMutation("/chatbots/", "POST");
 }
 
 // Organizations API hooks (for platform admin)
