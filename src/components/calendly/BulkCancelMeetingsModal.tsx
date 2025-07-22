@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, AlertCircle, X, CheckCircle, Users } from 'lucide-react';
+import { AlertCircle, X, CheckCircle, Users } from 'lucide-react';
 import { useCalendlyActions, useCalendlySelectedMeetings, useCalendlyMeetings } from '@/stores/calendlyStore';
 import { format, parseISO } from 'date-fns';
 
@@ -24,7 +24,6 @@ interface BulkCancelMeetingsModalProps {
 export const BulkCancelMeetingsModal: React.FC<BulkCancelMeetingsModalProps> = ({ 
   isOpen,
   onClose,
-  className = '' 
 }) => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -166,7 +165,7 @@ export const BulkCancelMeetingsModal: React.FC<BulkCancelMeetingsModalProps> = (
           </Label>
           <div className="space-y-2">
             {selectedMeetings.map((meeting) => {
-              const startTime = meeting.start_time || (meeting as any).startTime;
+              const startTime = meeting.start_time || meeting.startTime;
               return (
                 <div key={meeting.uri} className="text-sm bg-white p-2 rounded border">
                   <div className="font-medium text-gray-900">{meeting.name}</div>

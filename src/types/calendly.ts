@@ -3,8 +3,9 @@
 export interface CalendlyEvent {
   uri: string;
   name: string;
-  status: 'active' | 'cancelled';
+  status: "active" | "cancelled";
   start_time: string;
+  startTime?: string;
   end_time: string;
   event_type: string;
   location?: {
@@ -17,7 +18,7 @@ export interface CalendlyEvent {
     active: number;
     limit: number;
   };
-  event_memberships?: any[];
+  event_memberships?: unknown[];
   calendar_event?: {
     external_id: string;
     kind: string;
@@ -73,7 +74,7 @@ export interface EventType {
   scheduling_url: string;
   booking_method?: string;
   internal_note?: string;
-  type?: 'StandardEventType' | 'GroupEventType';
+  type?: "StandardEventType" | "GroupEventType";
   secret?: boolean;
   pooling_type?: string;
   custom_questions?: Array<{
@@ -90,7 +91,7 @@ export interface EventType {
 export interface AvailableSlot {
   start_time: string;
   end_time: string;
-  status: 'available';
+  status: "available";
   date: string;
   time_slot: string;
   duration_minutes: number;
@@ -124,7 +125,7 @@ export interface ConnectionStatus {
     connected_at: string;
     expires_at: string;
     is_active: boolean;
-    config_blob: any;
+    config_blob: unknown;
   };
 }
 
@@ -198,7 +199,7 @@ export interface CalendarViewEvent {
   start: Date;
   end: Date;
   resource?: {
-    type: 'available' | 'busy' | 'meeting';
+    type: "available" | "busy" | "meeting";
     event: CalendlyEvent | CalendlyMeeting;
     status: string;
   };
@@ -225,7 +226,7 @@ export interface CalendlyState {
 
 // Filter Types
 export interface MeetingFilters {
-  status?: 'upcoming' | 'past' | 'cancelled' | 'all';
+  status?: "upcoming" | "past" | "cancelled" | "all";
   eventType?: string;
   dateRange?: {
     start: string;
@@ -235,7 +236,7 @@ export interface MeetingFilters {
 }
 
 export interface CalendarViewType {
-  view: 'month' | 'week' | 'day' | 'agenda';
+  view: "month" | "week" | "day" | "agenda";
   date: Date;
 }
 
@@ -269,15 +270,44 @@ export interface EventTypeFormDataExtended {
   name: string;
   description: string;
   duration: number;
-  kind: 'solo' | 'group';
+  kind: "solo" | "group";
   color: string;
   active: boolean;
-  booking_method: 'instant' | 'confirmation_required';
-  location_type: 'ask_invitee' | 'phone' | 'video' | 'in_person' | 'custom';
+  booking_method: "instant" | "confirmation_required";
+  location_type: "ask_invitee" | "phone" | "video" | "in_person" | "custom";
   location_details?: string;
   buffer_time_before?: number;
   buffer_time_after?: number;
   minimum_notice?: number;
   maximum_notice?: number;
   days_available?: number;
-} 
+}
+
+export type CalendlyInlineWidgetOptions = {
+  url: string;
+  parentElement: HTMLElement | null;
+  prefill?: {
+    name?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    customAnswers?: Record<string, string>;
+    guests?: string[];
+  };
+  utm?: {
+    utmCampaign?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmContent?: string;
+    utmTerm?: string;
+  };
+};
+
+export type CalendlyEventPayload = {
+  event: {
+    uri: string;
+  };
+  invitee: {
+    uri: string;
+  };
+};

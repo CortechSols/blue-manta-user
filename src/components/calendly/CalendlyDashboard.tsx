@@ -1,39 +1,27 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   Calendar,
   Users,
   Clock,
   Settings,
   AlertCircle,
-  RefreshCw,
-  Plus,
   BarChart3,
   ExternalLink,
-  CalendarPlus,
   Download,
-  CheckCircle,
-  UserCheck,
   Activity,
-  TrendingUp,
   ChevronRight,
   ChevronLeft,
-  Filter,
-  Search,
-  MoreHorizontal,
-  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { RefreshButton } from "@/components/ui/refresh-button";
 import { CalendarView } from "./CalendarView";
 import { MeetingsList } from "./MeetingsList";
 import { EventTypesList } from "./EventTypesList";
-import { BookingModal } from "./BookingModal";
 import { CancelMeetingModal } from "./CancelMeetingModal";
-import type { EventTypeFormData } from "@/types/calendly";
 import {
   useCalendlyDashboard,
   useCalendlyActions,
@@ -43,8 +31,7 @@ import {
   useSetSelectedDate,
   useLoadEvents,
 } from "@/stores/calendlyStore";
-import { format, addDays, subDays } from "date-fns";
-import { shouldUseDemoData } from "@/lib/demo-data";
+import { format } from "date-fns";
 
 interface CalendlyDashboardProps {
   className?: string;
@@ -59,16 +46,22 @@ const MetricCard: React.FC<{
 }> = ({ title, value, subtitle, icon, color }) => {
   return (
     <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
+      <CardContent className="p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <p className="text-xs md:text-sm font-medium text-gray-500">
+              {title}
+            </p>
             <div className="flex items-baseline space-x-2">
-              <h3 className="text-3xl font-bold text-gray-900">{value}</h3>
-              {subtitle && <p className="text-sm text-gray-400">{subtitle}</p>}
+              <h3 className="text-xl md:text-3xl font-bold text-gray-900">
+                {value}
+              </h3>
+              {subtitle && (
+                <p className="text-xs md:text-sm text-gray-400">{subtitle}</p>
+              )}
             </div>
           </div>
-          <div className={`p-3 rounded-full ${color}`}>{icon}</div>
+          <div className={`p-2 md:p-3 rounded-full ${color}`}>{icon}</div>
         </div>
       </CardContent>
     </Card>
@@ -77,28 +70,26 @@ const MetricCard: React.FC<{
 
 const QuickActionsSection: React.FC = () => {
   const actions = useCalendlyActions();
-  const connectionStatus = useCalendlyConnection();
 
   return (
     <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-gray-600" />
+      <CardHeader className="pb-3 md:pb-4">
+        <CardTitle className="text-base md:text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <Settings className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
           Quick Actions
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <Button
-          className="w-full !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 font-medium shadow-sm"
-          onClick={() => actions?.refreshAll?.()}
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh All Data
-        </Button>
+      <CardContent className="p-4 md:p-6 space-y-3">
+        <RefreshButton
+          onRefresh={() => actions?.refreshAll?.()}
+          label="Refresh All Data"
+          variant="default"
+          className="w-full !bg-blue-600 hover:!bg-blue-700 !text-white !border-blue-600 font-medium shadow-sm text-sm md:text-base"
+        />
 
         <Button
           variant="outline"
-          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700"
+          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700 text-sm md:text-base"
           onClick={() =>
             window.open("https://calendly.com/analytics", "_blank")
           }
@@ -109,7 +100,7 @@ const QuickActionsSection: React.FC = () => {
 
         <Button
           variant="outline"
-          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700"
+          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700 text-sm md:text-base"
           onClick={() => console.log("Export data")}
         >
           <Download className="w-4 h-4 mr-2" />
@@ -118,8 +109,10 @@ const QuickActionsSection: React.FC = () => {
 
         <Button
           variant="outline"
-          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700"
-          onClick={() => window.open("https://calendly.com/event_types", "_blank")}
+          className="w-full border-gray-200 hover:bg-gray-50 text-gray-700 text-sm md:text-base"
+          onClick={() =>
+            window.open("https://calendly.com/event_types", "_blank")
+          }
         >
           <ExternalLink className="w-4 h-4 mr-2" />
           Manage Event Types
@@ -135,25 +128,22 @@ const ConnectionStatusSection: React.FC = () => {
 
   return (
     <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-800">
+      <CardHeader className="pb-3 md:pb-4">
+        <CardTitle className="text-base md:text-lg font-semibold text-gray-800">
           Connection Status
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-4 md:p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
+          <RefreshButton
+            onRefresh={() => actions?.refreshAll?.()}
+            label="Check Connections"
             size="sm"
-            className="border-gray-200 hover:bg-gray-50 text-gray-700"
-            onClick={() => actions?.refreshAll?.()}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Check Connections
-          </Button>
+            className="border-gray-200 hover:bg-gray-50 text-gray-700 text-xs md:text-sm"
+          />
         </div>
 
-        <div className="space-y-3 text-sm">
+        <div className="space-y-3 text-xs md:text-sm">
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">Organization Connected:</span>
             <div className="flex items-center gap-2">
@@ -176,7 +166,7 @@ const ConnectionStatusSection: React.FC = () => {
           <div className="flex items-center justify-between py-2">
             <span className="text-gray-600">Last Sync:</span>
             <span className="font-medium text-gray-900">
-              {format(new Date(), 'dd/MM/yyyy')}
+              {format(new Date(), "dd/MM/yyyy")}
             </span>
           </div>
         </div>
@@ -186,8 +176,10 @@ const ConnectionStatusSection: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50"
-              onClick={() => window.open("https://calendly.com/integrations", "_blank")}
+              className="w-full text-blue-600 border-blue-300 hover:bg-blue-50 text-xs md:text-sm"
+              onClick={() =>
+                window.open("https://calendly.com/integrations", "_blank")
+              }
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               Manage in Calendly
@@ -204,45 +196,47 @@ const UserSelectionSection: React.FC = () => {
 
   return (
     <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-3 md:pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-600" />
+          <CardTitle className="text-base md:text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Users className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
             Connected User
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-4 md:p-6">
         <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50">
+          <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 border border-gray-100 rounded-lg bg-gray-50">
             <input
               type="checkbox"
               defaultChecked
               disabled
-              className="w-4 h-4 text-blue-600 rounded border-gray-300"
+              className="w-4 h-4 text-blue-600 rounded border-gray-300 flex-shrink-0"
             />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-medium text-gray-900">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="font-medium text-gray-900 text-sm md:text-base truncate">
                   {connectionStatus?.user_name || "Connected User"}
                 </span>
-                <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1">
+                <Badge className="bg-green-100 text-green-800 text-xs px-2 py-1 flex-shrink-0">
                   Connected
                 </Badge>
                 <Badge
                   variant="outline"
-                  className="text-gray-600 text-xs px-2 py-1"
+                  className="text-gray-600 text-xs px-2 py-1 flex-shrink-0"
                 >
                   user
                 </Badge>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs md:text-sm text-gray-500 truncate">
                 {connectionStatus?.scheduling_url || "Calendly User"}
               </p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 mt-3">1 user connected</p>
+          <p className="text-xs md:text-sm text-gray-500 mt-3">
+            1 user connected
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -262,27 +256,27 @@ const CalendarOverviewSection: React.FC = () => {
   // No need to load data here as it creates infinite loops
 
   const handleViewChange = (view: string) => {
-    setCalendarView({ 
-      ...calendarView, 
-      view: view.toLowerCase() as any 
+    setCalendarView({
+      ...calendarView,
+      view: view.toLowerCase() as any,
     });
   };
 
-  const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
+  const handleNavigate = (direction: "prev" | "next" | "today") => {
     // Ensure we have a proper Date object
     const currentDate = new Date(calendarView.date);
     let newDate: Date;
 
     switch (direction) {
-      case 'prev':
+      case "prev":
         newDate = new Date(currentDate);
         newDate.setMonth(newDate.getMonth() - 1);
         break;
-      case 'next':
+      case "next":
         newDate = new Date(currentDate);
         newDate.setMonth(newDate.getMonth() + 1);
         break;
-      case 'today':
+      case "today":
         newDate = new Date();
         break;
       default:
@@ -291,22 +285,24 @@ const CalendarOverviewSection: React.FC = () => {
 
     setCalendarView({ ...calendarView, date: newDate });
     setSelectedDate(newDate);
-    
+
     // Load events for the new date range
     loadEvents();
   };
 
   const getCurrentViewName = () => {
-    return calendarView.view.charAt(0).toUpperCase() + calendarView.view.slice(1);
+    return (
+      calendarView.view.charAt(0).toUpperCase() + calendarView.view.slice(1)
+    );
   };
 
   // Get meetings for the current month
   const getMeetingsForDate = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return meetings.filter(meeting => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return meetings.filter((meeting) => {
       const meetingDate = new Date(meeting.start_time || meeting.startTime);
-      const meetingDateStr = format(meetingDate, 'yyyy-MM-dd');
-      return meetingDateStr === dateStr && meeting.status === 'active';
+      const meetingDateStr = format(meetingDate, "yyyy-MM-dd");
+      return meetingDateStr === dateStr && meeting.status === "active";
     });
   };
 
@@ -316,26 +312,25 @@ const CalendarOverviewSection: React.FC = () => {
     const currentDate = new Date(calendarView.date);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     // First day of the month
     const firstDay = new Date(year, month, 1);
-    // Last day of the month
-    const lastDay = new Date(year, month + 1, 0);
-    
+
     // Start from the Sunday before the first day
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
+
     // Generate 42 days (6 weeks) to fill the calendar grid
     const days = [];
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      
+
       const isCurrentMonth = date.getMonth() === month;
-      const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+      const isToday =
+        format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
       const dayMeetings = getMeetingsForDate(date);
-      
+
       days.push({
         date,
         dayNumber: date.getDate(),
@@ -344,33 +339,35 @@ const CalendarOverviewSection: React.FC = () => {
         meetings: dayMeetings,
       });
     }
-    
+
     return days;
   };
 
   return (
     <Card className="bg-white border border-gray-100 shadow-sm">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800">
+      <CardHeader className="pb-3 md:pb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <CardTitle className="text-base md:text-lg font-semibold text-gray-800">
             Calendar Overview
           </CardTitle>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-4 w-full md:w-auto">
+            <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
               <span>Users:</span>
               <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
+                <Users className="w-3 h-3 md:w-4 md:h-4" />
                 <span className="font-medium">1 selected</span>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {views.map((view) => (
                 <Button
                   key={view}
-                  variant={getCurrentViewName() === view ? "default" : "outline"}
+                  variant={
+                    getCurrentViewName() === view ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => handleViewChange(view)}
-                  className={`text-xs px-3 py-1 ${
+                  className={`text-xs px-2 md:px-3 py-1 ${
                     getCurrentViewName() === view
                       ? "!bg-blue-600 !text-white hover:!bg-blue-700 !border-blue-600"
                       : "border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -383,27 +380,27 @@ const CalendarOverviewSection: React.FC = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
+      <CardContent className="p-4 md:p-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Calendar Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {format(new Date(calendarView.date), 'MMMM yyyy')}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <h3 className="text-lg md:text-xl font-semibold text-gray-900">
+              {format(new Date(calendarView.date), "MMMM yyyy")}
             </h3>
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="sm"
                 className="p-2 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('prev')}
+                onClick={() => handleNavigate("prev")}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="px-4 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('today')}
+                className="px-3 md:px-4 border-gray-200 hover:bg-gray-50 text-xs md:text-sm"
+                onClick={() => handleNavigate("today")}
               >
                 Today
               </Button>
@@ -411,7 +408,7 @@ const CalendarOverviewSection: React.FC = () => {
                 variant="outline"
                 size="sm"
                 className="p-2 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('next')}
+                onClick={() => handleNavigate("next")}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -419,48 +416,49 @@ const CalendarOverviewSection: React.FC = () => {
           </div>
 
           {/* Calendar Grid - Only show for Month view */}
-          {getCurrentViewName() === 'Month' && (
+          {getCurrentViewName() === "Month" && (
             <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
               {/* Days of week header */}
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                 <div
                   key={day}
-                  className="bg-gray-50 p-3 text-center text-sm font-medium text-gray-700"
+                  className="bg-gray-50 p-2 md:p-3 text-center text-xs md:text-sm font-medium text-gray-700"
                 >
                   {day}
                 </div>
               ))}
-              
+
               {/* Calendar days */}
               {generateCalendarDays().map((day, i) => (
                 <div
                   key={i}
-                  className={`bg-white aspect-square p-2 text-center text-sm border-0 relative ${
+                  className={`bg-white aspect-square p-1 md:p-2 text-center text-xs md:text-sm border-0 relative ${
                     day.isCurrentMonth
                       ? "hover:bg-gray-50 cursor-pointer text-gray-900"
                       : "text-gray-300"
                   } ${
-                    day.isToday
-                      ? "bg-blue-50 text-blue-700 font-semibold"
-                      : ""
+                    day.isToday ? "bg-blue-50 text-blue-700 font-semibold" : ""
                   }`}
                 >
                   <div className="font-medium">
                     {day.dayNumber.toString().padStart(2, "0")}
                   </div>
-                  
+
                   {/* Meeting indicators */}
                   {day.meetings.length > 0 && (
-                    <div className="mt-1 space-y-1">
+                    <div className="mt-1 space-y-0.5 md:space-y-1">
                       {day.meetings.slice(0, 2).map((meeting, idx) => (
                         <div
                           key={idx}
-                          className="w-full h-1 bg-blue-500 rounded-full"
-                          title={`${meeting.name} - ${format(new Date(meeting.start_time || meeting.startTime), 'h:mm a')}`}
+                          className="w-full h-0.5 md:h-1 bg-blue-500 rounded-full"
+                          title={`${meeting.name} - ${format(
+                            new Date(meeting.start_time || meeting.startTime),
+                            "h:mm a"
+                          )}`}
                         />
                       ))}
                       {day.meetings.length > 2 && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 hidden md:block">
                           +{day.meetings.length - 2} more
                         </div>
                       )}
@@ -472,15 +470,21 @@ const CalendarOverviewSection: React.FC = () => {
           )}
 
           {/* Week View */}
-          {getCurrentViewName() === 'Week' && (
+          {getCurrentViewName() === "Week" && (
             <div className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Week View</h3>
-                <p>Week view for {format(new Date(calendarView.date), 'MMM d, yyyy')}</p>
+              <div className="text-center py-6 md:py-8 text-gray-500">
+                <Calendar className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-base md:text-lg font-medium text-gray-700 mb-2">
+                  Week View
+                </h3>
+                <p className="text-sm md:text-base">
+                  Week view for{" "}
+                  {format(new Date(calendarView.date), "MMM d, yyyy")}
+                </p>
                 {meetings.length > 0 && (
-                  <p className="text-sm mt-2">
-                    {meetings.filter(m => m.status === 'active').length} active meetings this period
+                  <p className="text-xs md:text-sm mt-2">
+                    {meetings.filter((m) => m.status === "active").length}{" "}
+                    active meetings this period
                   </p>
                 )}
               </div>
@@ -488,25 +492,43 @@ const CalendarOverviewSection: React.FC = () => {
           )}
 
           {/* Day View */}
-          {getCurrentViewName() === 'Day' && (
+          {getCurrentViewName() === "Day" && (
             <div className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
-                <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Day View</h3>
-                <p>Day view for {format(new Date(calendarView.date), 'EEEE, MMM d, yyyy')}</p>
+              <div className="text-center py-6 md:py-8 text-gray-500">
+                <Clock className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-base md:text-lg font-medium text-gray-700 mb-2">
+                  Day View
+                </h3>
+                <p className="text-sm md:text-base">
+                  Day view for{" "}
+                  {format(new Date(calendarView.date), "EEEE, MMM d, yyyy")}
+                </p>
                 {(() => {
-                  const dayMeetings = getMeetingsForDate(new Date(calendarView.date));
+                  const dayMeetings = getMeetingsForDate(
+                    new Date(calendarView.date)
+                  );
                   return dayMeetings.length > 0 ? (
                     <div className="mt-4 space-y-2">
-                      <p className="text-sm font-medium">Meetings today:</p>
+                      <p className="text-xs md:text-sm font-medium">
+                        Meetings today:
+                      </p>
                       {dayMeetings.map((meeting, idx) => (
-                        <div key={idx} className="text-sm bg-blue-50 p-2 rounded">
-                          {meeting.name} - {format(new Date(meeting.start_time || meeting.startTime), 'h:mm a')}
+                        <div
+                          key={idx}
+                          className="text-xs md:textsm bg-blue-50 p-2 rounded"
+                        >
+                          {meeting.name} -{" "}
+                          {format(
+                            new Date(meeting.start_time || meeting.startTime),
+                            "h:mm a"
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm mt-2">No meetings scheduled for this day</p>
+                    <p className="text-xs md:text-sm mt-2">
+                      No meetings scheduled for this day
+                    </p>
                   );
                 })()}
               </div>
@@ -514,15 +536,20 @@ const CalendarOverviewSection: React.FC = () => {
           )}
 
           {/* Agenda View */}
-          {getCurrentViewName() === 'Agenda' && (
+          {getCurrentViewName() === "Agenda" && (
             <div className="space-y-4">
-              <div className="text-center py-8 text-gray-500">
-                <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Agenda View</h3>
-                <p>Upcoming meetings and events</p>
+              <div className="text-center py-6 md:py-8 text-gray-500">
+                <Activity className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-base md:text-lg font-medium text-gray-700 mb-2">
+                  Agenda View
+                </h3>
+                <p className="text-sm md:text-base">
+                  Upcoming meetings and events
+                </p>
                 {meetings.length > 0 && (
-                  <p className="text-sm mt-2">
-                    {meetings.filter(m => m.status === 'active').length} total meetings
+                  <p className="text-xs md:text-sm mt-2">
+                    {meetings.filter((m) => m.status === "active").length} total
+                    meetings
                   </p>
                 )}
               </div>
@@ -537,7 +564,7 @@ const CalendarOverviewSection: React.FC = () => {
 export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
   className = "",
 }) => {
-  const { connectionStatus, loading, error, events, meetings, eventTypes } =
+  const { connectionStatus, error, meetings, eventTypes } =
     useCalendlyDashboard();
   const actions = useCalendlyActions();
   const [activeTab, setActiveTab] = useState("overview");
@@ -553,29 +580,27 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
     );
   });
 
-  const connectedUsers = connectionStatus?.is_connected ? 1 : 0;
   const activeEventTypes = eventTypes.filter((et) => et.active);
   const totalMeetings = meetings.length;
 
   // Show error state
   if (error) {
     return (
-      <div className={`space-y-6 ${className}`}>
+      <div className={`space-y-4 md:space-y-6 ${className}`}>
         <Alert className="border-red-200 bg-red-50">
           <AlertCircle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <div className="flex items-center justify-between">
-              <span>Error: {error}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <span className="text-sm md:text-base">Error: {error}</span>
+              <RefreshButton
+                onRefresh={() => {
                   actions?.clearError?.();
                   actions?.refreshAll?.();
                 }}
-              >
-                Try Again
-              </Button>
+                label="Try Again"
+                size="sm"
+                className="text-xs md:text-sm"
+              />
             </div>
           </AlertDescription>
         </Alert>
@@ -585,63 +610,60 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
 
   return (
     <div className={`min-h-screen bg-gray-50 ${className}`}>
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8">
         {/* API Limitations Notice */}
         <Alert className="border-blue-200 bg-blue-50">
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <p className="font-medium mb-1">Calendly API v2 Integration</p>
-            <p className="text-sm">
-              This dashboard provides read-only access to your Calendly data with limited management capabilities. 
-              For full event type management and advanced features, use your Calendly dashboard directly.
+            <p className="font-medium mb-1 text-sm md:text-base">
+              Calendly API v2 Integration
+            </p>
+            <p className="text-xs md:text-sm">
+              This dashboard provides read-only access to your Calendly data
+              with limited management capabilities. For full event type
+              management and advanced features, use your Calendly dashboard
+              directly.
             </p>
           </AlertDescription>
         </Alert>
 
         {/* Header Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <MetricCard
             title="Today's Meetings"
             value={todaysMeetings.length}
-            icon={<Calendar className="w-6 h-6 text-white" />}
+            icon={<Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-blue-500"
-          />
-          <MetricCard
-            title="Connected Users"
-            value={connectedUsers}
-            subtitle="of 1 total"
-            icon={<Users className="w-6 h-6 text-white" />}
-            color="bg-green-500"
           />
           <MetricCard
             title="Active Event Types"
             value={activeEventTypes.length}
-            icon={<Activity className="w-6 h-6 text-white" />}
+            icon={<Activity className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-purple-500"
           />
           <MetricCard
             title="Total Meetings"
             value={totalMeetings}
-            icon={<BarChart3 className="w-6 h-6 text-white" />}
+            icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-orange-500"
           />
         </div>
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
+          <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 text-xs md:text-sm">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="meetings">Meetings</TabsTrigger>
             <TabsTrigger value="event-types">Event Types</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <TabsContent value="overview" className="space-y-4 md:space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-0">
               <div className="lg:col-span-2">
                 <CalendarOverviewSection />
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 <QuickActionsSection />
                 <ConnectionStatusSection />
                 <UserSelectionSection />
@@ -649,20 +671,20 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="calendar" className="space-y-6">
+          <TabsContent value="calendar" className="space-y-4 md:space-y-6">
             <CalendarView />
           </TabsContent>
 
-          <TabsContent value="meetings" className="space-y-6">
+          <TabsContent value="meetings" className="space-y-4 md:space-y-6">
             <MeetingsList />
           </TabsContent>
 
-          <TabsContent value="event-types" className="space-y-6">
+          <TabsContent value="event-types" className="space-y-4 md:space-y-6">
             <EventTypesList />
           </TabsContent>
         </Tabs>
       </div>
-      
+
       {/* Modals */}
       <CancelMeetingModal />
     </div>

@@ -1,5 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import apiClient from "../lib/api";
+import { queryClient } from "../lib/react-query";
+import { useCalendlyStore } from "@/stores/calendly/store";
 import type {
   //   PlatformAdminLoginRequest,
   //   PlatformAdminLoginResponse,
@@ -95,11 +97,21 @@ export function useLogin() {
     { email: string; password: string }
   >({
     mutationFn: async (credentials) => {
-      const response = await apiClient.post("/auth/organizations/login/", credentials);
+      const response = await apiClient.post(
+        "/auth/organizations/login/",
+        credentials
+      );
       return response.data;
     },
     onSuccess: (data) => {
       console.log(data);
+
+      // Clear React Query cache to ensure fresh data for new user
+      queryClient.invalidateQueries();
+
+      // Clear Calendly store data for fresh start
+      useCalendlyStore.getState().actions.clearAllData();
+
       // Store tokens in localStorage
       localStorage.setItem("accessToken", data.tokens.access);
       localStorage.setItem("refreshToken", data.tokens.refresh);
@@ -178,11 +190,11 @@ export function useOrganizationLogin() {
 
 // Chatbots API hooks - Updated to use new chatbot service
 export function useChatbots() {
-  return useApiQuery(["chatbots", "list"], "/chatbots/");
+  return useApiQuery(["chatbots", "list"], "/chatbots/chatbots");
 }
 
 export function useCreateChatbot() {
-  return useApiMutation("/chatbots/", "POST");
+  return useApiMutation("/chatbots/chatbots", "POST");
 }
 
 // Organizations API hooks (for platform admin)
@@ -208,11 +220,19 @@ export function getUserType(): string | null {
 }
 
 export function logout(): void {
+  // Clear all React Query cache to prevent data leaking between users
+  queryClient.invalidateQueries();
+
+  // Clear Calendly store data
+  useCalendlyStore.getState().actions.clearAllData();
+
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("userType");
   localStorage.removeItem("userInfo");
   localStorage.removeItem("organizationInfo");
+  localStorage.removeItem("calendly-store");
+  localStorage.removeItem("calendly_code_verifier");
 }
 
 // Calendly Integration Hooks

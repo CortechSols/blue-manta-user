@@ -218,5 +218,63 @@ export const createUtilityActions: StateCreator<
       set((state) => {
         state.loading[key] = value;
       }),
+
+    clearAllData: () =>
+      set((state) => {
+        // Reset all data to initial state
+        state.connectionStatus = null;
+        state.events = [];
+        state.meetings = [];
+        state.eventTypes = [];
+        state.availabilitySchedules = [];
+        state.error = null;
+        
+        // Reset loading states
+        state.loading = {
+          events: false,
+          meetings: false,
+          eventTypes: false,
+          availability: false,
+          connection: false,
+        };
+        
+        // Reset UI state
+        state.selectedDate = new Date();
+        state.calendarView = {
+          view: 'month',
+          date: new Date(),
+        };
+        state.meetingFilters = {
+          status: 'all',
+        };
+        state.selectedMeetings = [];
+        
+        // Close all modals
+        state.modals = {
+          cancelMeeting: {
+            isOpen: false,
+            meetingUri: null,
+          },
+          rescheduleMeeting: {
+            isOpen: false,
+            meetingUri: null,
+          },
+          meetingDetails: {
+            isOpen: false,
+            meeting: null,
+          },
+          eventTypeDetails: {
+            isOpen: false,
+            eventType: null,
+          },
+          availabilityEditor: {
+            isOpen: false,
+          },
+          bookingForm: {
+            isOpen: false,
+            eventTypeUri: null,
+          },
+        };
+      }),
   },
 }); 

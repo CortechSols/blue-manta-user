@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import apiClient from "../lib/api";
 
 // Organization type based on API response (Updated to match actual response)
@@ -36,6 +36,23 @@ export type OrganizationDetail = {
   created_at: string;
 };
 
+// Organization details type for the specific endpoint
+export type OrganizationDetails = {
+  organization: {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    contactEmail: string;
+  };
+};
+
+// Update organization details request type
+export type UpdateOrganizationDetailsRequest = {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+};
+
 // Hook to fetch all organizations
 // Disabled organization fetching for user-specific Calendly integration
 // This will be handled differently for individual users
@@ -63,6 +80,44 @@ export function useOrganization(organizationId: number | string) {
     enabled: !!organizationId, // Only run query if organizationId is provided
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+// Hook to fetch organization details from the specific endpoint
+export function useOrganizationDetails() {
+  return useQuery<OrganizationDetails>({
+    queryKey: ["organization", "details"],
+    queryFn: async () => {
+      const response = await apiClient.get(
+        "/auth/organizations/organization_details/"
+      );
+      console.log("🔥 Organization Details API Response:", response.data);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+}
+
+// Hook to update organization details
+export function useUpdateOrganizationDetails() {
+  return useMutation({
+    mutationFn: async (data: UpdateOrganizationDetailsRequest) => {
+      const response = await apiClient.patch(
+        "/auth/organizations/update_organization_details/",
+        data
+      );
+      console.log(
+        "🔥 Update Organization Details API Response:",
+        response.data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate and refetch organization details
+      // This will trigger a refetch of the organization details
+      console.log("Organization details updated successfully");
+    },
   });
 }
 
@@ -100,4 +155,48 @@ export function getOrganizationDetailFullName(
 
   const result = `${firstName} ${lastName}`.trim();
   return result;
+}
+
+// Helper function to get full organization name for details type
+export function getOrganizationDetailsFullName(
+  organization: OrganizationDetails
+): string {
+  if (!organization) {
+    return "Unknown Organization";
+  }
+
+  const firstName = organization?.organization?.firstName || "";
+  const lastName = organization?.organization?.lastName || "";
+
+  if (!firstName && !lastName) {
+    return "Unnamed Organization";
+  }
+
+  const result = `${firstName} ${lastName}`.trim();
+  return result;
+}
+
+// Hook to send OTP for password reset
+export function useSendPasswordResetOtp() {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post("/auth/organizations/send_otp/");
+      console.log("🔥 Send OTP API Response:", response.data);
+      return response.data;
+    },
+  });
+}
+
+// Hook to reset password with OTP
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (data: { otp: string; newPassword: string }) => {
+      const response = await apiClient.post(
+        "/auth/organizations/reset_password/",
+        data
+      );
+      console.log("🔥 Reset Password API Response:", response.data);
+      return response.data;
+    },
+  });
 }

@@ -49,7 +49,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white flex overflow-hidden">
       {/* Left Sidebar */}
       <div
-        className="w-20 flex flex-col items-center py-6"
+        className="w-20 hidden md:flex flex-col items-center py-6"
         style={{ backgroundColor: "#90E0EF" }}
       >
         {/* Small Manta Ray Logo at top */}
@@ -65,7 +65,16 @@ export default function LoginPage() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Top Navbar */}
-        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6">
+        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:justify-end md:px-6">
+          {/* Logo for mobile */}
+          <div className="md:hidden">
+            <img
+              src="/bml-side-logo.png"
+              alt="Blue Manta Labs"
+              className="w-10 h-10 object-contain"
+            />
+          </div>
+          
           {/* User Icon on the right */}
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -78,20 +87,20 @@ export default function LoginPage() {
         {/* Main Content */}
         <div className="flex-1 relative">
           {/* Company Branding - positioned at top center */}
-          <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-center">
+          <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 text-center z-10">
             <h1
-              className="text-4xl font-bold mb-2"
+              className="text-2xl md:text-4xl font-bold mb-2"
               style={{ color: "#0077B6" }}
             >
               Blue Manta Labs
             </h1>
-            <p className="text-2xl" style={{ color: "#00B4D8" }}>
+            <p className="text-lg md:text-2xl" style={{ color: "#00B4D8" }}>
               Manta Engage
             </p>
           </div>
 
-          {/* Background Logo */}
-          <div className="absolute left-0 ">
+          {/* Background Logo - hidden on small screens to prevent overlap */}
+          <div className="hidden lg:block absolute left-0 top-0 bottom-0 opacity-30">
             <img
               src="/bml-side-logo.png"
               alt="Blue Manta Labs Logo"
@@ -99,21 +108,21 @@ export default function LoginPage() {
             />
           </div>
 
-          <div className="grid place-items-center h-full w-full">
+          <div className="grid place-items-center h-full w-full pt-24 md:pt-32 px-4">
             <Card
-              className="shadow-lg rounded-2xl border-0 min-w-[60%] max-w-md"
+              className="shadow-xl rounded-2xl border-0 w-full max-w-sm md:max-w-md"
               style={{ backgroundColor: "#EBF9FC" }}
             >
-              <CardContent className="flex flex-col items-center justify-center h-full p-8">
+              <CardContent className="flex flex-col items-center justify-center h-full p-6 md:p-8">
                 <h2
-                  className="text-4xl font-semibold mb-8"
+                  className="text-2xl md:text-4xl font-semibold mb-6 md:mb-8"
                   style={{ color: "#0077B6" }}
                 >
                   Organization Login
                 </h2>
 
                 {error && (
-                  <Alert className="border-red-200 bg-red-50 mb-6">
+                  <Alert className="border-red-200 bg-red-50 mb-6 w-full">
                     <AlertCircle className="h-4 w-4 text-red-600" />
                     <AlertDescription className="text-red-800">
                       {error}
@@ -121,7 +130,7 @@ export default function LoginPage() {
                   </Alert>
                 )}
 
-                <form onSubmit={handleSubmit} className="w-[50%] space-y-6">
+                <form onSubmit={handleSubmit} className="w-full md:w-[75%] space-y-6">
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
@@ -138,7 +147,7 @@ export default function LoginPage() {
                         handleInputChange();
                       }}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-base"
                       placeholder="Enter your email"
                     />
                   </div>
@@ -160,18 +169,18 @@ export default function LoginPage() {
                           handleInputChange();
                         }}
                         required
-                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-base"
                         placeholder="Enter your password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-50 rounded-r-lg transition-colors duration-200"
                       >
                         {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-gray-400" />
+                          <EyeOff className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                         ) : (
-                          <Eye className="h-4 w-4 text-gray-400" />
+                          <Eye className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                         )}
                       </button>
                     </div>
@@ -180,10 +189,17 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={isLoading || !email || !password}
-                    className="w-full px-16 py-3 text-white font-medium rounded-full h-12 text-base disabled:opacity-50"
+                    className="w-full px-16 py-3 text-white font-medium rounded-full h-12 text-base disabled:opacity-50 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
                     style={{ backgroundColor: "#03045E" }}
                   >
-                    {isLoading ? "Logging in..." : "Log In"}
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Logging in...
+                      </div>
+                    ) : (
+                      "Log In"
+                    )}
                   </Button>
                 </form>
               </CardContent>

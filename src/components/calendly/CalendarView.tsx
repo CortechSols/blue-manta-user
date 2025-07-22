@@ -1,22 +1,21 @@
-import React, { useMemo, useCallback } from 'react';
-import { format } from 'date-fns';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Users, 
+import React from "react";
+import { format } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Users,
   ChevronLeft,
   ChevronRight,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { CalendlyEvent, CalendlyMeeting } from '@/types/calendly';
-import { 
-  useCalendlyEvents, 
-  useCalendlyMeetings, 
-  useCalendlyActions, 
-  useCalendlyCalendarView 
-} from '@/stores/calendlyStore';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { CalendlyEvent, CalendlyMeeting } from "@/types/calendly";
+import {
+  useCalendlyMeetings,
+  useCalendlyActions,
+  useCalendlyCalendarView,
+} from "@/stores/calendlyStore";
 
 interface CalendarViewProps {
   onEventClick?: (event: CalendlyEvent | CalendlyMeeting) => void;
@@ -27,14 +26,11 @@ interface CalendarViewProps {
 export const CalendarView: React.FC<CalendarViewProps> = ({
   onEventClick,
   onSlotClick,
-  className = '',
+  className = "",
 }) => {
-  const events = useCalendlyEvents();
   const meetings = useCalendlyMeetings();
   const calendarView = useCalendlyCalendarView();
   const actions = useCalendlyActions();
-
-
 
   const views = ["Month", "Week", "Day", "Agenda"];
 
@@ -44,27 +40,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   // Navigate to month with meetings when meetings are loaded (removed to prevent infinite rendering)
 
   const handleViewChange = (view: string) => {
-    actions.setCalendarView({ 
-      ...calendarView, 
-      view: view.toLowerCase() as 'month' | 'week' | 'day' | 'agenda'
+    actions.setCalendarView({
+      ...calendarView,
+      view: view.toLowerCase() as "month" | "week" | "day" | "agenda",
     });
   };
 
-  const handleNavigate = (direction: 'prev' | 'next' | 'today') => {
+  const handleNavigate = (direction: "prev" | "next" | "today") => {
     // Ensure we have a proper Date object
     const currentDate = new Date(calendarView.date);
     let newDate: Date;
 
     switch (direction) {
-      case 'prev':
+      case "prev":
         newDate = new Date(currentDate);
         newDate.setMonth(newDate.getMonth() - 1);
         break;
-      case 'next':
+      case "next":
         newDate = new Date(currentDate);
         newDate.setMonth(newDate.getMonth() + 1);
         break;
-      case 'today':
+      case "today":
         newDate = new Date();
         break;
       default:
@@ -73,38 +69,44 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
     actions.setCalendarView({ ...calendarView, date: newDate });
     actions.setSelectedDate(newDate);
-    
+
     // Load events for the new date range
     actions.loadEvents();
   };
 
   const getCurrentViewName = () => {
-    return calendarView.view.charAt(0).toUpperCase() + calendarView.view.slice(1);
+    return (
+      calendarView.view.charAt(0).toUpperCase() + calendarView.view.slice(1)
+    );
   };
 
   // Get meetings for the current date
   const getMeetingsForDate = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    
-    return meetings.filter(meeting => {
+    const dateStr = format(date, "yyyy-MM-dd");
+
+    return meetings.filter((meeting) => {
       // Check for both possible field names: start_time (snake_case) or startTime (camelCase)
       const meetingStartTime = meeting.start_time || (meeting as any).startTime;
-      
+
       // Validate meeting has a start time and it's a valid date
-      if (!meetingStartTime || meetingStartTime === 'null' || meetingStartTime === '') {
+      if (
+        !meetingStartTime ||
+        meetingStartTime === "null" ||
+        meetingStartTime === ""
+      ) {
         return false;
       }
-      
+
       try {
         const meetingDate = new Date(meetingStartTime);
         // Check if the date is valid
         if (isNaN(meetingDate.getTime())) {
           return false;
         }
-        const meetingDateStr = format(meetingDate, 'yyyy-MM-dd');
-        return meetingDateStr === dateStr && meeting.status === 'active';
+        const meetingDateStr = format(meetingDate, "yyyy-MM-dd");
+        return meetingDateStr === dateStr && meeting.status === "active";
       } catch (error) {
-        console.warn('Error processing meeting date:', meetingStartTime, error);
+        console.warn("Error processing meeting date:", meetingStartTime, error);
         return false;
       }
     });
@@ -116,24 +118,25 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const currentDate = new Date(calendarView.date);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
+
     // First day of the month
     const firstDay = new Date(year, month, 1);
-    
+
     // Start from the Sunday before the first day
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
+
     // Generate 42 days (6 weeks) to fill the calendar grid
     const days = [];
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      
+
       const isCurrentMonth = date.getMonth() === month;
-      const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+      const isToday =
+        format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
       const dayMeetings = getMeetingsForDate(date);
-      
+
       days.push({
         date,
         dayNumber: date.getDate(),
@@ -142,7 +145,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         meetings: dayMeetings,
       });
     }
-    
+
     return days;
   };
 
@@ -152,12 +155,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       onSlotClick?.({
         start: day.date,
         end: new Date(day.date.getTime() + 24 * 60 * 60 * 1000),
-        slots: [day.date]
+        slots: [day.date],
       });
     }
   };
 
-  const handleMeetingClick = (meeting: CalendlyMeeting, e: React.MouseEvent) => {
+  const handleMeetingClick = (
+    meeting: CalendlyMeeting,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
     onEventClick?.(meeting);
     actions.openMeetingDetailsModal(meeting);
@@ -182,7 +188,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               {views.map((view) => (
                 <Button
                   key={view}
-                  variant={getCurrentViewName() === view ? "default" : "outline"}
+                  variant={
+                    getCurrentViewName() === view ? "default" : "outline"
+                  }
                   size="sm"
                   onClick={() => handleViewChange(view)}
                   className={`text-xs px-3 py-1 ${
@@ -203,14 +211,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           {/* Calendar Header */}
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-gray-900">
-              {format(new Date(calendarView.date), 'MMMM yyyy')}
+              {format(new Date(calendarView.date), "MMMM yyyy")}
             </h3>
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="sm"
                 className="p-2 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('prev')}
+                onClick={() => handleNavigate("prev")}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -218,7 +226,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 variant="outline"
                 size="sm"
                 className="px-4 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('today')}
+                onClick={() => handleNavigate("today")}
               >
                 Today
               </Button>
@@ -226,7 +234,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 variant="outline"
                 size="sm"
                 className="p-2 border-gray-200 hover:bg-gray-50"
-                onClick={() => handleNavigate('next')}
+                onClick={() => handleNavigate("next")}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -234,7 +242,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </div>
 
           {/* Calendar Grid - Only show for Month view */}
-          {getCurrentViewName() === 'Month' && (
+          {getCurrentViewName() === "Month" && (
             <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
               {/* Days of week header */}
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
@@ -245,7 +253,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   {day}
                 </div>
               ))}
-              
+
               {/* Calendar days */}
               {generateCalendarDays().map((day, i) => (
                 <div
@@ -255,32 +263,32 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       ? "hover:bg-gray-50 text-gray-900"
                       : "text-gray-300"
                   } ${
-                    day.isToday
-                      ? "bg-blue-50 text-blue-700 font-semibold"
-                      : ""
+                    day.isToday ? "bg-blue-50 text-blue-700 font-semibold" : ""
                   }`}
                   onClick={() => handleDayClick(day)}
                 >
                   <div className="font-medium">
                     {day.dayNumber.toString().padStart(2, "0")}
                   </div>
-                  
+
                   {/* Meeting indicators */}
                   {day.meetings.length > 0 && (
                     <div className="mt-1 space-y-1">
                       {day.meetings.slice(0, 2).map((meeting, idx) => {
                         const formatMeetingTime = () => {
                           try {
-                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
-                            if (!meetingStartTime) return 'Time TBD';
+                            const meetingStartTime =
+                              meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return "Time TBD";
                             const meetingDate = new Date(meetingStartTime);
-                            if (isNaN(meetingDate.getTime())) return 'Invalid time';
-                            return format(meetingDate, 'h:mm a');
+                            if (isNaN(meetingDate.getTime()))
+                              return "Invalid time";
+                            return format(meetingDate, "h:mm a");
                           } catch {
-                            return 'Invalid time';
+                            return "Invalid time";
                           }
                         };
-                        
+
                         return (
                           <div
                             key={idx}
@@ -303,15 +311,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           )}
 
           {/* Week View */}
-          {getCurrentViewName() === 'Week' && (
+          {getCurrentViewName() === "Week" && (
             <div className="space-y-4">
               <div className="text-center py-8 text-gray-500">
                 <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Week View</h3>
-                <p>Week view for {format(new Date(calendarView.date), 'MMM d, yyyy')}</p>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                  Week View
+                </h3>
+                <p>
+                  Week view for{" "}
+                  {format(new Date(calendarView.date), "MMM d, yyyy")}
+                </p>
                 {meetings.length > 0 && (
                   <p className="text-sm mt-2">
-                    {meetings.filter(m => m.status === 'active').length} active meetings this period
+                    {meetings.filter((m) => m.status === "active").length}{" "}
+                    active meetings this period
                   </p>
                 )}
               </div>
@@ -319,35 +333,49 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           )}
 
           {/* Day View */}
-          {getCurrentViewName() === 'Day' && (
+          {getCurrentViewName() === "Day" && (
             <div className="space-y-4">
               <div className="text-center py-8 text-gray-500">
                 <Clock className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Day View</h3>
-                <p>Day view for {format(new Date(calendarView.date), 'EEEE, MMM d, yyyy')}</p>
+                <h3 className="text-lg font-medium text-gray-700 mb-2">
+                  Day View
+                </h3>
+                <p>
+                  Day view for{" "}
+                  {format(new Date(calendarView.date), "EEEE, MMM d, yyyy")}
+                </p>
                 {(() => {
-                  const dayMeetings = getMeetingsForDate(new Date(calendarView.date));
+                  const dayMeetings = getMeetingsForDate(
+                    new Date(calendarView.date)
+                  );
                   return dayMeetings.length > 0 ? (
                     <div className="mt-4 space-y-2">
                       <p className="text-sm font-medium">Meetings today:</p>
                       {dayMeetings.map((meeting, idx) => {
                         const formatMeetingTime = () => {
                           try {
-                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
-                            if (!meetingStartTime) return 'Time TBD';
+                            const meetingStartTime =
+                              meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return "Time TBD";
                             const meetingDate = new Date(meetingStartTime);
-                            if (isNaN(meetingDate.getTime())) return 'Invalid time';
-                            return format(meetingDate, 'h:mm a');
+                            if (isNaN(meetingDate.getTime()))
+                              return "Invalid time";
+                            return format(meetingDate, "h:mm a");
                           } catch {
-                            return 'Invalid time';
+                            return "Invalid time";
                           }
                         };
-                        
+
                         return (
-                          <div 
-                            key={idx} 
+                          <div
+                            key={idx}
                             className="text-sm bg-blue-50 p-2 rounded cursor-pointer hover:bg-blue-100"
-                            onClick={() => handleMeetingClick(meeting, {} as React.MouseEvent)}
+                            onClick={() =>
+                              handleMeetingClick(
+                                meeting,
+                                {} as React.MouseEvent
+                              )
+                            }
                           >
                             {meeting.name} - {formatMeetingTime()}
                           </div>
@@ -355,7 +383,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm mt-2">No meetings scheduled for this day</p>
+                    <p className="text-sm mt-2">
+                      No meetings scheduled for this day
+                    </p>
                   );
                 })()}
               </div>
@@ -363,27 +393,38 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           )}
 
           {/* Agenda View */}
-          {getCurrentViewName() === 'Agenda' && (
+          {getCurrentViewName() === "Agenda" && (
             <div className="space-y-4">
               <div className="py-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-700">Upcoming Meetings</h3>
+                  <h3 className="text-lg font-medium text-gray-700">
+                    Upcoming Meetings
+                  </h3>
                   <span className="text-sm text-gray-500">
-                    {meetings.filter(m => m.status === 'active').length} active meetings
+                    {meetings.filter((m) => m.status === "active").length}{" "}
+                    active meetings
                   </span>
                 </div>
-                
-                {meetings.filter(m => m.status === 'active').length > 0 ? (
+
+                {meetings.filter((m) => m.status === "active").length > 0 ? (
                   <div className="space-y-3">
                     {meetings
-                      .filter(m => {
-                        const meetingStartTime = m.start_time || (m as any).startTime;
-                        return m.status === 'active' && meetingStartTime && meetingStartTime !== 'null' && meetingStartTime !== '';
+                      .filter((m) => {
+                        const meetingStartTime =
+                          m.start_time || (m as any).startTime;
+                        return (
+                          m.status === "active" &&
+                          meetingStartTime &&
+                          meetingStartTime !== "null" &&
+                          meetingStartTime !== ""
+                        );
                       })
                       .sort((a, b) => {
                         try {
-                          const aStartTime = a.start_time || (a as any).startTime;
-                          const bStartTime = b.start_time || (b as any).startTime;
+                          const aStartTime =
+                            a.start_time || (a as any).startTime;
+                          const bStartTime =
+                            b.start_time || (b as any).startTime;
                           const aTime = new Date(aStartTime).getTime();
                           const bTime = new Date(bStartTime).getTime();
                           // Handle invalid dates
@@ -399,24 +440,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       .map((meeting, idx) => {
                         const formatMeetingDateTime = () => {
                           try {
-                            const meetingStartTime = meeting.start_time || (meeting as any).startTime;
-                            if (!meetingStartTime) return 'Date/Time TBD';
+                            const meetingStartTime =
+                              meeting.start_time || (meeting as any).startTime;
+                            if (!meetingStartTime) return "Date/Time TBD";
                             const meetingDate = new Date(meetingStartTime);
-                            if (isNaN(meetingDate.getTime())) return 'Invalid date/time';
-                            return format(meetingDate, 'MMM d, yyyy • h:mm a');
+                            if (isNaN(meetingDate.getTime()))
+                              return "Invalid date/time";
+                            return format(meetingDate, "MMM d, yyyy • h:mm a");
                           } catch {
-                            return 'Invalid date/time';
+                            return "Invalid date/time";
                           }
                         };
-                        
+
                         return (
-                          <div 
-                            key={idx} 
+                          <div
+                            key={idx}
                             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100"
-                            onClick={() => handleMeetingClick(meeting, {} as React.MouseEvent)}
+                            onClick={() =>
+                              handleMeetingClick(
+                                meeting,
+                                {} as React.MouseEvent
+                              )
+                            }
                           >
                             <div>
-                              <h4 className="font-medium text-gray-900">{meeting.name}</h4>
+                              <h4 className="font-medium text-gray-900">
+                                {meeting.name}
+                              </h4>
                               <p className="text-sm text-gray-600">
                                 {formatMeetingDateTime()}
                               </p>
@@ -426,8 +476,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                 </p>
                               )}
                             </div>
-                            <Badge variant="outline" className="text-blue-600 border-blue-200">
-                              {meeting.location?.type || 'Meeting'}
+                            <Badge
+                              variant="outline"
+                              className="text-blue-600 border-blue-200"
+                            >
+                              {meeting.location?.type || "Meeting"}
                             </Badge>
                           </div>
                         );
@@ -462,4 +515,4 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+};

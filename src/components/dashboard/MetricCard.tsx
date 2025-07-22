@@ -18,16 +18,16 @@ interface MetricCardProps {
 export function MetricCard({ title, metrics, className }: MetricCardProps) {
   return (
     <Card className={`shadow-lg rounded-2xl ${className}`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold" style={{ color: "#0077B6" }}>
+      <CardHeader className="pb-2 md:pb-3">
+        <CardTitle className="text-base md:text-lg font-semibold" style={{ color: "#0077B6" }}>
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6">
         {metrics.map((metric, index) => (
           <div key={index} className="text-center">
-            <div className="text-sm text-gray-600 mb-1">{metric.label}</div>
-            <div className="text-3xl font-bold mb-2" style={{ color: metric.color || "#1f2937" }}>
+            <div className="text-xs md:text-sm text-gray-600 mb-1">{metric.label}</div>
+            <div className="text-xl md:text-3xl font-bold mb-2" style={{ color: metric.color || "#1f2937" }}>
               {metric.value}
             </div>
             {metric.trend && <StatusBadge value={metric.trend.value} positive={metric.trend.positive} />}

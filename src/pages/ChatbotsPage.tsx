@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -14,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -25,70 +25,72 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Plus,
   Edit,
   Trash2,
   MessageSquare,
-  Settings,
-  Users,
-  Calendar,
   Clock,
-  Upload,
   Bot,
   Send,
   RefreshCw,
   AlertCircle,
-  CheckCircle,
-  X,
+  Code,
+  Copy,
+  MoreVertical,
 } from "lucide-react";
+import { RefreshButton } from "@/components/ui/refresh-button";
 import { format } from "date-fns";
 import {
   useChatbots,
-  useCreateChatbot,
   useUpdateChatbot,
   useDeleteChatbot,
   useChatInterface,
   useChatbotRefresh,
 } from "@/hooks/useChatbotApi";
-import type { CreateChatbotRequest, UpdateChatbotRequest, Chatbot } from "@/types/chatbot";
+import type { CreateChatbotRequest, Chatbot } from "@/types/chatbot";
+import { CalendlyInlineWidget } from "@/components/calendly/CalendlyInlineWidget";
 
 // Helper function to safely format dates
 const safeFormatDate = (dateString: string, formatString: string): string => {
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-      return 'Invalid date';
+      return "Invalid date";
     }
     return format(date, formatString);
   } catch (error) {
-    console.warn('Failed to format date:', dateString, error);
-    return 'Invalid date';
+    console.warn("Failed to format date:", dateString, error);
+    return "Invalid date";
   }
 };
 
 export default function ChatbotsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("list");
   const [selectedChatbot, setSelectedChatbot] = useState<Chatbot | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
+  const [showIframeModal, setShowIframeModal] = useState(false);
   const [chatbotToDelete, setChatbotToDelete] = useState<Chatbot | null>(null);
 
   // API hooks
   const { data: chatbots, isLoading, error } = useChatbots();
-  const createChatbot = useCreateChatbot();
   const updateChatbot = useUpdateChatbot();
   const deleteChatbot = useDeleteChatbot();
   const { refreshList } = useChatbotRefresh();
 
-  // Form state
+  // Form state for edit modal
   const [formData, setFormData] = useState<CreateChatbotRequest>({
     name: "",
-    system_prompt: "",
-    conversation_limit: 50,
+    systemPrompt: "",
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
 
@@ -96,27 +98,20 @@ export default function ChatbotsPage() {
   const chatInterface = useChatInterface(selectedChatbot?.id || 0);
   const [chatMessage, setChatMessage] = useState("");
 
-  const handleCreateChatbot = async () => {
-    try {
-      await createChatbot.mutateAsync({
-        ...formData,
-        logo: logoFile,
-      });
-      setShowCreateModal(false);
-      resetForm();
-    } catch (error) {
-      console.error("Failed to create chatbot:", error);
-    }
-  };
-
   const handleUpdateChatbot = async () => {
     if (!selectedChatbot) return;
-    
+
     try {
+      const formDataObj = new FormData();
+      formDataObj.append("name", formData.name);
+      formDataObj.append("systemPrompt", formData.systemPrompt);
+      if (logoFile) {
+        formDataObj.append("logo", logoFile);
+      }
+
       await updateChatbot.mutateAsync({
         id: selectedChatbot.id,
-        ...formData,
-        logo: logoFile,
+        formData: formDataObj,
       });
       setShowEditModal(false);
       resetForm();
@@ -127,7 +122,7 @@ export default function ChatbotsPage() {
 
   const handleDeleteChatbot = async () => {
     if (!chatbotToDelete) return;
-    
+
     try {
       await deleteChatbot.mutateAsync(chatbotToDelete.id);
       setChatbotToDelete(null);
@@ -136,36 +131,61 @@ export default function ChatbotsPage() {
     }
   };
 
-  const handleEditChatbot = (chatbot: Chatbot) => {
-    setSelectedChatbot(chatbot);
-    setFormData({
-      name: chatbot.name,
-      system_prompt: chatbot.system_prompt,
-      conversation_limit: chatbot.conversation_limit,
-    });
-    setShowEditModal(true);
-  };
-
   const handleOpenChat = (chatbot: Chatbot) => {
     setSelectedChatbot(chatbot);
     setShowChatModal(true);
   };
 
+  const handleOpenIframe = (chatbot: Chatbot) => {
+    setSelectedChatbot(chatbot);
+    setShowIframeModal(true);
+  };
+
+  const generateIframeCode = (chatbot: Chatbot) => {
+    const apiBaseUrl =
+      import.meta.env.VITE_API_BASE_URL || window.location.origin;
+    const iframeUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+
+    return `<!-- Blue Manta Chatbot Integration -->
+      <script>
+        window.BlueMantaChatbot = {
+          chatbotId: ${chatbot.id},
+          apiBaseUrl: '${apiBaseUrl}',
+          theme: 'light',
+          primaryColor: '#3b82f6',
+          greeting: 'Hello! How can I help you today?',
+          position: 'bottom-right',
+          iframeUrl: '${iframeUrl}/widget'
+        };
+      </script>
+      <script src="${iframeUrl}/embed.js"></script>`;
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // You might want to show a toast notification here
+      console.log("Copied to clipboard");
+    });
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
-      system_prompt: "",
-      conversation_limit: 50,
+      systemPrompt: "",
     });
     setLogoFile(null);
     setSelectedChatbot(null);
   };
 
+  const handleRefresh = () => {
+    refreshList();
+  };
+
   const handleSendMessage = async () => {
     if (!chatMessage.trim() || !chatInterface) return;
-    
-    await chatInterface.sendMessage(chatMessage);
+
     setChatMessage("");
+    await chatInterface.sendMessage(chatMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -176,41 +196,61 @@ export default function ChatbotsPage() {
   };
 
   if (error) {
-    const isBackendNotAvailable = error.message?.includes('not available on the backend');
-    
+    const isBackendNotAvailable = error.message?.includes(
+      "not available on the backend"
+    );
+
     return (
       <DashboardLayout
         title="Chatbots"
         subtitle="Manage your AI chatbots"
         activePath="/chatbots"
       >
-        <Card className={`${isBackendNotAvailable ? 'border-orange-200 bg-orange-50' : 'border-red-200 bg-red-50'}`}>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <AlertCircle className={`h-5 w-5 ${isBackendNotAvailable ? 'text-orange-600' : 'text-red-600'}`} />
-              <div>
-                <h3 className={`font-semibold ${isBackendNotAvailable ? 'text-orange-800' : 'text-red-800'}`}>
-                  {isBackendNotAvailable ? 'Chatbot Feature Not Available' : 'Error Loading Chatbots'}
+        <Card
+          className={`${
+            isBackendNotAvailable
+              ? "border-orange-200 bg-orange-50"
+              : "border-red-200 bg-red-50"
+          } mx-4 sm:mx-0`}
+        >
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <AlertCircle
+                className={`h-5 w-5 flex-shrink-0 ${
+                  isBackendNotAvailable ? "text-orange-600" : "text-red-600"
+                }`}
+              />
+              <div className="space-y-1">
+                <h3
+                  className={`font-semibold ${
+                    isBackendNotAvailable ? "text-orange-800" : "text-red-800"
+                  }`}
+                >
+                  {isBackendNotAvailable
+                    ? "Chatbot Feature Not Available"
+                    : "Error Loading Chatbots"}
                 </h3>
-                <p className={isBackendNotAvailable ? 'text-orange-600' : 'text-red-600'}>
+                <p
+                  className={`text-sm ${
+                    isBackendNotAvailable ? "text-orange-600" : "text-red-600"
+                  }`}
+                >
                   {error.message}
                 </p>
                 {isBackendNotAvailable && (
                   <p className="text-orange-500 text-sm mt-2">
-                    This feature is currently being developed. Please check back later or contact your administrator.
+                    This feature is currently being developed. Please check back
+                    later or contact your administrator.
                   </p>
                 )}
               </div>
             </div>
             {!isBackendNotAvailable && (
-              <Button
-                onClick={() => refreshList()}
-                variant="outline"
-                className="mt-4 border-red-300 text-red-700 hover:bg-red-100"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </Button>
+              <RefreshButton
+                onRefresh={handleRefresh}
+                label="Try Again"
+                className="mt-4 border-red-300 text-red-700 hover:bg-red-100 w-full sm:w-auto"
+              />
             )}
           </CardContent>
         </Card>
@@ -224,196 +264,135 @@ export default function ChatbotsPage() {
       subtitle="Manage your AI chatbots"
       activePath="/chatbots"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 sm:px-0">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Chatbots</h1>
-            <p className="text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Chatbots
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
               Create and manage AI chatbots for your organization
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <RefreshButton
+              onRefresh={handleRefresh}
+              isLoading={isLoading}
+              className="w-full sm:w-auto"
+            />
             <Button
-              onClick={() => refreshList()}
-              variant="outline"
-              disabled={isLoading}
+              onClick={() => navigate("/chatbots/create")}
+              className="w-full sm:w-auto"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              <Plus className="w-4 h-4 mr-2" />
+              Create Chatbot
             </Button>
-            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-              <DialogTrigger asChild>
-                <Button onClick={() => resetForm()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Chatbot
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create New Chatbot</DialogTitle>
-                  <DialogDescription>
-                    Configure your AI chatbot with a name, system prompt, and settings.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Enter chatbot name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="system_prompt">System Prompt</Label>
-                    <Textarea
-                      id="system_prompt"
-                      value={formData.system_prompt}
-                      onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
-                      placeholder="Enter the system prompt for your chatbot..."
-                      rows={6}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="conversation_limit">Conversation Limit</Label>
-                    <Input
-                      id="conversation_limit"
-                      type="number"
-                      value={formData.conversation_limit}
-                      onChange={(e) => setFormData({ ...formData, conversation_limit: parseInt(e.target.value) || 50 })}
-                      placeholder="50"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="logo">Logo (Optional)</Label>
-                    <div className="flex items-center gap-3">
-                      <Input
-                        id="logo"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                      />
-                      {logoFile && (
-                        <Badge variant="secondary">
-                          {logoFile.name}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCreateChatbot}
-                    disabled={createChatbot.isPending || !formData.name || !formData.system_prompt}
-                  >
-                    {createChatbot.isPending ? "Creating..." : "Create Chatbot"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </div>
         </div>
 
         {/* Main Content */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="list">All Chatbots</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="list" className="space-y-6">
+          <TabsContent value="list" className="space-y-6 mt-6">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <RefreshCw className="w-6 h-6 animate-spin text-blue-600" />
                 <span className="ml-2 text-gray-600">Loading chatbots...</span>
               </div>
             ) : chatbots && chatbots.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {chatbots.map((chatbot) => (
-                  <Card key={chatbot.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
+                  <Card
+                    key={chatbot.id}
+                    className="hover:shadow-lg transition-all duration-200 border-gray-200"
+                  >
+                    <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                             <Bot className="w-5 h-5 text-blue-600" />
                           </div>
-                          <div>
-                            <CardTitle className="text-lg">{chatbot.name}</CardTitle>
-                            <p className="text-sm text-gray-500">
-                              {chatbot.organization.first_name} {chatbot.organization.last_name}
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-lg font-semibold text-gray-900 truncate">
+                              {chatbot.name}
+                            </CardTitle>
+                            <p className="text-sm text-gray-500 truncate">
+                              {chatbot.organization.firstName}{" "}
+                              {chatbot.organization.lastName}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenChat(chatbot)}
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditChatbot(chatbot)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setChatbotToDelete(chatbot)}
+                                className="h-8 w-8 p-0 hover:bg-gray-50"
                               >
-                                <Trash2 className="w-4 h-4 text-red-500" />
+                                <MoreVertical className="w-4 h-4 text-gray-600" />
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Chatbot</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{chatbot.name}"? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={handleDeleteChatbot}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleOpenChat(chatbot)}
+                              >
+                                <MessageSquare className="w-4 h-4 mr-2 text-blue-600" />
+                                Chat
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenIframe(chatbot)}
+                              >
+                                <Code className="w-4 h-4 mr-2 text-green-600" />
+                                Get Embed Code
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/chatbots/${chatbot.id}/configure`)
+                                }
+                              >
+                                <Edit className="w-4 h-4 mr-2 text-gray-600" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setChatbotToDelete(chatbot)}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-0">
                       <div className="space-y-3">
                         <div>
-                          <p className="text-sm text-gray-600 line-clamp-3">
-                            {chatbot.system_prompt}
+                          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                            {chatbot.systemPrompt}
                           </p>
                         </div>
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
-                              <Users className="w-3 h-3" />
-                              {chatbot.conversation_limit} limit
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {safeFormatDate(chatbot.updated_at, "MMM d, yyyy")}
+                              <Clock className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">
+                                {safeFormatDate(
+                                  chatbot.updatedAt,
+                                  "MMM d, yyyy"
+                                )}
+                              </span>
                             </span>
                           </div>
-                          <Badge variant="outline">Active</Badge>
+                          {/* <Badge variant="outline" className="text-xs">
+                            Active
+                          </Badge> */}
                         </div>
                       </div>
                     </CardContent>
@@ -421,18 +400,25 @@ export default function ChatbotsPage() {
                 ))}
               </div>
             ) : (
-              <Card className="border-dashed">
-                <CardContent className="p-12 text-center">
+              <Card className="border-dashed border-2 border-gray-300">
+                <CardContent className="p-8 sm:p-12 text-center">
                   <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No chatbots yet</h3>
-                  <p className="text-gray-600 mb-4">
-                    Create your first chatbot to start providing AI-powered customer support.
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    No chatbots yet
+                  </h3>
+                  <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                    Create your first chatbot to start providing AI-powered
+                    customer support.
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Note: This feature requires backend support. If you're unable to create chatbots, 
-                    the backend endpoints may not be available yet.
+                  <p className="text-sm text-gray-500 mb-6 max-w-lg mx-auto">
+                    Note: This feature requires backend support. If you're
+                    unable to create chatbots, the backend endpoints may not be
+                    available yet.
                   </p>
-                  <Button onClick={() => setShowCreateModal(true)}>
+                  <Button
+                    onClick={() => navigate("/chatbots/create")}
+                    className="w-full sm:w-auto"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Create Your First Chatbot
                   </Button>
@@ -441,21 +427,50 @@ export default function ChatbotsPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-6">
+          <TabsContent value="analytics" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Chatbot Analytics</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Analytics dashboard coming soon...</p>
+                <p className="text-gray-600">
+                  Analytics dashboard coming soon...
+                </p>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          open={!!chatbotToDelete}
+          onOpenChange={() => setChatbotToDelete(null)}
+        >
+          <AlertDialogContent className="mx-4 sm:mx-auto">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Chatbot</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{chatbotToDelete?.name}"? This
+                action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex flex-col sm:flex-row gap-2">
+              <AlertDialogCancel className="w-full sm:w-auto">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteChatbot}
+                className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Edit Modal */}
         <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Chatbot</DialogTitle>
               <DialogDescription>
@@ -464,58 +479,73 @@ export default function ChatbotsPage() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="edit-name">Name</Label>
+                <Label htmlFor="edit-name" className="text-sm font-medium">
+                  Name
+                </Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="Enter chatbot name"
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label htmlFor="edit-system_prompt">System Prompt</Label>
+                <Label
+                  htmlFor="edit-system_prompt"
+                  className="text-sm font-medium"
+                >
+                  System Prompt
+                </Label>
                 <Textarea
-                  id="edit-system_prompt"
-                  value={formData.system_prompt}
-                  onChange={(e) => setFormData({ ...formData, system_prompt: e.target.value })}
+                  id="edit-systemPrompt"
+                  value={formData.systemPrompt}
+                  onChange={(e) =>
+                    setFormData({ ...formData, systemPrompt: e.target.value })
+                  }
                   placeholder="Enter the system prompt for your chatbot..."
                   rows={6}
+                  className="mt-1 resize-none"
                 />
               </div>
-              <div>
-                <Label htmlFor="edit-conversation_limit">Conversation Limit</Label>
-                <Input
-                  id="edit-conversation_limit"
-                  type="number"
-                  value={formData.conversation_limit}
-                  onChange={(e) => setFormData({ ...formData, conversation_limit: parseInt(e.target.value) || 50 })}
-                  placeholder="50"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-logo">Logo (Optional)</Label>
-                <div className="flex items-center gap-3">
+              {/* <div>
+                <Label htmlFor="edit-logo" className="text-sm font-medium">
+                  Logo (Optional)
+                </Label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-1">
                   <Input
                     id="edit-logo"
                     type="file"
                     accept="image/*"
                     onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                    className="flex-1"
                   />
                   {logoFile && (
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       {logoFile.name}
                     </Badge>
                   )}
                 </div>
-              </div>
+              </div> */}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowEditModal(false)}>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowEditModal(false)}
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleUpdateChatbot}
-                disabled={updateChatbot.isPending || !formData.name || !formData.system_prompt}
+                disabled={
+                  updateChatbot.isPending ||
+                  !formData.name ||
+                  !formData.systemPrompt
+                }
+                className="w-full sm:w-auto"
               >
                 {updateChatbot.isPending ? "Updating..." : "Update Chatbot"}
               </Button>
@@ -525,8 +555,8 @@ export default function ChatbotsPage() {
 
         {/* Chat Modal */}
         <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
-          <DialogContent className="max-w-4xl h-[600px] flex flex-col">
-            <DialogHeader>
+          <DialogContent className="max-w-4xl mx-4 sm:mx-auto h-[80vh] sm:h-[600px] flex flex-col">
+            <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-2">
                 <Bot className="w-5 h-5" />
                 Chat with {selectedChatbot?.name}
@@ -544,20 +574,52 @@ export default function ChatbotsPage() {
                   chatInterface?.messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex ${message.sender === 'BOT' ? 'justify-start' : 'justify-end'}`}
+                      className={`flex ${
+                        message.sender === "bot"
+                          ? "justify-start"
+                          : "justify-end"
+                      }`}
                     >
                       <div
-                        className={`max-w-[70%] p-3 rounded-lg ${
-                          message.sender === 'BOT'
-                            ? 'bg-white border border-gray-200'
-                            : 'bg-blue-600 text-white'
+                        className={`${
+                          message.sender === "bot" && message.calendlyUrl
+                            ? "max-w-[95%] sm:max-w-[85%]"
+                            : "max-w-[85%] sm:max-w-[70%]"
+                        } p-3 rounded-lg ${
+                          message.sender === "bot"
+                            ? "bg-white border border-gray-200 shadow-sm"
+                            : "bg-blue-600 text-white"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
-                        <p className={`text-xs mt-1 ${
-                          message.sender === 'BOT' ? 'text-gray-500' : 'text-blue-100'
-                        }`}>
-                          {safeFormatDate(message.sent_at, 'HH:mm')}
+                        {message.sender === "bot" && message.calendlyUrl ? (
+                          <div className="space-y-3">
+                            <p className="text-sm leading-relaxed">
+                              {message.content}
+                            </p>
+                            <div className="border-t pt-3">
+                              <CalendlyInlineWidget
+                                url={message.calendlyUrl}
+                                height={500}
+                                onEventScheduled={(event) => {
+                                  console.log("Event scheduled:", event);
+                                  // You can add custom logic here when an event is scheduled
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm leading-relaxed">
+                            {message.content}
+                          </p>
+                        )}
+                        <p
+                          className={`text-xs mt-1 ${
+                            message.sender === "bot"
+                              ? "text-gray-500"
+                              : "text-blue-100"
+                          }`}
+                        >
+                          {safeFormatDate(message.sentAt, "HH:mm")}
                         </p>
                       </div>
                     </div>
@@ -565,11 +627,17 @@ export default function ChatbotsPage() {
                 )}
                 {chatInterface?.isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-white border border-gray-200 p-3 rounded-lg">
+                    <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -577,19 +645,20 @@ export default function ChatbotsPage() {
               </div>
 
               {/* Chat Input */}
-              <div className="flex items-center gap-2 p-4 border-t">
+              <div className="flex items-end gap-2 p-4 border-t bg-white flex-shrink-0">
                 <Textarea
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message..."
-                  className="flex-1 resize-none"
+                  className="flex-1 resize-none min-h-[40px] max-h-32"
                   rows={1}
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!chatMessage.trim() || chatInterface?.isLoading}
                   size="sm"
+                  className="flex-shrink-0"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
@@ -597,7 +666,94 @@ export default function ChatbotsPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Iframe Modal */}
+        <Dialog open={showIframeModal} onOpenChange={setShowIframeModal}>
+          <DialogContent className="max-w-4xl mx-4 sm:mx-auto max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Code className="w-5 h-5" />
+                Embeddable Iframe Code for {selectedChatbot?.name}
+              </DialogTitle>
+              <DialogDescription>
+                Copy and paste this code into your website to embed the chatbot
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900">HTML Code:</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      selectedChatbot &&
+                      copyToClipboard(generateIframeCode(selectedChatbot))
+                    }
+                    className="flex items-center gap-1"
+                  >
+                    <Copy className="w-3 h-3" />
+                    Copy
+                  </Button>
+                </div>
+                <pre className="bg-gray-800 text-gray-100 p-3 rounded text-sm overflow-x-auto whitespace-pre-wrap">
+                  <code>
+                    {selectedChatbot && generateIframeCode(selectedChatbot)}
+                  </code>
+                </pre>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">
+                  Instructions:
+                </h4>
+                <ol className="text-sm text-blue-800 space-y-1">
+                  <li>1. Copy the HTML code above</li>
+                  <li>
+                    2. Paste it into your website's HTML, preferably before the
+                    closing &lt;/body&gt; tag
+                  </li>
+                  <li>
+                    3. The chatbot will appear as a floating button in the
+                    bottom-right corner
+                  </li>
+                  <li>
+                    4. Users can click the button to start chatting with your AI
+                    assistant
+                  </li>
+                </ol>
+              </div>
+
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h4 className="font-medium text-amber-900 mb-2">
+                  Important Notes:
+                </h4>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  <li>
+                    • Update the iframe URL in the code to point to your
+                    deployed chatbot
+                  </li>
+                  <li>• Make sure your website allows iframe embedding</li>
+                  <li>• The chatbot will work on any website with this code</li>
+                  <li>
+                    • You can customize the theme, colors, and position by
+                    modifying the configuration
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowIframeModal(false)}
+                className="w-full sm:w-auto"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
-} 
+}

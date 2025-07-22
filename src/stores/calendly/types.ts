@@ -1,8 +1,6 @@
 import type {
-  CalendlyEvent,
   CalendlyMeeting,
   EventType,
-  AvailabilitySchedule,
   ConnectionStatus,
   MeetingFilters,
   CalendarViewType,
@@ -84,7 +82,7 @@ export interface DataLoadingActions {
 export interface MeetingManagementActions {
   cancelMeeting: (meetingUri: string, reason: string) => Promise<void>;
   rescheduleMeeting: (meetingUri: string, newStartTime: string, newEndTime: string, reason?: string) => Promise<void>;
-  batchCancelMeetings: (meetingUris: string[], reason: string) => Promise<void>;
+  batchCancelMeetings: (meetingUris: string[], reason: string) => Promise<BatchCancelResult[]>;
 }
 
 export interface EventTypeManagementActions {
@@ -120,6 +118,7 @@ export interface UtilityActions {
   setError: (error: string | null) => void;
   clearError: () => void;
   setLoading: (key: keyof CalendlyState['loading'], value: boolean) => void;
+  clearAllData: () => void;
 }
 
 export interface CalendlyActions extends 
@@ -129,7 +128,9 @@ export interface CalendlyActions extends
   EventTypeManagementActions,
   UIActions,
   ModalActions,
-  UtilityActions {}
+  UtilityActions {
+  checkConnection: () => Promise<void>;
+}
 
 export interface CalendlyStore extends CalendlyState, CalendlyUIState {
   modals: CalendlyModals;

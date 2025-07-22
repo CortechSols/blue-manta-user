@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,24 +6,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Calendar, AlertCircle, X, CheckCircle } from 'lucide-react';
-import { useCalendlyActions, useCalendlyModals, useCalendlyMeetings } from '@/stores/calendlyStore';
-import { format, parseISO } from 'date-fns';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, AlertCircle, X, CheckCircle } from "lucide-react";
+import {
+  useCalendlyActions,
+  useCalendlyModals,
+  useCalendlyMeetings,
+} from "@/stores/calendlyStore";
+import { format, parseISO } from "date-fns";
 
 interface CancelMeetingModalProps {
   className?: string;
 }
 
-export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({ 
-  className = '' 
-}) => {
-  const [reason, setReason] = useState('');
+export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = () => {
+  const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -36,11 +37,11 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
   const meetingUri = modals.cancelMeeting.meetingUri;
 
   // Find the meeting details
-  const meeting = meetings.find(m => m.uri === meetingUri);
+  const meeting = meetings.find((m) => m.uri === meetingUri);
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setReason('');
+      setReason("");
       setError(null);
       setSuccess(false);
       actions.closeCancelMeetingModal();
@@ -49,7 +50,7 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
 
   const handleCancel = async () => {
     if (!meetingUri || !reason.trim()) {
-      setError('Please provide a reason for cancellation');
+      setError("Please provide a reason for cancellation");
       return;
     }
 
@@ -59,14 +60,16 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
     try {
       await actions.cancelMeeting(meetingUri, reason.trim());
       setSuccess(true);
-      
+
       // Auto-close after success
       setTimeout(() => {
         handleClose();
       }, 2000);
     } catch (error) {
-      console.error('Failed to cancel meeting:', error);
-      setError(error instanceof Error ? error.message : 'Failed to cancel meeting');
+      console.error("Failed to cancel meeting:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to cancel meeting"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -77,12 +80,12 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
   };
 
   const quickReasons = [
-    'Unable to attend',
-    'Schedule conflict',
-    'Meeting no longer needed',
-    'Emergency came up',
-    'Technical difficulties',
-    'Need to reschedule'
+    "Unable to attend",
+    "Schedule conflict",
+    "Meeting no longer needed",
+    "Emergency came up",
+    "Technical difficulties",
+    "Need to reschedule",
   ];
 
   const getMeetingInfo = () => {
@@ -115,12 +118,13 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
               Meeting Cancelled Successfully
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              The meeting has been cancelled and all participants have been notified.
+              The meeting has been cancelled and all participants have been
+              notified.
             </DialogDescription>
           </DialogHeader>
-          
+
           <DialogFooter>
-            <Button 
+            <Button
               onClick={handleClose}
               className="w-full bg-green-600 hover:bg-green-700"
             >
@@ -141,7 +145,8 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
             Cancel Meeting
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Are you sure you want to cancel this meeting? This action cannot be undone.
+            Are you sure you want to cancel this meeting? This action cannot be
+            undone.
           </DialogDescription>
         </DialogHeader>
 
@@ -151,19 +156,23 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
             <h3 className="font-medium text-gray-900">{meetingInfo.name}</h3>
             {meetingInfo.startTime && (
               <p className="text-sm text-gray-600">
-                📅 {format(meetingInfo.startTime, 'EEEE, MMMM d, yyyy')}
+                📅 {format(meetingInfo.startTime, "EEEE, MMMM d, yyyy")}
               </p>
             )}
             {meetingInfo.startTime && meetingInfo.endTime && (
               <p className="text-sm text-gray-600">
-                🕐 {format(meetingInfo.startTime, 'h:mm a')} - {format(meetingInfo.endTime, 'h:mm a')}
+                🕐 {format(meetingInfo.startTime, "h:mm a")} -{" "}
+                {format(meetingInfo.endTime, "h:mm a")}
               </p>
             )}
             {meetingInfo.inviteeName && (
               <p className="text-sm text-gray-600">
                 👤 {meetingInfo.inviteeName}
                 {meetingInfo.inviteeEmail && (
-                  <span className="text-gray-500"> ({meetingInfo.inviteeEmail})</span>
+                  <span className="text-gray-500">
+                    {" "}
+                    ({meetingInfo.inviteeEmail})
+                  </span>
                 )}
               </p>
             )}
@@ -193,9 +202,9 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
                   variant="outline"
                   size="sm"
                   className={`justify-start text-left h-auto p-2 ${
-                    reason === quickReason 
-                      ? 'bg-blue-50 border-blue-300 text-blue-700' 
-                      : 'hover:bg-gray-50'
+                    reason === quickReason
+                      ? "bg-blue-50 border-blue-300 text-blue-700"
+                      : "hover:bg-gray-50"
                   }`}
                   onClick={() => handleQuickReason(quickReason)}
                 >
@@ -207,7 +216,10 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
 
           {/* Custom Reason */}
           <div className="space-y-2">
-            <Label htmlFor="reason" className="text-sm font-medium text-gray-700">
+            <Label
+              htmlFor="reason"
+              className="text-sm font-medium text-gray-700"
+            >
               Cancellation Reason *
             </Label>
             <Textarea
@@ -254,4 +266,4 @@ export const CancelMeetingModal: React.FC<CancelMeetingModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-}; 
+};

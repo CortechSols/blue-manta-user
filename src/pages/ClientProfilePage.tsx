@@ -28,7 +28,7 @@ export default function ClientProfilePage() {
   const [colors, setColors] = useState<string[]>([]);
 
   // For now, using hardcoded organization ID - you can make this dynamic later
-  const organizationId = 11;
+  const organizationId = 1;
   const {
     data: organization,
     isLoading,

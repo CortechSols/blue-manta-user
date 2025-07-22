@@ -1,5 +1,5 @@
-import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import type { CalendlyEvent, CalendlyMeeting } from '../../types/calendly';
+import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
+import type { CalendlyEvent, CalendlyMeeting } from "../../types/calendly";
 
 /**
  * Utility functions for Calendly store operations
@@ -14,12 +14,15 @@ export const extractEventsFromResponse = (response: any): CalendlyEvent[] => {
   // Handle new array format
   if (response.events_by_date && Array.isArray(response.events_by_date)) {
     return response.events_by_date
-      .filter((dateEntry: any) => dateEntry.has_events && Array.isArray(dateEntry.events))
+      .filter(
+        (dateEntry: any) =>
+          dateEntry.has_events && Array.isArray(dateEntry.events)
+      )
       .flatMap((dateEntry: any) => dateEntry.events);
   }
 
   // Handle old object format
-  if (response.events_by_date && typeof response.events_by_date === 'object') {
+  if (response.events_by_date && typeof response.events_by_date === "object") {
     return Object.values(response.events_by_date).flat() as CalendlyEvent[];
   }
 
@@ -39,7 +42,9 @@ export const extractEventsFromResponse = (response: any): CalendlyEvent[] => {
 /**
  * Safely extracts meetings from API response
  */
-export const extractMeetingsFromResponse = (response: any): CalendlyMeeting[] => {
+export const extractMeetingsFromResponse = (
+  response: any
+): CalendlyMeeting[] => {
   if (!response) return [];
 
   if (Array.isArray(response.meetings)) {
@@ -56,7 +61,9 @@ export const extractMeetingsFromResponse = (response: any): CalendlyMeeting[] =>
 /**
  * Converts events with active invitees to meetings
  */
-export const separateEventsAndMeetings = (events: CalendlyEvent[]): {
+export const separateEventsAndMeetings = (
+  events: CalendlyEvent[]
+): {
   events: CalendlyEvent[];
   meetings: CalendlyMeeting[];
 } => {
@@ -69,14 +76,15 @@ export const separateEventsAndMeetings = (events: CalendlyEvent[]): {
       // Convert to meeting format by adding invitees array
       const meeting: CalendlyMeeting = {
         ...event,
-        invitees: event.event_memberships?.map((membership: any) => ({
-          uri: `invitee-${membership.user}`,
-          email: membership.user_email,
-          name: membership.user_name,
-          status: 'active',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })) || []
+        invitees:
+          event.event_memberships?.map((membership: any) => ({
+            uri: `invitee-${membership.user}`,
+            email: membership.user_email,
+            name: membership.user_name,
+            status: "active",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })) || [],
       };
       actualMeetings.push(meeting);
     } else {
@@ -90,7 +98,11 @@ export const separateEventsAndMeetings = (events: CalendlyEvent[]): {
 /**
  * Gets date range for loading events
  */
-export const getEventDateRange = (selectedDate: Date, startDate?: Date, endDate?: Date) => {
+export const getEventDateRange = (
+  selectedDate: Date,
+  startDate?: Date,
+  endDate?: Date
+) => {
   const start = startDate || startOfMonth(selectedDate);
   const end = endDate || endOfMonth(selectedDate);
   return { start, end };
@@ -109,7 +121,7 @@ export const getExtendedDateRange = () => {
  * Formats date for API requests
  */
 export const formatDateForAPI = (date: Date): string => {
-  return format(date, 'yyyy-MM-dd');
+  return format(date, "yyyy-MM-dd");
 };
 
 /**
@@ -124,8 +136,8 @@ export const createEventTypeForStore = (response: any): any => {
     kind: response.kind,
     scheduling_url: response.scheduling_url,
     active: true,
-    color: '#0069ff',
-    slug: response.uri.split('/').pop() || '',
+    color: "#0069ff",
+    slug: response.uri.split("/").pop() || "",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -220,22 +232,31 @@ export const extractAvailabilityFromResponse = (response: any): any[] => {
 /**
  * Creates error message with context
  */
-export const createErrorMessage = (operation: string, error: unknown): string => {
-  const message = error instanceof Error ? error.message : 'Unknown error occurred';
+export const createErrorMessage = (
+  operation: string,
+  error: unknown
+): string => {
+  const message =
+    error instanceof Error ? error.message : "Unknown error occurred";
   return `Failed to ${operation}: ${message}`;
 };
 
 /**
  * Processes batch operation results
  */
-export const processBatchResults = (results: Array<{ success: boolean; error?: string }>) => {
-  const successful = results.filter(r => r.success).length;
-  const failed = results.filter(r => !r.success).length;
-  
+export const processBatchResults = (
+  results: Array<{ success: boolean; error?: string }>
+) => {
+  const successful = results.filter((r) => r.success).length;
+  const failed = results.filter((r) => !r.success).length;
+
   return {
     successful,
     failed,
     hasErrors: failed > 0,
-    message: failed > 0 ? `Batch operation completed: ${successful} successful, ${failed} failed` : null
+    message:
+      failed > 0
+        ? `Batch operation completed: ${successful} successful, ${failed} failed`
+        : null,
   };
-}; 
+};

@@ -3,9 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Calendar, 
-  Mouse, 
-  CheckSquare, 
-  X, 
   Info, 
   Users,
   Clock,

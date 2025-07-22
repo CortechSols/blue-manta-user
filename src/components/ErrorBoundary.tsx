@@ -1,7 +1,7 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Component, type ErrorInfo, type ReactNode } from "react";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Props {
   children: ReactNode;
@@ -24,7 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
 
   private handleReset = () => {
@@ -51,10 +51,11 @@ class ErrorBoundary extends Component<Props, State> {
                   <div>
                     <h3 className="font-semibold">Something went wrong</h3>
                     <p className="text-sm mt-1">
-                      {this.state.error?.message || 'An unexpected error occurred'}
+                      {this.state.error?.message ||
+                        "An unexpected error occurred"}
                     </p>
                   </div>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       onClick={this.handleReset}
@@ -65,7 +66,7 @@ class ErrorBoundary extends Component<Props, State> {
                       <RefreshCw className="w-4 h-4 mr-2" />
                       Try Again
                     </Button>
-                    
+
                     <Button
                       onClick={this.handleReload}
                       size="sm"
@@ -86,4 +87,4 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

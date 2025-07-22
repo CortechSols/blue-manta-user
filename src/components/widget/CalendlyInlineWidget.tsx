@@ -17,22 +17,92 @@ interface CalendlyInlineWidgetProps {
     utmContent?: string;
     utmTerm?: string;
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onEventScheduled?: (event: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onDateAndTimeSelected?: (event: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onEventTypeViewed?: (event: any) => void;
+  onEventScheduled?: (event: CalendlyEvent) => void;
+  onDateAndTimeSelected?: (event: CalendlyEvent) => void;
+  onEventTypeViewed?: (event: CalendlyEvent) => void;
+}
 
-  // technically we should use the actual types and not this jugar, but let's get this shipped first
+interface CalendlyEvent {
+  event: {
+    uri: string;
+    name: string;
+    active: boolean;
+    slug: string;
+    scheduling_url: string;
+    duration: number;
+    owner: {
+      type: string;
+      uri: string;
+      name: string;
+      slug: string;
+    };
+    event_type: {
+      uri: string;
+      name: string;
+      active: boolean;
+      slug: string;
+      scheduling_url: string;
+      duration: number;
+      owner: {
+        type: string;
+        uri: string;
+        name: string;
+        slug: string;
+      };
+    };
+  };
+  invitee: {
+    uri: string;
+    name: string;
+    email: string;
+    timezone: string;
+    created_at: string;
+    updated_at: string;
+    cancel_url: string;
+    reschedule_url: string;
+    questions_and_answers: Array<{
+      question: string;
+      answer: string;
+    }>;
+    cancel_reason: string | null;
+    tracking: {
+      utm_campaign: string | null;
+      utm_source: string | null;
+      utm_medium: string | null;
+      utm_content: string | null;
+      utm_term: string | null;
+      salesforce_uuid: string | null;
+    };
+    text_reminder_number: string | null;
+    rescheduled: boolean;
+    old_event: string | null;
+    new_event: string | null;
+  };
+  tracking: {
+    utm_campaign: string | null;
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_content: string | null;
+    utm_term: string | null;
+    salesforce_uuid: string | null;
+  };
+  old_event: string | null;
+  new_event: string | null;
+}
+
+interface CalendlyOptions {
+  url: string;
+  parentElement: HTMLElement;
+  prefill?: Record<string, unknown>;
+  utm?: Record<string, unknown>;
 }
 
 declare global {
   interface Window {
     Calendly: {
-      initInlineWidget: (options: any) => void;
+      initInlineWidget: (options: CalendlyOptions) => void;
       closePopupWidget: () => void;
-      showPopupWidget: (url: string, options?: any) => void;
+      showPopupWidget: (url: string, options?: CalendlyOptions) => void;
     };
   }
 }
@@ -46,6 +116,8 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
   onDateAndTimeSelected,
   onEventTypeViewed,
 }) => {
+
+  console.log("url inside calendly inline widget: ", url)
   const widgetRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
 
@@ -147,11 +219,11 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
         ref={widgetRef}
         className="calendly-inline-widget"
         style={{
-          minWidth: "320px",
+          minWidth: "200px",
           height: `${height}px`,
           border: "1px solid #e5e7eb",
           borderRadius: "8px",
-          overflow: "hidden",
+          overflow: "auto",
         }}
       />
     </div>
