@@ -39,7 +39,6 @@ export default function PasswordResetVerifyPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch,
   } = useForm<PasswordResetSchema>({
     resolver: zodResolver(passwordResetSchema),
     defaultValues: {

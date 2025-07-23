@@ -1,6 +1,15 @@
-import type { StateCreator } from 'zustand';
-import type { CalendlyStore, UIActions, ModalActions, UtilityActions } from '../types';
-import type { CalendarViewType, MeetingFilters, CalendlyMeeting, EventType, CalendlyState } from '../../../types/calendly';
+import type { StateCreator } from "zustand";
+import type {
+  CalendlyStore,
+  UIActions,
+  ModalActions,
+  UtilityActions,
+} from "../types";
+import type {
+  CalendarViewType,
+  MeetingFilters,
+  CalendlyMeeting,
+} from "../../../types/calendly";
 
 /**
  * UI management actions for Calendly store
@@ -9,21 +18,21 @@ export const createUIActions: StateCreator<
   CalendlyStore,
   [],
   [],
-  Pick<CalendlyStore, 'actions'>
-> = (set, get) => ({
+  { actions: Pick<CalendlyStore["actions"], keyof UIActions> }
+> = (set) => ({
   actions: {
     setSelectedDate: (date: Date) =>
-      set((state) => ({
+      set(() => ({
         selectedDate: date,
       })),
 
     setCalendarView: (view: CalendarViewType) =>
-      set((state) => ({
+      set(() => ({
         calendarView: view,
       })),
 
     setMeetingFilters: (filters: MeetingFilters) =>
-      set((state) => ({
+      set(() => ({
         meetingFilters: filters,
       })),
 
@@ -47,47 +56,56 @@ export const createUIActions: StateCreator<
         selectedMeetings: [],
       })),
 
-    openMeetingDetailsModal: (meeting) =>
+    openMeetingDetailsModal: (meeting: CalendlyMeeting) =>
       set(() => ({
         modals: {
           meetingDetails: { isOpen: true, meeting },
-          cancelMeeting: { isOpen: false },
+          cancelMeeting: { isOpen: false, meetingUri: null },
           createEventType: { isOpen: false },
+          rescheduleMeeting: { isOpen: false, meetingUri: null },
+          eventTypeDetails: { isOpen: false, eventType: null },
+          availabilityEditor: { isOpen: false },
+          bookingForm: { isOpen: false, eventTypeUri: null },
         },
       })),
 
-    openCancelMeetingModal: (meetingUri) =>
+    openCancelMeetingModal: (meetingUri: string) =>
       set(() => ({
         modals: {
-          meetingDetails: { isOpen: false },
+          meetingDetails: { isOpen: false, meeting: null },
           cancelMeeting: { isOpen: true, meetingUri },
           createEventType: { isOpen: false },
+          rescheduleMeeting: { isOpen: false, meetingUri: null },
+          eventTypeDetails: { isOpen: false, eventType: null },
+          availabilityEditor: { isOpen: false },
+          bookingForm: { isOpen: false, eventTypeUri: null },
         },
       })),
 
-    openEventTypeDetailsModal: (eventType) =>
+    openEventTypeDetailsModal: () =>
       set(() => ({
         modals: {
-          meetingDetails: { isOpen: false },
-          cancelMeeting: { isOpen: false },
+          meetingDetails: { isOpen: false, meeting: null },
+          cancelMeeting: { isOpen: false, meetingUri: null },
           createEventType: { isOpen: false },
-          eventTypeDetails: { isOpen: true, eventType },
+          rescheduleMeeting: { isOpen: false, meetingUri: null },
+          eventTypeDetails: { isOpen: false, eventType: null },
+          availabilityEditor: { isOpen: false },
+          bookingForm: { isOpen: false, eventTypeUri: null },
         },
       })),
 
     closeAllModals: () =>
       set(() => ({
         modals: {
-          meetingDetails: { isOpen: false },
-          cancelMeeting: { isOpen: false },
+          meetingDetails: { isOpen: false, meeting: null },
+          cancelMeeting: { isOpen: false, meetingUri: null },
           createEventType: { isOpen: false },
-          eventTypeDetails: { isOpen: false },
+          eventTypeDetails: { isOpen: false, eventType: null },
+          rescheduleMeeting: { isOpen: false, meetingUri: null },
+          availabilityEditor: { isOpen: false },
+          bookingForm: { isOpen: false, eventTypeUri: null },
         },
-      })),
-
-    clearError: () =>
-      set(() => ({
-        error: null,
       })),
   },
 });
@@ -99,98 +117,138 @@ export const createModalActions: StateCreator<
   CalendlyStore,
   [],
   [],
-  { actions: Pick<CalendlyStore['actions'], keyof ModalActions> }
-> = (set, get) => ({
+  { actions: Pick<CalendlyStore["actions"], keyof ModalActions> }
+> = (set) => ({
   actions: {
     openCancelMeetingModal: (meetingUri) =>
-      set((state) => {
-        state.modals.cancelMeeting = {
-          isOpen: true,
-          meetingUri,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          cancelMeeting: {
+            isOpen: true,
+            meetingUri,
+          },
+        },
+      })),
 
     closeCancelMeetingModal: () =>
-      set((state) => {
-        state.modals.cancelMeeting = {
-          isOpen: false,
-          meetingUri: null,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          cancelMeeting: {
+            isOpen: false,
+            meetingUri: null,
+          },
+        },
+      })),
 
     openRescheduleMeetingModal: (meetingUri) =>
-      set((state) => {
-        state.modals.rescheduleMeeting = {
-          isOpen: true,
-          meetingUri,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          rescheduleMeeting: {
+            isOpen: true,
+            meetingUri,
+          },
+        },
+      })),
 
     closeRescheduleMeetingModal: () =>
-      set((state) => {
-        state.modals.rescheduleMeeting = {
-          isOpen: false,
-          meetingUri: null,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          rescheduleMeeting: {
+            isOpen: false,
+            meetingUri: null,
+          },
+        },
+      })),
 
     openMeetingDetailsModal: (meeting) =>
-      set((state) => {
-        state.modals.meetingDetails = {
-          isOpen: true,
-          meeting,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          meetingDetails: {
+            isOpen: true,
+            meeting,
+          },
+        },
+      })),
 
     closeMeetingDetailsModal: () =>
-      set((state) => {
-        state.modals.meetingDetails = {
-          isOpen: false,
-          meeting: null,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          meetingDetails: {
+            isOpen: false,
+            meeting: null,
+          },
+        },
+      })),
 
     openEventTypeDetailsModal: (eventType) =>
-      set((state) => {
-        state.modals.eventTypeDetails = {
-          isOpen: true,
-          eventType,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          eventTypeDetails: {
+            isOpen: true,
+            eventType,
+          },
+        },
+      })),
 
     closeEventTypeDetailsModal: () =>
-      set((state) => {
-        state.modals.eventTypeDetails = {
-          isOpen: false,
-          eventType: null,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          eventTypeDetails: {
+            isOpen: false,
+            eventType: null,
+          },
+        },
+      })),
 
     openAvailabilityEditor: () =>
-      set((state) => {
-        state.modals.availabilityEditor.isOpen = true;
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          availabilityEditor: {
+            isOpen: true,
+          },
+        },
+      })),
 
     closeAvailabilityEditor: () =>
-      set((state) => {
-        state.modals.availabilityEditor.isOpen = false;
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          availabilityEditor: {
+            isOpen: false,
+          },
+        },
+      })),
 
     openBookingForm: (eventTypeUri) =>
-      set((state) => {
-        state.modals.bookingForm = {
-          isOpen: true,
-          eventTypeUri,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          bookingForm: {
+            isOpen: true,
+            eventTypeUri,
+          },
+        },
+      })),
 
     closeBookingForm: () =>
-      set((state) => {
-        state.modals.bookingForm = {
-          isOpen: false,
-          eventTypeUri: null,
-        };
-      }),
+      set((state) => ({
+        modals: {
+          ...state.modals,
+          bookingForm: {
+            isOpen: false,
+            eventTypeUri: null,
+          },
+        },
+      })),
   },
 });
 
@@ -201,56 +259,59 @@ export const createUtilityActions: StateCreator<
   CalendlyStore,
   [],
   [],
-  { actions: Pick<CalendlyStore['actions'], keyof UtilityActions> }
-> = (set, get) => ({
+  { actions: Pick<CalendlyStore["actions"], keyof UtilityActions> }
+> = (set) => ({
   actions: {
     setError: (error) =>
-      set((state) => {
-        state.error = error;
-      }),
+      set(() => ({
+        error,
+      })),
 
     clearError: () =>
-      set((state) => {
-        state.error = null;
-      }),
+      set(() => ({
+        error: null,
+      })),
 
     setLoading: (key, value) =>
-      set((state) => {
-        state.loading[key] = value;
-      }),
+      set((state) => ({
+        loading: {
+          ...state.loading,
+          [key]: value,
+        },
+      })),
 
     clearAllData: () =>
-      set((state) => {
+      set(() => ({
         // Reset all data to initial state
-        state.connectionStatus = null;
-        state.events = [];
-        state.meetings = [];
-        state.eventTypes = [];
-        state.availabilitySchedules = [];
-        state.error = null;
-        
+        connectionStatus: null,
+        events: [],
+        meetings: [],
+        eventTypes: [],
+        availabilitySchedules: [],
+        error: null,
+
         // Reset loading states
-        state.loading = {
+        loading: {
           events: false,
           meetings: false,
           eventTypes: false,
           availability: false,
           connection: false,
-        };
-        
+        },
+
         // Reset UI state
-        state.selectedDate = new Date();
-        state.calendarView = {
-          view: 'month',
+        selectedDate: new Date(),
+        calendarView: {
+          view: "month" as const,
           date: new Date(),
-        };
-        state.meetingFilters = {
-          status: 'all',
-        };
-        state.selectedMeetings = [];
-        
+        },
+        meetingFilters: {
+          status: "all" as const,
+        },
+        selectedMeetings: [],
+
         // Close all modals
-        state.modals = {
+        modals: {
           cancelMeeting: {
             isOpen: false,
             meetingUri: null,
@@ -274,7 +335,7 @@ export const createUtilityActions: StateCreator<
             isOpen: false,
             eventTypeUri: null,
           },
-        };
-      }),
+        },
+      })),
   },
-}); 
+});

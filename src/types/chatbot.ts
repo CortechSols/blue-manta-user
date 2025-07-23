@@ -106,6 +106,8 @@ export interface ChatResponse {
 }
 
 export interface Conversation {
+  statusDisplay: string;
+  statusColor: string;
   id: number;
   chatbotId: number;
   chatbotName: string;

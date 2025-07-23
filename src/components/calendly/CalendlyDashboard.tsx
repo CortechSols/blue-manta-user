@@ -258,7 +258,7 @@ const CalendarOverviewSection: React.FC = () => {
   const handleViewChange = (view: string) => {
     setCalendarView({
       ...calendarView,
-      view: view.toLowerCase() as any,
+      view: view.toLowerCase() as "month" | "week" | "day" | "agenda",
     });
   };
 
@@ -300,7 +300,7 @@ const CalendarOverviewSection: React.FC = () => {
   const getMeetingsForDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
     return meetings.filter((meeting) => {
-      const meetingDate = new Date(meeting.start_time || meeting.startTime);
+      const meetingDate = new Date(meeting.start_time || meeting.startTime || "");
       const meetingDateStr = format(meetingDate, "yyyy-MM-dd");
       return meetingDateStr === dateStr && meeting.status === "active";
     });
@@ -452,7 +452,7 @@ const CalendarOverviewSection: React.FC = () => {
                           key={idx}
                           className="w-full h-0.5 md:h-1 bg-blue-500 rounded-full"
                           title={`${meeting.name} - ${format(
-                            new Date(meeting.start_time || meeting.startTime),
+                            new Date(meeting.start_time || meeting.startTime || ""),
                             "h:mm a"
                           )}`}
                         />
@@ -519,7 +519,7 @@ const CalendarOverviewSection: React.FC = () => {
                         >
                           {meeting.name} -{" "}
                           {format(
-                            new Date(meeting.start_time || meeting.startTime),
+                            new Date(meeting.start_time || meeting.startTime || ""),
                             "h:mm a"
                           )}
                         </div>
@@ -564,7 +564,7 @@ const CalendarOverviewSection: React.FC = () => {
 export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
   className = "",
 }) => {
-  const { connectionStatus, error, meetings, eventTypes } =
+  const { error, meetings, eventTypes } =
     useCalendlyDashboard();
   const actions = useCalendlyActions();
   const [activeTab, setActiveTab] = useState("overview");
@@ -572,7 +572,7 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
   // Calculate metrics
   const todaysMeetings = meetings.filter((meeting) => {
     const startTime = meeting.start_time || meeting.startTime;
-    const meetingDate = new Date(startTime);
+    const meetingDate = new Date(startTime || "");
     const today = new Date();
     return (
       meeting.status === "active" &&

@@ -1,8 +1,7 @@
-import type { StateCreator } from 'zustand';
-import type { CalendlyStore, ConnectionActions } from '../types';
-import { calendlyService } from '../../../lib/calendly-service';
-import { shouldUseDemoData, demoConnectionStatus } from '../../../lib/demo-data';
-import { createErrorMessage } from '../utils';
+import type { StateCreator } from "zustand";
+import type { CalendlyStore, ConnectionActions } from "../types";
+import { calendlyService } from "../../../lib/calendly-service";
+import { createErrorMessage } from "../utils";
 
 /**
  * Connection management actions for Calendly store
@@ -11,45 +10,45 @@ export const createConnectionActions: StateCreator<
   CalendlyStore,
   [],
   [],
-  { actions: Pick<CalendlyStore['actions'], keyof ConnectionActions> }
+  { actions: Pick<CalendlyStore["actions"], keyof ConnectionActions> }
 > = (set, get) => ({
   actions: {
     setConnectionStatus: (status) =>
       set((state) => {
         state.connectionStatus = status;
+        return state;
       }),
 
     checkConnectionStatus: async () => {
-      if (shouldUseDemoData()) {
-        return; // Skip if using demo data
-      }
-
       set((state) => {
         state.loading.connection = true;
         state.error = null;
+        return state;
       });
 
       try {
         const response = await calendlyService.getConnectionStatus();
-        console.log('Store - Connection status response:', response);
+        console.log("Store - Connection status response:", response);
 
         set((state) => {
           state.connectionStatus = response;
           state.loading.connection = false;
+          return state;
         });
 
-        console.log('Store - Connection status updated in store');
+        console.log("Store - Connection status updated in store");
 
         // If connected, load initial data
         if (response.is_connected) {
-          console.log('Store - Loading initial data...');
+          console.log("Store - Loading initial data...");
           await get().actions.refreshAll();
         }
       } catch (error) {
-        console.error('Store - Connection status check failed:', error);
+        console.error("Store - Connection status check failed:", error);
         set((state) => {
-          state.error = createErrorMessage('check connection status', error);
+          state.error = createErrorMessage("check connection status", error);
           state.loading.connection = false;
+          return state;
         });
       }
     },
@@ -58,30 +57,36 @@ export const createConnectionActions: StateCreator<
       set((state) => {
         state.loading.connection = true;
         state.error = null;
+        return state;
       });
 
       try {
         // Get code_verifier from localStorage (PKCE)
-        const codeVerifier = localStorage.getItem('calendly_code_verifier');
+        const codeVerifier = localStorage.getItem("calendly_code_verifier");
 
-        const response = await calendlyService.connectCalendly(code, codeVerifier || undefined);
+        const response = await calendlyService.connectCalendly(
+          code,
+          codeVerifier || undefined
+        );
 
         // Clear the code verifier after use
         if (codeVerifier) {
-          localStorage.removeItem('calendly_code_verifier');
+          localStorage.removeItem("calendly_code_verifier");
         }
 
         set((state) => {
           state.connectionStatus = response;
           state.loading.connection = false;
+          return state;
         });
 
         // Load initial data after connection
         await get().actions.refreshAll();
       } catch (error) {
         set((state) => {
-          state.error = createErrorMessage('connect Calendly', error);
+          state.error = createErrorMessage("connect Calendly", error);
           state.loading.connection = false;
+          return state;
         });
         throw error;
       }
@@ -90,6 +95,7 @@ export const createConnectionActions: StateCreator<
     disconnectCalendly: async () => {
       set((state) => {
         state.loading.connection = true;
+        return state;
       });
 
       try {
@@ -101,14 +107,16 @@ export const createConnectionActions: StateCreator<
           state.eventTypes = [];
           state.availabilitySchedules = [];
           state.loading.connection = false;
+          return state;
         });
       } catch (error) {
         set((state) => {
-          state.error = createErrorMessage('disconnect Calendly', error);
+          state.error = createErrorMessage("disconnect Calendly", error);
           state.loading.connection = false;
+          return state;
         });
         throw error;
       }
     },
   },
-}); 
+});

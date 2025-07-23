@@ -1,14 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { calendlyService } from '../lib/calendly-service';
 import type {
-  CalendlyEventsResponse,
-  CalendlyMeetingsResponse,
-  CalendlyEventTypesResponse,
-  CalendlyAvailabilityResponse,
-  CalendlyAvailableSlotsResponse,
-  ConnectionStatus,
   CancelMeetingRequest,
-  AvailableTimesRequest,
   MeetingFilters,
 } from '../types/calendly';
 import { format, startOfMonth, endOfMonth, addDays, subDays } from 'date-fns';
@@ -141,7 +134,7 @@ export function useCancelMeeting() {
   
   return useMutation({
     mutationFn: (request: CancelMeetingRequest) => calendlyService.cancelMeeting(request),
-    onSuccess: (data, variables) => {
+    onSuccess: (data) => {
       // Invalidate meetings and events queries
       queryClient.invalidateQueries({ queryKey: calendlyQueryKeys.meetings() });
       queryClient.invalidateQueries({ queryKey: calendlyQueryKeys.events() });
@@ -149,7 +142,7 @@ export function useCancelMeeting() {
       // Show success notification
       console.log('Meeting cancelled successfully:', data.message);
     },
-    onError: (error, variables) => {
+    onError: (error) => {
       console.error('Failed to cancel meeting:', error);
     },
   });

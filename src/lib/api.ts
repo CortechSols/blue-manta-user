@@ -291,11 +291,11 @@ function handleLogout() {
 
 // ChatbotAPIClient for widget compatibility
 export class ChatbotAPIClient {
-  private baseUrl: string;
+  // private baseUrl: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl.replace(/\/$/, ""); // Remove trailing slash
-  }
+  // constructor(baseUrl: string) {
+  //   this.baseUrl = baseUrl.replace(/\/$/, ""); // Remove trailing slash
+  // }
 
   async sendMessage(
     chatbotId: number,

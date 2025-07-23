@@ -1,4 +1,3 @@
-import { shouldUseDemoData, demoConnectionStatus, demoEvents, demoMeetings, demoEventTypes } from '../../lib/demo-data';
 import type { CalendlyStore } from './types';
 
 /**
@@ -6,10 +5,10 @@ import type { CalendlyStore } from './types';
  */
 export const createInitialState = (): Omit<CalendlyStore, 'actions'> => ({
   // Core Calendly State
-  connectionStatus: shouldUseDemoData() ? demoConnectionStatus : null,
-  events: shouldUseDemoData() ? demoEvents : [],
-  meetings: shouldUseDemoData() ? demoMeetings : [],
-  eventTypes: shouldUseDemoData() ? demoEventTypes : [],
+  connectionStatus: null,
+  events: [],
+  meetings: [],
+  eventTypes: [],
   availabilitySchedules: [],
   loading: {
     events: false,

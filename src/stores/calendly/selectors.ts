@@ -137,11 +137,11 @@ export const useCalendlyUtilityActions = () =>
  * Combined selectors with proper memoization for common use cases
  */
 export const useCalendlyUI = () => {
-  const selectedDate = useCalendlySelectedDate();
-  const calendarView = useCalendlyCalendarView();
-  const meetingFilters = useCalendlyMeetingFilters();
-  const selectedMeetings = useCalendlySelectedMeetings();
-  const modals = useCalendlyModals();
+  const selectedDate = useCalendlySelectedDate(useCalendlyStore.getState());
+  const calendarView = useCalendlyCalendarView(useCalendlyStore.getState());
+  const meetingFilters = useCalendlyMeetingFilters(useCalendlyStore.getState());
+  const selectedMeetings = useCalendlySelectedMeetings(useCalendlyStore.getState());
+  const modals = useCalendlyModals(useCalendlyStore.getState());
 
   return {
     selectedDate,
@@ -162,10 +162,10 @@ export const useCalendlyDashboard = (state: CalendlyStore) => ({
 });
 
 export const useCalendlyData = () => {
-  const events = useCalendlyEvents();
-  const meetings = useCalendlyMeetings();
-  const eventTypes = useCalendlyEventTypes();
-  const availabilitySchedules = useCalendlyAvailability();
+  const events = useCalendlyEvents(useCalendlyStore.getState());
+  const meetings = useCalendlyMeetings(useCalendlyStore.getState());
+  const eventTypes = useCalendlyEventTypes(useCalendlyStore.getState());
+  const availabilitySchedules = useCalendlyAvailability(useCalendlyStore.getState());
 
   return {
     events,
@@ -176,9 +176,13 @@ export const useCalendlyData = () => {
 };
 
 export const useCalendlyStatus = () => {
-  const connectionStatus = useCalendlyConnection();
-  const loading = useCalendlyLoading();
-  const error = useCalendlyError();
+  const connectionStatus = useCalendlyConnection(useCalendlyStore.getState());
+  const loading = useCalendlyLoading(useCalendlyStore.getState());
+  const error = useCalendlyError(useCalendlyStore.getState());
+
+  console.log("connectionStatus", connectionStatus);
+  console.log("loading", loading);
+  console.log("error", error);
 
   return {
     connectionStatus,

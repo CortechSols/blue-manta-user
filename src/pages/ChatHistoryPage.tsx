@@ -17,7 +17,6 @@ import { RefreshButton } from "@/components/ui/refresh-button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useConversations, useChatbotRefresh } from "@/hooks/useChatbotApi";
 import { format } from "date-fns";
-import type { Conversation } from "@/types/chatbot";
 
 const avatarColors = [
   "bg-blue-200 text-blue-700",
@@ -70,37 +69,17 @@ const getTimeAgo = (dateString: string): string => {
   }
 };
 
-// Helper function to determine conversation status
-const getConversationStatus = (conversation: Conversation) => {
-  const messageCount = conversation.messageCount || 0;
-  const hasEnded = !!conversation.endedAt;
-
-  if (hasEnded) {
-    return { text: "Completed", color: "bg-gray-100 text-gray-700" };
-  }
-
-  if (messageCount > 10) {
-    return { text: "Active Chat", color: "bg-green-100 text-green-700" };
-  }
-
-  if (messageCount > 5) {
-    return { text: "In Progress", color: "bg-blue-100 text-blue-700" };
-  }
-
-  return { text: "New Conversation", color: "bg-purple-100 text-purple-700" };
-};
-
-const toLinear = (c) =>
+const toLinear = (c: number) =>
   c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 
-function getLuminance(r, g, b) {
+function getLuminance(r: number, g: number, b: number) {
   const [R, G, B] = [r, g, b].map((v) => toLinear(v / 255));
   return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
-function pickTextColor(bgHex) {
-  const rgb = bgHex.match(/\w\w/g).map((h) => parseInt(h, 16));
-  const L = getLuminance(rgb[0], rgb[1], rgb[2]);
+function pickTextColor(bgHex: string) {
+  const rgb = bgHex.match(/\w\w/g)?.map((h) => parseInt(h, 16));
+  const L = getLuminance(rgb?.[0] || 0, rgb?.[1] || 0, rgb?.[2] || 0);
   return L > 0.179 ? "#000000" : "#ffffff";
 }
 
@@ -256,7 +235,6 @@ export default function ChatHistoryPage() {
             {/* Chat History List */}
             <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
               {filteredConversations.map((conversation, index) => {
-                const status = getConversationStatus(conversation);
                 return (
                   <div
                     key={conversation.id}
@@ -341,11 +319,13 @@ export default function ChatHistoryPage() {
                             variant="secondary"
                             className={`text-xs font-medium`}
                             style={{
-                              backgroundColor: conversation.statusColor,
-                              color: pickTextColor(conversation.statusColor),
+                              backgroundColor: conversation.statusColor || "",
+                              color: pickTextColor(
+                                conversation.statusColor || ""
+                              ),
                             }}
                           >
-                            {conversation.statusDisplay}
+                            {conversation.statusDisplay || ""}
                           </Badge>
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <Eye className="w-4 h-4 text-blue-600" />

@@ -129,6 +129,7 @@ export interface CalendlyActions extends
   UIActions,
   ModalActions,
   UtilityActions {
+  closeAllModals: () => void;
   checkConnection: () => Promise<void>;
 }
 
@@ -138,10 +139,7 @@ export interface CalendlyStore extends CalendlyState, CalendlyUIState {
 }
 
 // Event Type Actions (Read Only)
-export interface EventTypeActions {
-  // Note: loadEventTypes is handled in DataLoadingActions to avoid duplication
-  // Note: createEventType and updateEventType removed - not supported by Calendly API v2
-}
+export type EventTypeActions = object
 
 // Meeting Actions (Limited)
 export interface MeetingActions {

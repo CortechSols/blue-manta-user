@@ -8,7 +8,6 @@ import {
   RefreshCw,
   AlertCircle,
   MessageSquare,
-  Clock,
   User,
   Bot,
 } from "lucide-react";
@@ -18,7 +17,6 @@ import {
   useChatbotRefresh,
 } from "@/hooks/useChatbotApi";
 import { format } from "date-fns";
-import type { ChatMessage } from "@/types/chatbot";
 
 // Helper function to safely format dates
 const safeFormatDate = (dateString: string, formatString: string): string => {
@@ -279,7 +277,7 @@ export default function ConversationDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4 max-h-[600px] overflow-y-auto">
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${

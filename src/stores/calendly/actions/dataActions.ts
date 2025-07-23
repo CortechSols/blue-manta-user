@@ -1,6 +1,5 @@
 import type { StateCreator } from 'zustand';
 import type { CalendlyStore, DataLoadingActions } from '../types';
-import type { MeetingFilters } from '../../../types/calendly';
 import { calendlyService } from '../../../lib/calendly-service';
 import {
   extractEventsFromResponse,
@@ -37,6 +36,7 @@ export const createDataActions: StateCreator<
       set((state) => {
         state.loading.events = true;
         state.error = null;
+        return state;
       });
 
       try {
@@ -72,6 +72,7 @@ export const createDataActions: StateCreator<
           }
 
           state.loading.events = false;
+          return state;
         });
       } catch (error) {
         console.error('Failed to load events:', error);
@@ -79,6 +80,7 @@ export const createDataActions: StateCreator<
           state.error = createErrorMessage('load events', error);
           state.loading.events = false;
           state.events = [];
+          return state;
         });
       }
     },
@@ -87,6 +89,7 @@ export const createDataActions: StateCreator<
       set((state) => {
         state.loading.meetings = true;
         state.error = null;
+        return state;
       });
 
       try {
@@ -105,6 +108,7 @@ export const createDataActions: StateCreator<
           console.log('Raw meetings from API:', extractedMeetings);
           state.meetings = extractedMeetings;
           state.loading.meetings = false;
+          return state;
         });
       } catch (error) {
         console.error('Failed to load meetings:', error);
@@ -112,15 +116,19 @@ export const createDataActions: StateCreator<
           state.error = createErrorMessage('load meetings', error);
           state.loading.meetings = false;
           state.meetings = [];
+          return state;
         });
       }
     },
 
     loadEventTypes: async () => {
-      set((state) => {
-        state.loading.eventTypes = true;
-        state.error = null;
-      });
+      set(() => ({
+        loading: {
+          ...get().loading,
+          eventTypes: true,
+        },
+        error: null,
+      }));
 
       try {
         const response = await calendlyService.getEventTypes();
@@ -132,6 +140,7 @@ export const createDataActions: StateCreator<
           console.log('Extracted event types:', extractedEventTypes);
           state.eventTypes = extractedEventTypes;
           state.loading.eventTypes = false;
+          return state;
         });
       } catch (error) {
         console.error('Failed to load event types:', error);
@@ -139,6 +148,7 @@ export const createDataActions: StateCreator<
           state.error = createErrorMessage('load event types', error);
           state.loading.eventTypes = false;
           state.eventTypes = [];
+          return state;
         });
       }
     },
@@ -147,6 +157,7 @@ export const createDataActions: StateCreator<
       set((state) => {
         state.loading.availability = true;
         state.error = null;
+        return state;
       });
 
       try {
@@ -158,6 +169,7 @@ export const createDataActions: StateCreator<
           const extractedAvailability = extractAvailabilityFromResponse(response);
           state.availabilitySchedules = extractedAvailability;
           state.loading.availability = false;
+          return state;
         });
       } catch (error) {
         console.error('Failed to load availability:', error);
@@ -165,6 +177,7 @@ export const createDataActions: StateCreator<
           state.error = createErrorMessage('load availability', error);
           state.loading.availability = false;
           state.availabilitySchedules = [];
+          return state;
         });
       }
     },

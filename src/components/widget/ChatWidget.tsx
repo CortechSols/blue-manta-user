@@ -3,7 +3,7 @@ import { useChatInterface } from "../../hooks/useChatInterface";
 import { ChatbotAPIClient } from "../../lib/api";
 import type { ChatbotAppearance } from "../../types/chatbot";
 import { ArrowDownIcon, SendHorizonal, Zap } from "lucide-react";
-import { CalendlyInlineWidget } from "./CalendlyInlineWidget";
+import { CalendlyInlineWidget } from "../calendly/CalendlyInlineWidget";
 
 interface ChatWidgetProps {
   chatbotId: number;
@@ -23,12 +23,10 @@ export function ChatWidget({
   appearance,
   appearanceLoading = false,
 }: ChatWidgetProps) {
-
   const headerColor = appearance?.headerColor || "#3b82f6";
   const userMessageBubbleColor =
     appearance?.userMessageBubbleColor || "#3b82f6";
-  const botMessageBubbleColor =
-    appearance?.botMessageBubbleColor || "#f3f4f6";
+  const botMessageBubbleColor = appearance?.botMessageBubbleColor || "#f3f4f6";
   const userTextColor = appearance?.userTextColor || "#ffffff";
   const botTextColor = appearance?.botTextColor || "#000000";
   const sendButtonColor = appearance?.sendButtonColor || "#3b82f6";
@@ -51,7 +49,7 @@ export function ChatWidget({
     apiClient
   );
 
-  console.log("messages: ", messages)
+  console.log("messages: ", messages);
 
   // Handle window resize for responsiveness
   useEffect(() => {

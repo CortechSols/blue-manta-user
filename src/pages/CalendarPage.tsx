@@ -70,7 +70,7 @@ export default function CalendarPage() {
 
   // Listen for window focus to refresh connection status when user returns from Calendly
   useEffect(() => {
-    let timeoutId: number;
+    let timeoutId: number | ReturnType<typeof setTimeout>;
 
     const handleFocus = () => {
       console.log(

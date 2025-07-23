@@ -28,7 +28,7 @@ function WidgetPage() {
   // Create API client
   const apiClient = useMemo(() => {
     if (!config) return null;
-    return new ChatbotAPIClient(config.apiBaseUrl);
+    return new ChatbotAPIClient();
   }, [config]);
 
   // Fetch chatbot appearance
