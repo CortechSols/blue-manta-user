@@ -25,12 +25,7 @@ type UnifiedLoginResponse = {
 export function useApiQuery<T>(
   queryKey: readonly unknown[],
   endpoint: string,
-  options?: {
-    enabled?: boolean;
-    staleTime?: number;
-    gcTime?: number;
-    retry?: number;
-  }
+  options?: any
 ) {
   return useQuery<T>({
     queryKey,
