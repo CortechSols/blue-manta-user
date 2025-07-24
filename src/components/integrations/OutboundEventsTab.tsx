@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useOutboundEvents, useOutboundEventDetail, useRetryOutboundEvent } from "@/hooks/useOutboundEvents";
+import { format, parseISO } from "date-fns";
 
 const statusOptions = [
   { label: "All", value: "" },
@@ -34,6 +35,15 @@ function CodeBadge({ code }: { code: number | null }) {
   ) : null;
 }
 
+function formatDateTime(dt?: string | null) {
+  if (!dt) return "-";
+  try {
+    return format(parseISO(dt), "PPpp"); // e.g., Jul 24, 2025 at 8:14:18 AM
+  } catch {
+    return dt;
+  }
+}
+
 function OutboundEventDetailModal({ eventId, onClose }: { eventId: number; onClose: () => void }) {
   const detail = useOutboundEventDetail(eventId, { enabled: true });
   const retry = useRetryOutboundEvent(eventId);
@@ -61,12 +71,12 @@ function OutboundEventDetailModal({ eventId, onClose }: { eventId: number; onClo
                 <div><span className="font-semibold">Type:</span> {detail.data.eventType || detail.data.event_type}</div>
                 <div><span className="font-semibold">Status:</span> <StatusBadge status={detail.data.status} /></div>
                 <div><span className="font-semibold">Attempts:</span> {detail.data.attempts}</div>
-                <div><span className="font-semibold">Last Attempt:</span> {detail.data.lastAttemptAt || detail.data.last_attempt_at}</div>
+                <div><span className="font-semibold">Last Attempt:</span> {formatDateTime(detail.data.lastAttemptAt || detail.data.last_attempt_at)}</div>
                 <div><span className="font-semibold">Response Code:</span> <CodeBadge code={detail.data.responseCode || detail.data.response_code} /></div>
-                <div><span className="font-semibold">Created At:</span> {detail.data.createdAt || detail.data.created_at}</div>
+                <div><span className="font-semibold">Created At:</span> {formatDateTime(detail.data.createdAt || detail.data.created_at)}</div>
                 <div><span className="font-semibold">Integration ID:</span> {detail.data.integration}</div>
                 <div><span className="font-semibold">Organization ID:</span> {detail.data.organization}</div>
-                <div><span className="font-semibold">Next Retry At:</span> {detail.data.nextRetryAt || detail.data.next_retry_at || <span className="text-gray-400">-</span>}</div>
+                <div><span className="font-semibold">Next Retry At:</span> {formatDateTime(detail.data.nextRetryAt || detail.data.next_retry_at)}</div>
                 <div><span className="font-semibold">Last Error:</span> {detail.data.lastError || detail.data.last_error || <span className="text-gray-400">-</span>}</div>
               </div>
               <div className="mt-4 mb-2 text-xs font-semibold text-gray-700">Response Body:</div>
@@ -97,9 +107,29 @@ export const OutboundEventsTab: React.FC = () => {
   const [status, setStatus] = useState("");
   const { list } = useOutboundEvents(status);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [retryingId, setRetryingId] = useState<number | null>(null);
+  const [retryMsgMap, setRetryMsgMap] = useState<{ [id: number]: string }>({});
 
   // Modal logic
   const closeModal = () => setSelectedId(null);
+
+  // Retry handler for table
+  const handleRetryFromTable = (id: number) => {
+    setRetryingId(id);
+    setRetryMsgMap((prev) => ({ ...prev, [id]: "" }));
+    const retry = useRetryOutboundEvent(id);
+    retry.mutate(undefined, {
+      onSuccess: (data: any) => {
+        setRetryMsgMap((prev) => ({ ...prev, [id]: data.message || "Retried!" }));
+        setRetryingId(null);
+        list.list.refetch(); // Refresh the table
+      },
+      onError: (err: any) => {
+        setRetryMsgMap((prev) => ({ ...prev, [id]: err?.message || "Retry failed" }));
+        setRetryingId(null);
+      },
+    });
+  };
 
   return (
     <div>
@@ -130,6 +160,7 @@ export const OutboundEventsTab: React.FC = () => {
                 <th className="px-3 py-2 border">Response Code</th>
                 <th className="px-3 py-2 border">Last Error</th>
                 <th className="px-3 py-2 border">Created At</th>
+                <th className="px-3 py-2 border">Actions</th>
                 <th className="px-3 py-2 border">View</th>
               </tr>
             </thead>
@@ -140,10 +171,26 @@ export const OutboundEventsTab: React.FC = () => {
                   <td className="px-3 py-2 border">{event.eventType || event.event_type}</td>
                   <td className="px-3 py-2 border"><StatusBadge status={event.status} /></td>
                   <td className="px-3 py-2 border">{event.attempts}</td>
-                  <td className="px-3 py-2 border">{event.lastAttemptAt || event.last_attempt_at}</td>
+                  <td className="px-3 py-2 border">{formatDateTime(event.lastAttemptAt || event.last_attempt_at)}</td>
                   <td className="px-3 py-2 border"><CodeBadge code={event.responseCode || event.response_code} /></td>
                   <td className="px-3 py-2 border">{event.lastError || event.last_error}</td>
-                  <td className="px-3 py-2 border">{event.createdAt || event.created_at}</td>
+                  <td className="px-3 py-2 border">{formatDateTime(event.createdAt || event.created_at)}</td>
+                  <td className="px-3 py-2 border">
+                    {event.status === "failed" && (
+                      <>
+                        <button
+                          className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 disabled:opacity-60"
+                          onClick={() => handleRetryFromTable(event.id)}
+                          disabled={retryingId === event.id}
+                        >
+                          {retryingId === event.id ? "Retrying..." : "Retry"}
+                        </button>
+                        {retryMsgMap[event.id] && (
+                          <div className="text-xs mt-1 text-blue-600">{retryMsgMap[event.id]}</div>
+                        )}
+                      </>
+                    )}
+                  </td>
                   <td className="px-3 py-2 border text-blue-600 underline cursor-pointer" onClick={() => setSelectedId(event.id)}>
                     View
                   </td>
