@@ -13,6 +13,7 @@ import {
   LogOut,
   Bot,
   Menu,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -31,6 +32,7 @@ const sidebarItems = [
   { icon: Bot, label: "Chatbots", path: "/chatbots" },
   { icon: History, label: "Chat History", path: "/chat-history" },
   { icon: ShieldCheck, label: "Quality Assurance", path: "/qa" },
+  { icon: Zap, label: "Integrations", path: "/integrations" },
 ];
 
 interface DashboardLayoutProps {
