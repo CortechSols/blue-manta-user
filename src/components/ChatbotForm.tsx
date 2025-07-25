@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Save, Upload } from "lucide-react";
 import {
   mutateChatbotSchema,
@@ -42,6 +43,9 @@ export function ChatbotForm({
     logo?: string;
     image?: string;
   }>({});
+  const [textPromptEn, setTextPromptEn] = useState("");
+  const [textPromptEs, setTextPromptEs] = useState("");
+  const [activeTab, setActiveTab] = useState("english");
 
   // React Hook Form setup
   const {
@@ -71,7 +75,40 @@ export function ChatbotForm({
     if (initialData && mode === "edit") {
       setValue("name", initialData.name || "");
       setValue("systemPrompt", initialData.systemPrompt || "");
-      setValue("textPrompt", initialData.textPrompt || "");
+
+      // Handle text prompt structure - account for snake_case to camelCase conversion
+      // The data might come in as textPrompt (camelCase) or text_prompt (snake_case)
+      const textPromptSource =
+        initialData.textPrompt ||
+        (initialData as Record<string, any>).text_prompt; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      console.log("ChatbotForm: Initial data text prompt:", textPromptSource);
+
+      if (textPromptSource) {
+        if (typeof textPromptSource === "string") {
+          // Legacy format - put the string in English field
+          setTextPromptEn(textPromptSource);
+          setTextPromptEs("");
+        } else if (typeof textPromptSource === "object") {
+          // New format - extract text_prompt_en and text_prompt_es from the nested object
+          const textPromptData = textPromptSource as {
+            text_prompt_en?: string;
+            text_prompt_es?: string;
+            textPromptEn?: string; // Also check camelCase versions
+            textPromptEs?: string;
+          };
+          setTextPromptEn(
+            textPromptData.text_prompt_en || textPromptData.textPromptEn || ""
+          );
+          setTextPromptEs(
+            textPromptData.text_prompt_es || textPromptData.textPromptEs || ""
+          );
+        }
+      } else {
+        setTextPromptEn("");
+        setTextPromptEs("");
+      }
+
       setValue("sendButtonColor", initialData.sendButtonColor || "#0077B6");
       setValue("botTextColor", initialData.botTextColor || "#000000");
       setValue("userTextColor", initialData.userTextColor || "#000000");
@@ -96,7 +133,7 @@ export function ChatbotForm({
         setAvatarPreview(initialData.image);
       }
     }
-  }, [initialData, mode]);
+  }, [initialData, mode, setValue, trigger]);
 
   // Separate effect for initial file validation in create mode
   useEffect(() => {
@@ -174,9 +211,14 @@ export function ChatbotForm({
 
       formData.append("name", data.name || "");
       formData.append("systemPrompt", data.systemPrompt || "");
-      if (data.textPrompt) {
-        formData.append("textPrompt", data.textPrompt);
-      }
+
+      // Build the text prompt JSON structure
+      const textPromptData = {
+        text_prompt_en: textPromptEn,
+        text_prompt_es: textPromptEs,
+      };
+      formData.append("textPrompt", JSON.stringify(textPromptData));
+
       formData.append("sendButtonColor", data.sendButtonColor);
       formData.append("botTextColor", data.botTextColor);
       formData.append("userTextColor", data.userTextColor);
@@ -281,21 +323,35 @@ export function ChatbotForm({
             </div>
 
             <div>
-              <Label htmlFor="textPrompt" className="text-sm font-medium">
-                Context Data
-              </Label>
-              <Textarea
-                id="textPrompt"
-                {...register("textPrompt")}
-                placeholder="Enter context data for your chatbot (e.g., About Us section, FAQ, etc.). This will be used to create embeddings for better responses..."
-                rows={6}
-                className="mt-1 resize-none"
-              />
-              {errors.textPrompt && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.textPrompt.message}
-                </p>
-              )}
+              <Label className="text-sm font-medium">Context Data</Label>
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="mt-2"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="english">English</TabsTrigger>
+                  <TabsTrigger value="spanish">Spanish</TabsTrigger>
+                </TabsList>
+                <TabsContent value="english" className="mt-3">
+                  <Textarea
+                    value={textPromptEn}
+                    onChange={(e) => setTextPromptEn(e.target.value)}
+                    placeholder="Enter context data for your chatbot in English (e.g., About Us section, FAQ, etc.). This will be used to create embeddings for better responses..."
+                    rows={6}
+                    className="resize-none"
+                  />
+                </TabsContent>
+                <TabsContent value="spanish" className="mt-3">
+                  <Textarea
+                    value={textPromptEs}
+                    onChange={(e) => setTextPromptEs(e.target.value)}
+                    placeholder="Ingrese datos de contexto para su chatbot en español (por ejemplo, sección Acerca de nosotros, preguntas frecuentes, etc.). Esto se utilizará para crear embeddings para mejores respuestas..."
+                    rows={6}
+                    className="resize-none"
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
           </CardContent>
         </Card>

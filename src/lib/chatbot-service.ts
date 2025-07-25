@@ -10,6 +10,8 @@ import type {
   OrganizationsListResponse,
   DataSource,
   CreateDataSourceRequest,
+  OrganizationDashboardData,
+  ConversationStatus,
 } from "../types/chatbot";
 
 export class ChatbotService {
@@ -140,6 +142,8 @@ export class ChatbotService {
     page?: number;
     page_size?: number;
     chatbot_id?: number;
+    search_by?: string;
+    status_names?: string;
   }): Promise<ConversationsResponse> {
     try {
       return await apiClient
@@ -150,6 +154,22 @@ export class ChatbotService {
       if (error.response?.status === 404 || error.response?.status === 405) {
         throw new Error(
           "Conversations endpoints are not available on the backend yet. Please contact your administrator to enable conversation functionality."
+        );
+      }
+      throw error;
+    }
+  }
+
+  async getConversationStatuses(): Promise<ConversationStatus[]> {
+    try {
+      return await apiClient
+        .get("/conversation-statuses/")
+        .then((response) => response.data);
+    } catch (error: any) {
+      console.error("Conversation statuses API error:", error);
+      if (error.response?.status === 404 || error.response?.status === 405) {
+        throw new Error(
+          "Conversation statuses endpoints are not available on the backend yet. Please contact your administrator to enable this functionality."
         );
       }
       throw error;
@@ -173,20 +193,51 @@ export class ChatbotService {
   }
 
   // Data Source Operations
-  async getDataSources(): Promise<DataSource[]> {
+  async getDataSources(params?: {
+    page?: number;
+    page_size?: number;
+    search_by?: string;
+    chatbot_id?: number;
+  }): Promise<DataSource[] | { data_sources: DataSource[]; totalCount: number; page: number; totalPages: number }> {
     try {
+      let endpoint = "/data-sources/";
+      
+      // Add query parameters if provided
+      if (params) {
+        const searchParams = new URLSearchParams();
+        if (params.page) searchParams.append("page", params.page.toString());
+        if (params.page_size) searchParams.append("page_size", params.page_size.toString());
+        if (params.search_by) searchParams.append("search_by", params.search_by);
+        if (params.chatbot_id) searchParams.append("chatbot_id", params.chatbot_id.toString());
+        
+        const queryString = searchParams.toString();
+        if (queryString) {
+          endpoint += `?${queryString}`;
+        }
+      }
+
       const response = await apiClient
-        .get("/data-sources/")
+        .get(endpoint)
         .then((response) => response.data);
 
       console.log("Data sources response:", response);
 
-      // Check if response is directly an array of data sources
+      // Check if response has pagination info (new format)
+      if (response?.data_sources && Array.isArray(response.data_sources)) {
+        return {
+          data_sources: response.data_sources,
+          totalCount: response.total_count || response.data_sources.length,
+          page: response.page || 1,
+          totalPages: response.total_pages || 1,
+        };
+      }
+
+      // Check if response is directly an array of data sources (legacy format)
       if (Array.isArray(response)) {
         return response;
       }
 
-      // Check if response has data_sources wrapper
+      // Check if response has data_sources wrapper (legacy format)
       if (response?.dataSources && Array.isArray(response.dataSources)) {
         console.log(
           "Response has data_sources wrapper, returning:",
@@ -254,9 +305,12 @@ export class ChatbotService {
         "List chatbots",
         "Get chatbot details",
         "Get conversation messages",
+        "List conversations with search and filtering",
+        "Get conversation statuses",
         "Get organization chatbots (Platform Admin)",
         "List organizations (Platform Admin)",
         "List data sources",
+        "Get organization dashboard data",
       ],
       write: [
         "Create chatbot",
@@ -271,8 +325,28 @@ export class ChatbotService {
         "Data sources support PDF and DOCX formats only",
         "Conversation limits are enforced per chatbot",
         "Platform admin endpoints require special permissions",
+        "Dashboard data includes mock chart data for visualization",
+        "Conversation search supports visitor name, email, chatbot name, and message content",
+        "Conversation filtering supports chatbot ID and status",
       ],
     };
+  }
+
+  // Dashboard Operations
+  async getOrganizationDashboard(): Promise<OrganizationDashboardData> {
+    try {
+      return await apiClient
+        .get("/dashboard/organization-dashboard/")
+        .then((response) => response.data);
+    } catch (error: any) {
+      console.error("Organization dashboard API error:", error);
+      if (error.response?.status === 404 || error.response?.status === 405) {
+        throw new Error(
+          "Dashboard endpoints are not available on the backend yet. Please contact your administrator to enable dashboard functionality."
+        );
+      }
+      throw error;
+    }
   }
 }
 

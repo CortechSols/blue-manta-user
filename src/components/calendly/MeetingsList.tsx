@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { format, parseISO, isPast, isFuture } from 'date-fns';
+import React, { useState, useMemo } from "react";
+import { format, parseISO, isPast, isFuture } from "date-fns";
 import {
   Search,
   Filter,
@@ -11,42 +11,41 @@ import {
   Phone,
   MoreHorizontal,
   X,
-  Download,
   RefreshCw,
   Info,
   ExternalLink,
   AlertCircle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { CalendlyMeeting, MeetingFilters } from '@/types/calendly';
-import { 
-  useCalendlyMeetings, 
-  useCalendlyActions, 
+} from "@/components/ui/dropdown-menu";
+import type { CalendlyMeeting, MeetingFilters } from "@/types/calendly";
+import {
+  useCalendlyMeetings,
+  useCalendlyActions,
   useCalendlyMeetingFilters,
   useCalendlySelectedMeetings,
-  useCalendlyLoading 
-} from '@/stores/calendlyStore';
-import { BulkCancelMeetingsModal } from './BulkCancelMeetingsModal';
-import { MeetingCancellationGuide } from './MeetingCancellationGuide';
+  useCalendlyLoading,
+} from "@/stores/calendlyStore";
+import { BulkCancelMeetingsModal } from "./BulkCancelMeetingsModal";
+import { MeetingCancellationGuide } from "./MeetingCancellationGuide";
 
 interface MeetingsListProps {
   className?: string;
@@ -58,17 +57,19 @@ const MeetingCard: React.FC<{
   onToggleSelect: () => void;
 }> = ({ meeting, isSelected, onToggleSelect }) => {
   const actions = useCalendlyActions();
-  
+
   const getStatusBadge = () => {
     switch (meeting.status) {
-      case 'active':
-        const meetingStartTime = meeting.start_time || (meeting as any).startTime;
+      case "active": {
+        const meetingStartTime =
+          meeting.start_time || (meeting as any).startTime;
         return meetingStartTime && isPast(parseISO(meetingStartTime)) ? (
           <Badge variant="secondary">Completed</Badge>
         ) : (
           <Badge variant="success">Scheduled</Badge>
         );
-      case 'cancelled':
+      }
+      case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{meeting.status}</Badge>;
@@ -77,13 +78,13 @@ const MeetingCard: React.FC<{
 
   const getLocationIcon = () => {
     if (!meeting.location) return <Calendar className="w-4 h-4" />;
-    
+
     switch (meeting.location.type) {
-      case 'video':
+      case "video":
         return <Video className="w-4 h-4" />;
-      case 'phone':
+      case "phone":
         return <Phone className="w-4 h-4" />;
-      case 'physical':
+      case "physical":
         return <MapPin className="w-4 h-4" />;
       default:
         return <Calendar className="w-4 h-4" />;
@@ -95,10 +96,16 @@ const MeetingCard: React.FC<{
   const meetingEndTime = meeting.end_time || (meeting as any).endTime;
   const startTime = meetingStartTime ? parseISO(meetingStartTime) : new Date();
   const endTime = meetingEndTime ? parseISO(meetingEndTime) : new Date();
-  const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+  const duration = Math.round(
+    (endTime.getTime() - startTime.getTime()) / (1000 * 60)
+  );
 
   return (
-    <Card className={`transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+    <Card
+      className={`transition-all hover:shadow-md ${
+        isSelected ? "ring-2 ring-blue-500" : ""
+      }`}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1">
@@ -107,53 +114,60 @@ const MeetingCard: React.FC<{
               onCheckedChange={onToggleSelect}
               className="mt-1"
             />
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="font-semibold text-gray-900 truncate">{meeting.name}</h3>
+                <h3 className="font-semibold text-gray-900 truncate">
+                  {meeting.name}
+                </h3>
                 {getStatusBadge()}
               </div>
-              
+
               <div className="space-y-2 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   <span>
-                    {format(startTime, 'MMM d, yyyy • h:mm a')} - {format(endTime, 'h:mm a')}
+                    {format(startTime, "MMM d, yyyy • h:mm a")} -{" "}
+                    {format(endTime, "h:mm a")}
                   </span>
                   <span className="text-gray-400">({duration} min)</span>
                 </div>
-                
+
                 {primaryInvitee && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
                     <span>{primaryInvitee.name}</span>
                     <span className="text-gray-400">•</span>
-                    <span className="text-blue-600">{primaryInvitee.email}</span>
+                    <span className="text-blue-600">
+                      {primaryInvitee.email}
+                    </span>
                   </div>
                 )}
-                
+
                 {meeting.location && (
                   <div className="flex items-center gap-2">
                     {getLocationIcon()}
                     <span>
-                      {meeting.location.join_url ? 'Video Call' : 
-                       meeting.location.location || meeting.location.type}
+                      {meeting.location.join_url
+                        ? "Video Call"
+                        : meeting.location.location || meeting.location.type}
                     </span>
                   </div>
                 )}
-                
+
                 {meeting.invitees_counter && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
                     <span>
-                      {meeting.invitees_counter.active} of {meeting.invitees_counter.limit} attendees
+                      {meeting.invitees_counter.active} of{" "}
+                      {meeting.invitees_counter.limit} attendees
                     </span>
                   </div>
                 )}
               </div>
             </div>
           </div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -161,33 +175,47 @@ const MeetingCard: React.FC<{
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => actions.openMeetingDetailsModal(meeting)}>
+              <DropdownMenuItem
+                onClick={() => actions.openMeetingDetailsModal(meeting)}
+              >
                 View Details
               </DropdownMenuItem>
-              
-              {meeting.status === 'active' && meetingStartTime && isFuture(startTime) && (
-                <>
-                  {/* Show reschedule URL if available */}
-                  {primaryInvitee?.reschedule_url && (
-                    <DropdownMenuItem onClick={() => window.open(primaryInvitee.reschedule_url, '_blank')}>
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Reschedule (Calendly)
-                  </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    onClick={() => actions.openCancelMeetingModal(meeting.uri)}
-                    className="text-red-600"
-                  >
-                    Cancel Meeting
-                  </DropdownMenuItem>
-                </>
-              )}
-              
+
+              {meeting.status === "active" &&
+                meetingStartTime &&
+                isFuture(startTime) && (
+                  <>
+                    {/* Show reschedule URL if available */}
+                    {primaryInvitee?.reschedule_url && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          window.open(primaryInvitee.reschedule_url, "_blank")
+                        }
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Reschedule (Calendly)
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() =>
+                        actions.openCancelMeetingModal(meeting.uri)
+                      }
+                      className="text-red-600"
+                    >
+                      Cancel Meeting
+                    </DropdownMenuItem>
+                  </>
+                )}
+
               {meeting.location?.join_url && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => window.open(meeting.location?.join_url, '_blank')}>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      window.open(meeting.location?.join_url, "_blank")
+                    }
+                  >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Join Meeting
                   </DropdownMenuItem>
@@ -201,15 +229,18 @@ const MeetingCard: React.FC<{
   );
 };
 
-export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) => {
+export const MeetingsList: React.FC<MeetingsListProps> = ({
+  className = "",
+}) => {
   const meetings = useCalendlyMeetings();
   const actions = useCalendlyActions();
   const meetingFilters = useCalendlyMeetingFilters();
   const selectedMeetings = useCalendlySelectedMeetings();
   const loading = useCalendlyLoading();
-  
-  const [searchQuery, setSearchQuery] = useState('');
-  const [localFilters, setLocalFilters] = useState<MeetingFilters>(meetingFilters);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [localFilters, setLocalFilters] =
+    useState<MeetingFilters>(meetingFilters);
   const [isBulkCancelModalOpen, setIsBulkCancelModalOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -218,50 +249,64 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
     let filtered = [...meetings];
 
     // Apply status filter
-    if (localFilters.status && localFilters.status !== 'all') {
-      if (localFilters.status === 'upcoming') {
-        filtered = filtered.filter(m => {
+    if (localFilters.status && localFilters.status !== "all") {
+      if (localFilters.status === "upcoming") {
+        filtered = filtered.filter((m) => {
           const startTime = m.start_time || (m as any).startTime;
-          return m.status === 'active' && startTime && isFuture(parseISO(startTime));
+          return (
+            m.status === "active" && startTime && isFuture(parseISO(startTime))
+          );
         });
-      } else if (localFilters.status === 'past') {
-        filtered = filtered.filter(m => {
+      } else if (localFilters.status === "past") {
+        filtered = filtered.filter((m) => {
           const startTime = m.start_time || (m as any).startTime;
-          return m.status === 'active' && startTime && isPast(parseISO(startTime));
+          return (
+            m.status === "active" && startTime && isPast(parseISO(startTime))
+          );
         });
       } else {
-        filtered = filtered.filter(m => m.status === localFilters.status);
+        filtered = filtered.filter((m) => m.status === localFilters.status);
       }
     }
 
     // Apply event type filter
     if (localFilters.eventType) {
-      filtered = filtered.filter(m => m.event_type === localFilters.eventType);
+      filtered = filtered.filter(
+        (m) => m.event_type === localFilters.eventType
+      );
     }
 
     // Apply date range filter
     if (localFilters.dateRange) {
-      const startDate = localFilters.dateRange.start ? parseISO(localFilters.dateRange.start) : null;
-      const endDate = localFilters.dateRange.end ? parseISO(localFilters.dateRange.end) : null;
-      
-      filtered = filtered.filter(m => {
+      const startDate = localFilters.dateRange.start
+        ? parseISO(localFilters.dateRange.start)
+        : null;
+      const endDate = localFilters.dateRange.end
+        ? parseISO(localFilters.dateRange.end)
+        : null;
+
+      filtered = filtered.filter((m) => {
         const startTime = m.start_time || (m as any).startTime;
         if (!startTime) return false;
         const meetingDate = parseISO(startTime);
-        return (!startDate || meetingDate >= startDate) && 
-               (!endDate || meetingDate <= endDate);
+        return (
+          (!startDate || meetingDate >= startDate) &&
+          (!endDate || meetingDate <= endDate)
+        );
       });
     }
 
     // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(m => 
-        m.name.toLowerCase().includes(query) ||
-        m.invitees.some(invitee => 
-          invitee.name.toLowerCase().includes(query) ||
-          invitee.email.toLowerCase().includes(query)
-        )
+      filtered = filtered.filter(
+        (m) =>
+          m.name.toLowerCase().includes(query) ||
+          m.invitees.some(
+            (invitee) =>
+              invitee.name.toLowerCase().includes(query) ||
+              invitee.email.toLowerCase().includes(query)
+          )
       );
     }
 
@@ -269,22 +314,24 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
     return filtered.sort((a, b) => {
       const aStartTime = a.start_time || (a as any).startTime;
       const bStartTime = b.start_time || (b as any).startTime;
-      
+
       // Handle missing dates
       if (!aStartTime && !bStartTime) return 0;
       if (!aStartTime) return 1;
       if (!bStartTime) return -1;
-      
+
       const aTime = parseISO(aStartTime);
       const bTime = parseISO(bStartTime);
-      
+
       const aIsFuture = isFuture(aTime);
       const bIsFuture = isFuture(bTime);
-      
+
       if (aIsFuture && !bIsFuture) return -1;
       if (!aIsFuture && bIsFuture) return 1;
-      
-      return aIsFuture ? aTime.getTime() - bTime.getTime() : bTime.getTime() - aTime.getTime();
+
+      return aIsFuture
+        ? aTime.getTime() - bTime.getTime()
+        : bTime.getTime() - aTime.getTime();
     });
   }, [meetings, localFilters, searchQuery]);
 
@@ -294,9 +341,9 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
   };
 
   const handleClearFilters = () => {
-    const emptyFilters: MeetingFilters = { status: 'all' };
+    const emptyFilters: MeetingFilters = { status: "all" };
     setLocalFilters(emptyFilters);
-    setSearchQuery('');
+    setSearchQuery("");
     actions.setMeetingFilters(emptyFilters);
     actions.loadMeetings();
   };
@@ -315,11 +362,6 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
     }
   };
 
-  const handleExport = () => {
-    // This would trigger the export functionality
-    console.log('Export meetings:', filteredMeetings);
-  };
-
   const handleRefresh = () => {
     actions.loadMeetings(localFilters);
   };
@@ -334,7 +376,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
             {filteredMeetings.length} of {meetings.length} meetings
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -342,20 +384,14 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
             onClick={handleRefresh}
             disabled={loading.meetings}
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading.meetings ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`w-4 h-4 mr-2 ${
+                loading.meetings ? "animate-spin" : ""
+              }`}
+            />
             Refresh
           </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExport}
-            disabled={filteredMeetings.length === 0}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -363,7 +399,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
             className="text-blue-600 border-blue-300 hover:bg-blue-50"
           >
             <Info className="w-4 h-4 mr-2" />
-            {showGuide ? 'Hide Guide' : 'How to Cancel'}
+            {showGuide ? "Hide Guide" : "How to Cancel"}
           </Button>
         </div>
       </div>
@@ -374,8 +410,9 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
         <AlertDescription className="text-blue-800">
           <p className="font-medium mb-1">Meeting Management</p>
           <p className="text-sm">
-            Meetings can be cancelled through this interface. For rescheduling, use the "Reschedule (Calendly)" 
-            link which will open the Calendly reschedule page. Direct rescheduling via API is not supported.
+            Meetings can be cancelled through this interface. For rescheduling,
+            use the "Reschedule (Calendly)" link which will open the Calendly
+            reschedule page. Direct rescheduling via API is not supported.
           </p>
         </AlertDescription>
       </Alert>
@@ -398,10 +435,12 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
                 />
               </div>
             </div>
-            
+
             <Select
               value={localFilters.status}
-              onValueChange={(value) => setLocalFilters({ ...localFilters, status: value as any })}
+              onValueChange={(value) =>
+                setLocalFilters({ ...localFilters, status: value as any })
+              }
             >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by status" />
@@ -413,12 +452,12 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Button onClick={handleApplyFilters} size="sm">
               <Filter className="w-4 h-4 mr-2" />
               Apply
             </Button>
-            
+
             <Button onClick={handleClearFilters} variant="outline" size="sm">
               <X className="w-4 h-4 mr-2" />
               Clear
@@ -441,10 +480,11 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
                   onCheckedChange={handleSelectAll}
                 />
                 <span className="text-sm font-medium">
-                  {selectedMeetings.length} meeting{selectedMeetings.length !== 1 ? 's' : ''} selected
+                  {selectedMeetings.length} meeting
+                  {selectedMeetings.length !== 1 ? "s" : ""} selected
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -478,12 +518,13 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           <Card>
             <CardContent className="p-12 text-center">
               <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No meetings found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No meetings found
+              </h3>
               <p className="text-gray-600">
-                {searchQuery || localFilters.status !== 'all' 
-                  ? 'Try adjusting your search or filters'
-                  : 'Your meetings will appear here once they are scheduled'
-                }
+                {searchQuery || localFilters.status !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "Your meetings will appear here once they are scheduled"}
               </p>
             </CardContent>
           </Card>
@@ -498,12 +539,12 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({ className = '' }) =>
           ))
         )}
       </div>
-      
+
       {/* Bulk Cancel Modal */}
-      <BulkCancelMeetingsModal 
+      <BulkCancelMeetingsModal
         isOpen={isBulkCancelModalOpen}
         onClose={() => setIsBulkCancelModalOpen(false)}
       />
     </div>
   );
-}; 
+};

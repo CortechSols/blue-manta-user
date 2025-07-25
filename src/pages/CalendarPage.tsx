@@ -10,6 +10,7 @@ import {
   useCalendlyActions,
   useCalendlyLoading,
 } from "@/stores/calendly";
+import { useAuthStore } from "@/stores/authStore";
 
 const CalendlyConnectState = ({
   onConnect,
@@ -52,14 +53,10 @@ export default function CalendarPage() {
   const connectionStatus = useCalendlyConnection();
   const { checkConnectionStatus } = useCalendlyActions();
   const loading = useCalendlyLoading();
+  const { user } = useAuthStore();
 
   // Check connection status and load data on mount
   useEffect(() => {
-    console.log(
-      "Component mounted - Current connection status:",
-      connectionStatus
-    );
-
     // Always check connection status on mount to ensure we have the latest state
     checkConnectionStatus().catch(() => {
       console.log(
@@ -140,7 +137,7 @@ export default function CalendarPage() {
   if (error) {
     return (
       <DashboardLayout
-        title="SparkleBlue Pool Services"
+        title={`${user?.firstName} ${user?.lastName}`}
         subtitle="Appointment Calendar"
         activePath="/calendar"
       >
@@ -166,7 +163,7 @@ export default function CalendarPage() {
 
   return (
     <DashboardLayout
-      title="SparkleBlue Pool Services"
+      title={`${user?.firstName} ${user?.lastName}`}
       subtitle="Appointment Calendar"
       activePath="/calendar"
     >

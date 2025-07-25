@@ -2,163 +2,332 @@
 
 import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
 import { MetricCard } from "@/components/dashboard/MetricCard";
-import { MetricGrid } from "@/components/dashboard/MetricGrid";
-import { TopicsList } from "@/components/dashboard/TopicsList";
-import { ProgressBar } from "@/components/dashboard/ProgressBar";
 import { ChatHistoryCard } from "@/components/dashboard/ChatHistoryCard";
-import { ActivityChart } from "@/components/dashboard/ActivityChart";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useDashboardData } from "@/hooks/useChatbotApi";
+import { useAuthStore } from "@/stores/authStore";
 
-const chartData = [
-  { name: "Jan", value: 400 },
-  { name: "Feb", value: 300 },
-  { name: "Mar", value: 500 },
-  { name: "Apr", value: 280 },
-  { name: "May", value: 590 },
-  { name: "Jun", value: 320 },
-  { name: "Jul", value: 350 },
-];
+// Helper function to format timestamp
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / (1000 * 60));
 
-// Data for reusable components
-const businessMetrics = [
-  {
-    label: "Costs Savings",
-    value: "$45k",
-    trend: { value: "+ 42%", positive: true },
-    color: "#1f2937",
-  },
-  {
-    label: "Cost per Lead",
-    value: "$23",
-    trend: { value: "+ 42%", positive: true },
-    color: "#1f2937",
-  },
-];
+  if (diffMins < 60) {
+    return `${diffMins}m`;
+  } else if (diffMins < 1440) {
+    return `${Math.floor(diffMins / 60)}h`;
+  } else {
+    return `${Math.floor(diffMins / 1440)}d`;
+  }
+};
 
-const gridMetrics = [
-  {
-    label: "# of Leads YTD",
-    value: "345",
-    trend: { value: "+ 42%", positive: true },
-  },
-  {
-    label: "# of Users YTD",
-    value: "658",
-    trend: { value: "+ 42%", positive: true },
-  },
-  {
-    label: "Avg Conversation",
-    value: "1.43 min",
-    trend: { value: "+ 42%", positive: true },
-  },
-  {
-    label: "User Rating",
-    value: "4.5 stars",
-    trend: { value: "+ 42%", positive: true },
-  },
-  {
-    label: "Bounce Rate",
-    value: "3.50%",
-    trend: { value: "+ 42%", positive: true },
-  },
-  {
-    label: "Retention Rate",
-    value: "57.32%",
-    trend: { value: "+ 42%", positive: true },
-  },
-];
-
-const engagementTopics = [
-  "Pool cleaning",
-  "Set up a consultation",
-  "Hours of operations",
-];
-
-const chatMessages = [
-  {
-    id: "1",
-    user: { name: "John Smith", initials: "J" },
-    message: "Hello, I need a pool cleaner...",
-    timestamp: "32m",
-  },
-  {
-    id: "2",
-    user: { name: "John Smith", initials: "J" },
-    message: "Hello, I need a pool cleaner...",
-    timestamp: "32m",
-  },
-  {
-    id: "3",
-    user: { name: "John Smith", initials: "J" },
-    message: "Hello, I need a pool cleaner...",
-    timestamp: "32m",
-  },
-];
-
-const conversationLegend = [
-  { color: "#0077B6", label: "Yearly" },
-  { color: "#00B4D8", label: "Monthly" },
-  { color: "#d1d5db", label: "Weekly" },
-];
+// Helper function to get initials
+const getInitials = (name: string | null) => {
+  if (!name) return "U";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+};
 
 export default function DashboardPage() {
+  const { data: dashboardData, isLoading, error } = useDashboardData();
+  const { user } = useAuthStore();
+  // Loading state
+  if (isLoading) {
+    return (
+      <DashboardLayout
+        title={`${user?.firstName} ${user?.lastName}`}
+        subtitle="Chatbot Analytics & Performance"
+        activePath="/dashboard"
+      >
+        <DashboardContainer
+          title={`${user?.firstName} ${user?.lastName}`}
+          subtitle="Chatbot Analytics & Performance"
+        >
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading dashboard data...</p>
+            </div>
+          </div>
+        </DashboardContainer>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <DashboardLayout
+        title={`${user?.firstName} ${user?.lastName}`}
+        subtitle="Chatbot Analytics & Performance"
+        activePath="/dashboard"
+      >
+        <DashboardContainer
+          title={`${user?.firstName} ${user?.lastName}`}
+          subtitle="Chatbot Analytics & Performance"
+        >
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="text-red-500 text-xl mb-4">⚠️</div>
+              <p className="text-red-600 mb-2">Failed to load dashboard data</p>
+              <p className="text-gray-600 text-sm">
+                {(error as Error).message}
+              </p>
+            </div>
+          </div>
+        </DashboardContainer>
+      </DashboardLayout>
+    );
+  }
+
+  // No data state
+  if (!dashboardData) {
+    return (
+      <DashboardLayout
+        title={`${user?.firstName} ${user?.lastName}`}
+        subtitle="Chatbot Analytics & Performance"
+        activePath="/dashboard"
+      >
+        <DashboardContainer
+          title={`${user?.firstName} ${user?.lastName}`}
+          subtitle="Chatbot Analytics & Performance"
+        >
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <p className="text-gray-600">No dashboard data available</p>
+            </div>
+          </div>
+        </DashboardContainer>
+      </DashboardLayout>
+    );
+  }
+
+  // Key metrics for cards
+  const keyMetrics = [
+    {
+      label: "Lead Conversion Rate",
+      value: `${dashboardData.leadConversionRate}%`,
+      trend: { value: "Excellent", positive: true },
+      color: "#0077B6",
+    },
+    {
+      label: "Avg Chat Duration",
+      value: `${dashboardData.averageChatDuration} min`,
+      trend: { value: "Optimal", positive: true },
+      color: "#0077B6",
+    },
+  ];
+
+  // Transform recent chats for ChatHistoryCard
+  const recentChats = dashboardData.recentChatsSummary.map((chat) => ({
+    id: chat.id.toString(),
+    user: {
+      name: chat.visitorName || `Visitor ${chat.visitorId.slice(0, 8)}`,
+      initials: getInitials(chat.visitorName || "U"),
+    },
+    message: chat.lastMessage.content,
+    timestamp: formatTimestamp(chat.startedAt),
+    status: chat.status as "online" | "offline",
+  }));
+
   return (
     <DashboardLayout
-      title="SparkleBlue Pool Services"
-      subtitle="Dashboard"
+      title={`${user?.firstName} ${user?.lastName}`}
+      subtitle="Chatbot Analytics & Performance"
       activePath="/dashboard"
     >
       <DashboardContainer
-        title="SparkleBlue Pool Services"
-        subtitle="Dashboard"
+        title="Organization Dashboard"
+        subtitle="Chatbot Analytics & Performance"
       >
-        {/* Top Row - Responsive Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
-          {/* Business Metrics Card */}
-          <div className="w-full">
-            <MetricCard title="Business Metrics" metrics={businessMetrics} />
+        {/* First Row - Performance Metrics, Total Conversations, Top Performing Chatbots */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 min-h-[320px]">
+          {/* Performance Metrics */}
+          <div className="w-full h-[320px]">
+            <MetricCard title="Performance Metrics" metrics={keyMetrics} />
           </div>
 
-          {/* Middle Metrics Grid */}
-          <div className="w-full lg:col-span-1">
-            <MetricGrid metrics={gridMetrics} columns={3} />
+          {/* Total Conversations Section */}
+          <div className="w-full h-full">
+            <Card className="shadow-lg rounded-2xl h-full">
+              <CardHeader className="pb-2 md:pb-3">
+                <CardTitle
+                  className="text-base md:text-lg font-semibold"
+                  style={{ color: "#0077B6" }}
+                >
+                  Overview Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 h-full flex flex-col">
+                <div className="grid grid-cols-2 gap-4 flex-1">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {dashboardData.totalConversations}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Total Conversations
+                    </div>
+                    <Badge variant="success" className="mt-1">
+                      Active
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {dashboardData.leadsCaptured}
+                    </div>
+                    <div className="text-sm text-gray-600">Leads Captured</div>
+                    <Badge variant="success" className="mt-1">
+                      {dashboardData.leadConversionRate}%
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {dashboardData.meetingsBooked}
+                    </div>
+                    <div className="text-sm text-gray-600">Meetings Booked</div>
+                    <Badge variant="info" className="mt-1">
+                      Growing
+                    </Badge>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {dashboardData.activeChatbots}
+                    </div>
+                    <div className="text-sm text-gray-600">Active Chatbots</div>
+                    <Badge variant="success" className="mt-1">
+                      Online
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Right Column - Two Cards */}
-          <div className="w-full space-y-4 md:space-y-6">
-            <TopicsList
-              title="Top Engagement Topics"
-              topics={engagementTopics}
-            />
-
-            <ProgressBar
-              title="Conversations Limit"
-              subtitle="Conversations in last 24 hours"
-              progress={75}
-              gradient={{
-                colors: ["#0077B6", "#00B4D8", "#90E0EF"],
-              }}
-              legend={conversationLegend}
-            />
+          {/* Top Performing Chatbots */}
+          <div className="w-full h-full">
+            <Card className="shadow-lg rounded-2xl h-full">
+              <CardHeader className="pb-2 md:pb-3">
+                <CardTitle
+                  className="text-base md:text-lg font-semibold"
+                  style={{ color: "#0077B6" }}
+                >
+                  Top Performing Chatbots
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 h-full flex flex-col">
+                <div className="space-y-3 flex-1 overflow-y-auto">
+                  {dashboardData.topPerformingChatbots.map((chatbot, index) => (
+                    <div
+                      key={chatbot.id}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div
+                            className="text-sm font-medium text-gray-900 truncate max-w-[120px]"
+                            title={chatbot.name}
+                          >
+                            {chatbot.name}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge variant="info" className="text-xs">
+                        {chatbot.messageCount} msgs
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Bottom Row - Responsive Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
-          <div className="w-full">
-            <ChatHistoryCard
-              title="Chat History"
-              messages={chatMessages}
-              onSeeMore={() => console.log("See more clicked")}
-            />
+        {/* Second Row - System Status and Recent Chats */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 h-[360px]">
+          {/* System Status */}
+          <div className="w-full h-full">
+            <Card className="shadow-lg rounded-2xl h-full">
+              <CardHeader className="pb-2 md:pb-3">
+                <CardTitle
+                  className="text-base md:text-lg font-semibold"
+                  style={{ color: "#0077B6" }}
+                >
+                  System Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 md:p-6 h-full flex flex-col">
+                <div className="space-y-6 flex-1">
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Active Chatbots
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        All systems operational
+                      </div>
+                    </div>
+                    <Badge variant="success">
+                      {dashboardData.activeChatbots} Online
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Data Sources
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Synced and connected
+                      </div>
+                    </div>
+                    <Badge variant="info">
+                      {dashboardData.dataSourceCount} Connected
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Meetings Scheduled
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        Pending appointments
+                      </div>
+                    </div>
+                    <Badge variant="warning">
+                      {dashboardData.meetingsBooked} Pending
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        System Health
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        All services running
+                      </div>
+                    </div>
+                    <Badge variant="success">Operational</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="w-full">
-            <ActivityChart
-              title="Chatbot Activity Volume"
-              data={chartData}
-              strokeColor="#0077B6"
-              strokeWidth={3}
+          {/* Recent Chats */}
+          <div className="w-full h-full">
+            <ChatHistoryCard
+              title="Recent Chat Sessions"
+              messages={recentChats}
+              onSeeMore={() => console.log("See more clicked")}
             />
           </div>
         </div>

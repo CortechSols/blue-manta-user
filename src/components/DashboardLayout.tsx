@@ -5,10 +5,7 @@ import {
   Calendar,
   Database,
   History,
-  ShieldCheck,
   Settings,
-  Search,
-  Bell,
   User,
   LogOut,
   Bot,
@@ -23,7 +20,15 @@ import { Link } from "react-router-dom";
 //   getOrganizationFullName,
 //   type Organization,
 // } from "@/hooks/useOrganizations";
-import { useAuthActions } from "@/stores/authStore";
+import { useAuthActions, useAuthStore } from "@/stores/authStore";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const sidebarItems = [
   { icon: BarChart3, label: "Dashboard", path: "/dashboard" },
@@ -52,6 +57,8 @@ export function DashboardLayout({
   // const { data: organizations, isLoading, error } = useOrganizations();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { logout } = useAuthActions();
+  const { user } = useAuthStore();
+  console.log(user);
 
   const handleLogout = () => {
     logout();
@@ -293,23 +300,26 @@ export function DashboardLayout({
 
           {/* Right Icons */}
           <div className="flex items-center gap-2 lg:gap-4 ml-auto">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-blue-600 hidden sm:flex"
-            >
-              <Search className="w-5 h-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-blue-600 hidden sm:flex"
-            >
-              <Bell className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-blue-600">
-              <User className="w-5 h-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-blue-600">
+                  <User className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  {user ? `${user.firstName} ${user.lastName}` : "Admin"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-red-600"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
