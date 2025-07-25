@@ -151,11 +151,22 @@ export function useConversations(params?: {
   page?: number;
   page_size?: number;
   chatbot_id?: number;
+  search_by?: string;
+  status_names?: string;
 }) {
   return useQuery({
     queryKey: chatbotQueryKeys.conversations(params),
     queryFn: () => chatbotService.getConversations(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 2,
+  });
+}
+
+export function useConversationStatuses() {
+  return useQuery({
+    queryKey: chatbotQueryKeys.conversationStatuses(),
+    queryFn: () => chatbotService.getConversationStatuses(),
+    staleTime: 10 * 60 * 1000, // 10 minutes (statuses don't change often)
     retry: 2,
   });
 }
@@ -181,10 +192,15 @@ export function useOrganizationsList() {
 }
 
 // Data Source Hooks
-export function useDataSources() {
+export function useDataSources(params?: {
+  page?: number;
+  page_size?: number;
+  search_by?: string;
+  chatbot_id?: number;
+}) {
   return useQuery({
-    queryKey: chatbotQueryKeys.dataSources(),
-    queryFn: () => chatbotService.getDataSources(),
+    queryKey: chatbotQueryKeys.dataSources(params),
+    queryFn: () => chatbotService.getDataSources(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
   });
@@ -262,6 +278,11 @@ export function useChatbotRefresh() {
     refreshDataSources: () => {
       queryClient.invalidateQueries({
         queryKey: chatbotQueryKeys.dataSources(),
+      });
+    },
+    refreshConversationStatuses: () => {
+      queryClient.invalidateQueries({
+        queryKey: chatbotQueryKeys.conversationStatuses(),
       });
     },
   };
@@ -348,4 +369,15 @@ export function useChatInterface(chatbotId: number) {
     isLoading: chatbotId ? sendMessage.isPending : false,
     error: chatbotId ? sendMessage.error : null,
   };
+}
+
+// Dashboard hooks
+export function useDashboardData() {
+  return useQuery({
+    queryKey: chatbotQueryKeys.dashboard(),
+    queryFn: () => chatbotService.getOrganizationDashboard(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+  });
 }

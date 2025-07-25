@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,7 @@ import {
   useDeleteDataSource,
 } from "@/hooks/useChatbotApi";
 import type { CreateDataSourceRequest, DataSource } from "@/types/chatbot";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function DataSourcesPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -54,6 +55,21 @@ export default function DataSourcesPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [selectedChatbotFilter, setSelectedChatbotFilter] =
+    useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // API hooks
   const {
@@ -62,14 +78,65 @@ export default function DataSourcesPage() {
     error: chatbotsError,
   } = useChatbots();
   const {
-    data: dataSources,
+    data: dataSourcesData,
     isLoading: dataSourcesLoading,
     error: dataSourcesError,
-  } = useDataSources();
+    refetch: refetchDataSources,
+  } = useDataSources({
+    page: currentPage,
+    page_size: pageSize,
+    search_by: debouncedSearchQuery || undefined,
+    chatbot_id:
+      selectedChatbotFilter !== "all"
+        ? parseInt(selectedChatbotFilter)
+        : undefined,
+  });
+  const { user } = useAuthStore();
 
   const createDataSource = useCreateDataSource();
   const deleteDataSource = useDeleteDataSource();
   const { refreshDataSources } = useChatbotRefresh();
+
+  // Extract data sources from response
+  const dataSources = Array.isArray(dataSourcesData)
+    ? dataSourcesData
+    : dataSourcesData?.data_sources || [];
+
+  // Extract pagination info with camelCase conversion
+  const paginationInfo =
+    !Array.isArray(dataSourcesData) && dataSourcesData
+      ? {
+          totalCount:
+            dataSourcesData.totalCount ||
+            (dataSourcesData as Record<string, any>).total_count || // eslint-disable-line @typescript-eslint/no-explicit-any
+            dataSources.length,
+          page: dataSourcesData.page || 1,
+          totalPages:
+            dataSourcesData.totalPages ||
+            (dataSourcesData as Record<string, any>).total_pages || // eslint-disable-line @typescript-eslint/no-explicit-any
+            1,
+        }
+      : {
+          totalCount: dataSources.length,
+          page: 1,
+          totalPages: 1,
+        };
+
+  // Handle pagination and search changes
+  const handleRefresh = () => {
+    refreshDataSources();
+    refetchDataSources();
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleChatbotFilterChange = (value: string) => {
+    setSelectedChatbotFilter(value);
+    setCurrentPage(1);
+  };
 
   const handleFileSelect = (file: File) => {
     // Validate file type
@@ -158,7 +225,7 @@ export default function DataSourcesPage() {
 
       // Refresh the list to show the newly uploaded file
       setTimeout(() => {
-        refreshDataSources();
+        handleRefresh();
       }, 1000);
     } catch (error) {
       console.error("Failed to upload data source:", error);
@@ -198,7 +265,7 @@ export default function DataSourcesPage() {
 
     return (
       <DashboardLayout
-        title="SparkleBlue Pool Services"
+        title={`${user?.firstName} ${user?.lastName}`}
         subtitle="Data Sources"
         activePath="/data"
       >
@@ -249,7 +316,7 @@ export default function DataSourcesPage() {
 
   return (
     <DashboardLayout
-      title="SparkleBlue Pool Services"
+      title={`${user?.firstName} ${user?.lastName}`}
       subtitle="Data Sources"
       activePath="/data"
     >
@@ -261,12 +328,14 @@ export default function DataSourcesPage() {
               Data Sources
             </h1>
             <p className="text-sm md:text-base text-gray-600">
-              Upload documents to train your chatbots with specific knowledge
+              {dataSources.length > 0
+                ? `${paginationInfo.totalCount} total data sources`
+                : "Upload documents to train your chatbots with specific knowledge"}
             </p>
           </div>
           <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
             <RefreshButton
-              onRefresh={() => refreshDataSources()}
+              onRefresh={handleRefresh}
               isLoading={dataSourcesLoading}
               className="text-sm md:text-base"
             />
@@ -435,10 +504,35 @@ export default function DataSourcesPage() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center justify-end">
-          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-            <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              type="search"
+              placeholder="Search data sources by file name, chatbot name..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-12 pl-12 pr-4 border-gray-300 rounded-lg"
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Clear Filters Button */}
+            {(searchQuery || selectedChatbotFilter !== "all") && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  handleSearchChange("");
+                  handleChatbotFilterChange("all");
+                }}
+                className="whitespace-nowrap"
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
         </div>
 
@@ -461,7 +555,7 @@ export default function DataSourcesPage() {
                   {dataSourcesError.message || "Failed to load data sources"}
                 </p>
                 <RefreshButton
-                  onRefresh={() => refreshDataSources()}
+                  onRefresh={handleRefresh}
                   label="Try Again"
                   className="border-red-300 text-red-700 hover:bg-red-100 text-sm md:text-base"
                 />
@@ -478,9 +572,12 @@ export default function DataSourcesPage() {
               dataSources.length > 0 ? (
               <div className="overflow-hidden">
                 {/* Table Header - Hidden on mobile */}
-                <div className="hidden md:grid grid-cols-4 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+                <div className="hidden md:grid grid-cols-5 bg-gray-50 border-b border-gray-200 rounded-t-lg">
                   <div className="p-4 text-sm font-medium text-gray-700">
                     File Name
+                  </div>
+                  <div className="p-4 text-sm font-medium text-gray-700">
+                    Chatbot
                   </div>
                   <div className="p-4 text-sm font-medium text-gray-700">
                     Status
@@ -497,22 +594,27 @@ export default function DataSourcesPage() {
                 {dataSources.map((dataSource) => (
                   <div
                     key={dataSource.id}
-                    className="md:grid md:grid-cols-4 md:items-center border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
+                    className="md:grid md:grid-cols-5 md:items-center border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors"
                   >
                     {/* Mobile Layout */}
                     <div className="md:hidden p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                          <span
-                            className={`text-sm font-medium ${
-                              dataSource.fileName === "Comfort Air FAQ"
-                                ? "text-[#0077B6]"
-                                : "text-gray-700"
-                            }`}
-                          >
-                            {dataSource.fileName}
-                          </span>
+                          <div className="flex flex-col">
+                            <span
+                              className={`text-sm font-medium ${
+                                dataSource.fileName === "Comfort Air FAQ"
+                                  ? "text-[#0077B6]"
+                                  : "text-gray-700"
+                              }`}
+                            >
+                              {dataSource.fileName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {dataSource.chatbotName}
+                            </span>
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
@@ -591,6 +693,11 @@ export default function DataSourcesPage() {
                       </div>
                     </div>
                     <div className="hidden md:block p-4">
+                      <span className="text-sm text-gray-600">
+                        {dataSource.chatbotName}
+                      </span>
+                    </div>
+                    <div className="hidden md:block p-4">
                       <div className="flex items-center gap-2">
                         {isUploading(dataSource) ? (
                           <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
@@ -656,23 +763,80 @@ export default function DataSourcesPage() {
               <div className="text-center py-8 md:py-12">
                 <FileText className="w-12 h-12 md:w-16 md:h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-2">
-                  No documents uploaded yet
+                  {searchQuery || selectedChatbotFilter !== "all"
+                    ? "No documents found"
+                    : "No documents uploaded yet"}
                 </h3>
                 <p className="text-sm md:text-base text-gray-500 mb-4">
-                  Upload your first document to start training your chatbots
-                  with specific knowledge.
+                  {searchQuery || selectedChatbotFilter !== "all"
+                    ? "No documents match your current filters. Try adjusting your search or filters."
+                    : "Upload your first document to start training your chatbots with specific knowledge."}
                 </p>
-                <Button
-                  onClick={() => setShowUploadModal(true)}
-                  className="bg-[#0077B6] hover:bg-[#005A8A] text-sm md:text-base"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Upload Your First Document
-                </Button>
+                {searchQuery || selectedChatbotFilter !== "all" ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      handleSearchChange("");
+                      handleChatbotFilterChange("all");
+                    }}
+                    className="text-sm md:text-base"
+                  >
+                    Clear Filters
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setShowUploadModal(true)}
+                    className="bg-[#0077B6] hover:bg-[#005A8A] text-sm md:text-base"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Upload Your First Document
+                  </Button>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
+        {/* Pagination */}
+        {dataSources.length > 0 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-600 mt-6 p-4">
+            <div>
+              Showing {(currentPage - 1) * pageSize + 1} to{" "}
+              {Math.min(currentPage * pageSize, paginationInfo.totalCount)} of{" "}
+              {paginationInfo.totalCount} data sources
+            </div>
+            <div className="flex items-center gap-2">
+              <span>
+                Page {paginationInfo.page} of {paginationInfo.totalPages}
+              </span>
+              {paginationInfo.totalPages > 1 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage <= 1}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage >= paginationInfo.totalPages}
+                    onClick={() =>
+                      setCurrentPage((prev) =>
+                        Math.min(paginationInfo.totalPages, prev + 1)
+                      )
+                    }
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -709,7 +873,7 @@ export default function DataSourcesPage() {
                     await deleteDataSource.mutateAsync(dataSourceToDelete.id);
                     setShowDeleteModal(false);
                     setDataSourceToDelete(null);
-                    refreshDataSources();
+                    handleRefresh();
                   } catch (error) {
                     console.error("Failed to delete data source:", error);
                   }

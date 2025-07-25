@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -57,6 +56,7 @@ import {
 } from "@/hooks/useChatbotApi";
 import type { CreateChatbotRequest, Chatbot } from "@/types/chatbot";
 import { CalendlyInlineWidget } from "@/components/calendly/CalendlyInlineWidget";
+import { useAuthStore } from "@/stores/authStore";
 
 // Helper function to safely format dates
 const safeFormatDate = (dateString: string, formatString: string): string => {
@@ -81,6 +81,7 @@ export default function ChatbotsPage() {
   const [showIframeModal, setShowIframeModal] = useState(false);
   const [chatbotToDelete, setChatbotToDelete] = useState<Chatbot | null>(null);
 
+  const { user } = useAuthStore();
   // API hooks
   const { data: chatbots, isLoading, error } = useChatbots();
   const updateChatbot = useUpdateChatbot();
@@ -202,7 +203,7 @@ export default function ChatbotsPage() {
 
     return (
       <DashboardLayout
-        title="Chatbots"
+        title={`${user?.firstName} ${user?.lastName}`}
         subtitle="Manage your AI chatbots"
         activePath="/chatbots"
       >
@@ -260,7 +261,7 @@ export default function ChatbotsPage() {
 
   return (
     <DashboardLayout
-      title="Chatbots"
+      title={`${user?.firstName} ${user?.lastName}`}
       subtitle="Manage your AI chatbots"
       activePath="/chatbots"
     >
@@ -295,7 +296,6 @@ export default function ChatbotsPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 max-w-md">
             <TabsTrigger value="list">All Chatbots</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="space-y-6 mt-6">
@@ -425,19 +425,6 @@ export default function ChatbotsPage() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Chatbot Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Analytics dashboard coming soon...
-                </p>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
 

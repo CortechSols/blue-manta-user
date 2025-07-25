@@ -5,7 +5,6 @@ import DashboardPage from "./pages/DashboardPage";
 import CalendarPage from "./pages/CalendarPage";
 import ChatHistoryPage from "./pages/ChatHistoryPage";
 import ConversationDetailPage from "./pages/ConversationDetailPage";
-import QualityAssurancePage from "./pages/QualityAssurancePage";
 import AdminProfilePage from "./pages/AdminProfilePage";
 import DataSourcesPage from "./pages/DataSourcesPage";
 import CalendarCallbackPage from "./pages/CalendarCallbackPage";
@@ -106,14 +105,6 @@ function App() {
         element={
           <ProtectedRoute>
             <CalendarCallbackPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/qa"
-        element={
-          <ProtectedRoute>
-            <QualityAssurancePage />
           </ProtectedRoute>
         }
       />

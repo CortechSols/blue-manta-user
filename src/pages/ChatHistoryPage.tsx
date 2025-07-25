@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Search,
   RefreshCw,
@@ -15,8 +22,14 @@ import {
 } from "lucide-react";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { useConversations, useChatbotRefresh } from "@/hooks/useChatbotApi";
+import {
+  useConversations,
+  useChatbotRefresh,
+  useChatbots,
+  useConversationStatuses,
+} from "@/hooks/useChatbotApi";
 import { format } from "date-fns";
+import { useAuthStore } from "@/stores/authStore";
 
 const avatarColors = [
   "bg-blue-200 text-blue-700",
@@ -85,9 +98,21 @@ function pickTextColor(bgHex: string) {
 
 export default function ChatHistoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [selectedChatbot, setSelectedChatbot] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // API hooks
   const {
@@ -98,32 +123,48 @@ export default function ChatHistoryPage() {
   } = useConversations({
     page: currentPage,
     page_size: pageSize,
+    search_by: debouncedSearchQuery || undefined,
+    chatbot_id:
+      selectedChatbot !== "all" ? parseInt(selectedChatbot) : undefined,
+    status_names: selectedStatus !== "all" ? selectedStatus : undefined,
   });
+
+  // Get chatbots and statuses for filter dropdowns
+  const { data: chatbots } = useChatbots();
+  const { data: conversationStatuses } = useConversationStatuses();
 
   const { refreshConversations } = useChatbotRefresh();
 
   const handleRefresh = () => {
-    refreshConversations({ page: currentPage, page_size: pageSize });
+    refreshConversations({
+      page: currentPage,
+      page_size: pageSize,
+      search_by: debouncedSearchQuery || undefined,
+      chatbot_id:
+        selectedChatbot !== "all" ? parseInt(selectedChatbot) : undefined,
+      status_names: selectedStatus !== "all" ? selectedStatus : undefined,
+    });
     refetch();
   };
 
-  // Filter conversations based on search query
-  const filteredConversations =
-    conversationsData?.conversations?.filter(
-      (conversation) =>
-        conversation.visitorName
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        conversation.visitorEmail
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        conversation.chatbotName
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        conversation.lastMessage?.content
-          ?.toLowerCase()
-          .includes(searchQuery.toLowerCase())
-    ) || [];
+  // Reset to first page when search/filter changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleChatbotFilterChange = (value: string) => {
+    setSelectedChatbot(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
+
+  // Use server-filtered data directly
+  const filteredConversations = conversationsData?.conversations || [];
 
   if (error) {
     const isBackendNotAvailable = error.message?.includes(
@@ -132,7 +173,7 @@ export default function ChatHistoryPage() {
 
     return (
       <DashboardLayout
-        title="Chat History"
+        title={`${user?.firstName} ${user?.lastName}`}
         subtitle="View and manage conversation history"
         activePath="/chat-history"
       >
@@ -190,7 +231,7 @@ export default function ChatHistoryPage() {
 
   return (
     <DashboardLayout
-      title="Chat History"
+      title={`${user?.firstName} ${user?.lastName}`}
       subtitle="View and manage conversation history"
       activePath="/chat-history"
     >
@@ -212,16 +253,79 @@ export default function ChatHistoryPage() {
           />
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <Input
-            type="search"
-            placeholder="Search conversations by visitor name, email, chatbot, or message content..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-12 pl-12 pr-4 border-gray-300 rounded-lg"
-          />
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input
+              type="search"
+              placeholder="Search conversations by visitor name, email, chatbot, or message content..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-12 pl-12 pr-4 border-gray-300 rounded-lg"
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            {/* Chatbot Filter */}
+            <div className="flex-1">
+              <Select
+                value={selectedChatbot}
+                onValueChange={handleChatbotFilterChange}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Filter by chatbot" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All chatbots</SelectItem>
+                  {chatbots?.map((chatbot) => (
+                    <SelectItem key={chatbot.id} value={chatbot.id.toString()}>
+                      {chatbot.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex-1">
+              <Select
+                value={selectedStatus}
+                onValueChange={handleStatusFilterChange}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {conversationStatuses?.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchQuery ||
+              selectedChatbot !== "all" ||
+              selectedStatus !== "all") && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  handleSearchChange("");
+                  handleChatbotFilterChange("all");
+                  handleStatusFilterChange("all");
+                }}
+                className="whitespace-nowrap"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Loading State */}
@@ -390,22 +494,32 @@ export default function ChatHistoryPage() {
             <CardContent className="p-8 sm:p-12 text-center">
               <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchQuery
+                {searchQuery ||
+                selectedChatbot !== "all" ||
+                selectedStatus !== "all"
                   ? "No conversations found"
                   : "No conversations yet"}
               </h3>
               <p className="text-gray-600 mb-4 max-w-md mx-auto">
-                {searchQuery
-                  ? `No conversations match your search for "${searchQuery}". Try different keywords or clear the search.`
+                {searchQuery ||
+                selectedChatbot !== "all" ||
+                selectedStatus !== "all"
+                  ? `No conversations match your current filters. Try adjusting your search or filters.`
                   : "When visitors start chatting with your chatbots, their conversations will appear here."}
               </p>
-              {searchQuery && (
+              {(searchQuery ||
+                selectedChatbot !== "all" ||
+                selectedStatus !== "all") && (
                 <Button
                   variant="outline"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    handleSearchChange("");
+                    handleChatbotFilterChange("all");
+                    handleStatusFilterChange("all");
+                  }}
                   className="w-full sm:w-auto"
                 >
-                  Clear Search
+                  Clear Filters
                 </Button>
               )}
             </CardContent>

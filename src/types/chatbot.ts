@@ -269,10 +269,57 @@ export const chatbotQueryKeys = {
     [...chatbotQueryKeys.all, "conversations", params] as const,
   conversation: (conversationId: number) =>
     [...chatbotQueryKeys.all, "conversation", conversationId] as const,
+  conversationStatuses: () =>
+    [...chatbotQueryKeys.all, "conversationStatuses"] as const,
   organizationChatbots: (organizationId: number) =>
     [...chatbotQueryKeys.all, "organization", organizationId] as const,
   organizationsList: () => [...chatbotQueryKeys.all, "organizations"] as const,
-  dataSources: () => [...chatbotQueryKeys.all, "dataSources"] as const,
+  dataSources: (params?: Record<string, unknown>) => [...chatbotQueryKeys.all, "dataSources", params] as const,
   dataSource: (id: number) =>
     [...chatbotQueryKeys.all, "dataSource", id] as const,
+  dashboard: () => [...chatbotQueryKeys.all, "dashboard"] as const,
 } as const;
+
+// Dashboard Types
+export interface TopPerformingChatbot {
+  id: number;
+  name: string;
+  messageCount: number;
+}
+
+export interface RecentChatSummary {
+  id: number;
+  chatbotId: number;
+  chatbotName: string;
+  visitorId: string;
+  visitorName: string | null;
+  visitorEmail: string | null;
+  startedAt: string;
+  endedAt: string | null;
+  messageCount: number;
+  lastMessage: {
+    content: string;
+    sender: "bot" | "visitor";
+    sentAt: string;
+  };
+  status: string;
+  statusDisplay: string;
+  statusColor: string;
+}
+
+export interface OrganizationDashboardData {
+  totalConversations: number;
+  leadsCaptured: number;
+  meetingsBooked: number;
+  activeChatbots: number;
+  dataSourceCount: number;
+  topPerformingChatbots: TopPerformingChatbot[];
+  leadConversionRate: number;
+  recentChatsSummary: RecentChatSummary[];
+  averageChatDuration: number;
+}
+
+export interface ConversationStatus {
+  value: string;
+  label: string;
+}
