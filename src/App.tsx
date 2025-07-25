@@ -14,6 +14,7 @@ import CreateChatbotPage from "./pages/CreateChatbotPage";
 import PasswordResetRequestPage from "./pages/PasswordResetRequestPage";
 import PasswordResetVerifyPage from "./pages/PasswordResetVerifyPage";
 import WidgetPage from "./pages/WidgetPage";
+import IntegrationsPage from "./pages/IntegrationsPage";
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -146,6 +147,15 @@ function App() {
         element={
           <ProtectedRoute>
             <ChatbotConfigurationPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/integrations"
+        element={
+          <ProtectedRoute>
+            <IntegrationsPage />
           </ProtectedRoute>
         }
       />
