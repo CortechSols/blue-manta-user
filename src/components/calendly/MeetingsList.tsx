@@ -449,7 +449,7 @@ export const MeetingsList: React.FC<MeetingsListProps> = ({
                 <SelectItem value="all">All Meetings</SelectItem>
                 <SelectItem value="upcoming">Upcoming</SelectItem>
                 <SelectItem value="past">Past</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                {/* <SelectItem value="cancelled">Cancelled</SelectItem> */}
               </SelectContent>
             </Select>
 

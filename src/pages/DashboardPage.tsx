@@ -224,29 +224,37 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="p-4 md:p-6 h-full flex flex-col">
                 <div className="space-y-3 flex-1 overflow-y-auto">
-                  {dashboardData.topPerformingChatbots.map((chatbot, index) => (
-                    <div
-                      key={chatbot.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <div
-                            className="text-sm font-medium text-gray-900 truncate max-w-[120px]"
-                            title={chatbot.name}
-                          >
-                            {chatbot.name}
+                  {dashboardData.topPerformingChatbots.length > 0 ? (
+                    dashboardData.topPerformingChatbots.map(
+                      (chatbot, index) => (
+                        <div
+                          key={chatbot.id}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <div
+                                className="text-sm font-medium text-gray-900 truncate max-w-[120px]"
+                                title={chatbot.name}
+                              >
+                                {chatbot.name}
+                              </div>
+                            </div>
                           </div>
+                          <Badge variant="info" className="text-xs">
+                            {chatbot.messageCount} msgs
+                          </Badge>
                         </div>
-                      </div>
-                      <Badge variant="info" className="text-xs">
-                        {chatbot.messageCount} msgs
-                      </Badge>
+                      )
+                    )
+                  ) : (
+                    <div className="text-gray-500 text-center py-8">
+                      No data
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -328,7 +336,6 @@ export default function DashboardPage() {
             <ChatHistoryCard
               title="Recent Chat Sessions"
               messages={recentChats}
-              onSeeMore={() => console.log("See more clicked")}
             />
           </div>
         </div>
