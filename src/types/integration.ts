@@ -7,10 +7,10 @@ export interface PipedreamIntegration {
   id: number;
   organization: number;
   provider: string; // e.g., 'pipedream_webhook'
-  connected_at: string;
-  expires_at: string | null;
-  is_active: boolean;
-  config_blob: PipedreamIntegrationConfig;
+  connectedAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  configBlob: PipedreamIntegrationConfig;
 }
 
 export interface OutboundEventPayload {

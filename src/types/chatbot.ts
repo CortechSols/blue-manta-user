@@ -103,6 +103,8 @@ export interface ChatResponse {
     name?: string;
     meetingLink?: string;
   }>;
+  newConversationStarted?: boolean;
+  previousConversationEnded?: boolean;
 }
 
 export interface Conversation {
@@ -274,7 +276,8 @@ export const chatbotQueryKeys = {
   organizationChatbots: (organizationId: number) =>
     [...chatbotQueryKeys.all, "organization", organizationId] as const,
   organizationsList: () => [...chatbotQueryKeys.all, "organizations"] as const,
-  dataSources: (params?: Record<string, unknown>) => [...chatbotQueryKeys.all, "dataSources", params] as const,
+  dataSources: (params?: Record<string, unknown>) =>
+    [...chatbotQueryKeys.all, "dataSources", params] as const,
   dataSource: (id: number) =>
     [...chatbotQueryKeys.all, "dataSource", id] as const,
   dashboard: () => [...chatbotQueryKeys.all, "dashboard"] as const,
@@ -322,4 +325,29 @@ export interface OrganizationDashboardData {
 export interface ConversationStatus {
   value: string;
   label: string;
+}
+
+// Visitor Messages Types
+export interface VisitorConversationMessage {
+  id: number;
+  conversationId: number;
+  sender: "visitor" | "bot";
+  content: string;
+  sentAt: string;
+}
+
+export interface VisitorConversation {
+  conversationId: number;
+  chatbotName: string;
+  startedAt: string;
+  status: string;
+  lastActivityAt: string;
+  messages: VisitorConversationMessage[];
+}
+
+export interface VisitorMessagesResponse {
+  visitorId: string;
+  conversations: VisitorConversation[];
+  totalConversations: number;
+  totalMessages: number;
 }

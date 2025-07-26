@@ -1,5 +1,4 @@
 import { useApiQuery, useApiMutation } from "./useApi";
-import type { OutboundEventListResponse, OutboundEvent } from "@/types/integration";
 
 const BASE_URL = "/integrations/outbound-events/";
 

@@ -44,10 +44,15 @@ export function ChatWidget({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { messages, isLoading, error, sendMessage } = useChatInterface(
-    chatbotId,
-    apiClient
-  );
+  const {
+    messages,
+    isLoading,
+    isLoadingHistory,
+    error,
+    conversationEnded,
+    sendMessage,
+    restartConversation,
+  } = useChatInterface(chatbotId, apiClient);
 
   console.log("messages: ", messages);
 
@@ -148,7 +153,7 @@ export function ChatWidget({
   const chatPosition = "fixed";
   const chatRounding = isMobile ? "" : "rounded-2xl";
 
-  if (appearanceLoading) {
+  if (appearanceLoading || isLoadingHistory) {
     return <div>Loading...</div>;
   }
 
@@ -431,83 +436,123 @@ export function ChatWidget({
                 </div>
               )}
 
+              {/* Conversation ended notification */}
+              {conversationEnded && (
+                <div className="flex justify-center animate-fadeIn">
+                  <div className="bg-amber-50 border border-amber-200 text-amber-800 px-6 py-4 rounded-xl text-sm shadow-sm max-w-sm">
+                    <div className="text-center space-y-3">
+                      <div className="flex items-center justify-center space-x-2">
+                        <svg
+                          className="w-5 h-5 text-amber-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="font-medium">Conversation Ended</span>
+                      </div>
+                      <p className="text-xs text-amber-700 leading-relaxed">
+                        Your previous conversation ended due to inactivity. A
+                        new conversation has been started for you.
+                      </p>
+                      <button
+                        onClick={restartConversation}
+                        className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
+                      >
+                        Continue Chatting
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div ref={messagesEndRef} />
             </div>
 
             {/* predefined questions section */}
-            <div
-              className={`border-t border-gray-200 relative ${
-                showQuickActions ? "p-4" : "p-0"
-              }`}
-            >
-              {showQuickActions ? (
-                <div className="space-y-3">
-                  <button
-                    onClick={() => setShowQuickActions(false)}
-                    className="w-fit p-2 text-xs flex justify-end items-center space-x-1 absolute -top-5 right-1"
-                  >
-                    <span className="sr-only">Hide quick actions</span>
-                    <ArrowDownIcon className="w-6 h-6 rounded-full bg-gray-200 p-1 hover:bg-gray-300 transition-colors" />
-                  </button>
-                  <div className="grid grid-cols-2 gap-2 h-20 overflow-y-auto">
-                    {predefinedQuestions.map((question) => (
-                      <button
-                        key={question}
-                        className="bg-white text-gray-800 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
-                        onClick={() => handlePredefinedQuestion(question)}
-                      >
-                        {question}
-                      </button>
-                    ))}
+            {!conversationEnded && (
+              <div
+                className={`border-t border-gray-200 relative ${
+                  showQuickActions ? "p-4" : "p-0"
+                }`}
+              >
+                {showQuickActions ? (
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => setShowQuickActions(false)}
+                      className="w-fit p-2 text-xs flex justify-end items-center space-x-1 absolute -top-5 right-1"
+                    >
+                      <span className="sr-only">Hide quick actions</span>
+                      <ArrowDownIcon className="w-6 h-6 rounded-full bg-gray-200 p-1 hover:bg-gray-300 transition-colors" />
+                    </button>
+                    <div className="grid grid-cols-2 gap-2 h-20 overflow-y-auto">
+                      {predefinedQuestions.map((question) => (
+                        <button
+                          key={question}
+                          className="bg-white text-gray-800 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition-colors"
+                          onClick={() => handlePredefinedQuestion(question)}
+                        >
+                          {question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowQuickActions(true)}
-                  className="w-fit p-3 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center space-x-2 transition-colors absolute -top-12 right-1"
-                >
-                  <Zap className="w-4 h-4 ml-0 mr-0" />
-                  <span className="sr-only">Show quick actions</span>
-                </button>
-              )}
-            </div>
-            {/* Input */}
-            <div
-              className={`p-4 border-t ${borderColor} bg-gradient-to-r from-transparent to-gray-50/50`}
-            >
-              <div className="flex items-end space-x-3">
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={inputRef}
-                    value={inputMessage}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    className={`w-full ${inputBg} ${textColor} border ${borderColor} place-content-center rounded-xl px-4 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 placeholder-gray-400`}
-                    style={
-                      {
-                        "--tw-ring-color": sendButtonColor + "40",
-                        minHeight: "44px",
-                        maxHeight: "120px",
-                      } as React.CSSProperties
-                    }
-                    rows={1}
-                    disabled={isLoading}
-                  />
-                </div>
-                <button
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputMessage.trim() || isLoading}
-                  className="text-white rounded-xl px-4 py-3 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl"
-                  style={{
-                    backgroundColor: sendButtonColor,
-                    boxShadow: `0 4px 12px ${sendButtonColor}40`,
-                  }}
-                >
-                  <SendHorizonal className="w-5 h-5" />
-                </button>
+                ) : (
+                  <button
+                    onClick={() => setShowQuickActions(true)}
+                    className="w-fit p-3 text-sm text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center space-x-2 transition-colors absolute -top-12 right-1"
+                  >
+                    <Zap className="w-4 h-4 ml-0 mr-0" />
+                    <span className="sr-only">Show quick actions</span>
+                  </button>
+                )}
               </div>
-            </div>
+            )}
+            {/* Input */}
+            {!conversationEnded && (
+              <div
+                className={`p-4 border-t ${borderColor} bg-gradient-to-r from-transparent to-gray-50/50`}
+              >
+                <div className="flex items-end space-x-3">
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={inputRef}
+                      value={inputMessage}
+                      onChange={handleInputChange}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type your message..."
+                      className={`w-full ${inputBg} ${textColor} border ${borderColor} place-content-center rounded-xl px-4 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent transition-all duration-200 placeholder-gray-400`}
+                      style={
+                        {
+                          "--tw-ring-color": sendButtonColor + "40",
+                          minHeight: "44px",
+                          maxHeight: "120px",
+                        } as React.CSSProperties
+                      }
+                      rows={1}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <button
+                    onClick={() => handleSendMessage()}
+                    disabled={!inputMessage.trim() || isLoading}
+                    className="text-white rounded-xl px-4 py-3 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl"
+                    style={{
+                      backgroundColor: sendButtonColor,
+                      boxShadow: `0 4px 12px ${sendButtonColor}40`,
+                    }}
+                  >
+                    <SendHorizonal className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

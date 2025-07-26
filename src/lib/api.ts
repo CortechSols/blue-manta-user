@@ -356,6 +356,38 @@ export class ChatbotAPIClient {
       throw error;
     }
   }
+
+  async getVisitorMessages(
+    visitorId: string
+  ): Promise<import("../types/chatbot").VisitorMessagesResponse> {
+    // For widget, we need to make unauthenticated requests to get visitor messages
+    const url = `${
+      import.meta.env.VITE_API_BASE_URL
+    }/conversations/visitor-messages/?visitor_id=${encodeURIComponent(
+      visitorId
+    )}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+      }
+
+      const data = await response.json();
+      return snakeToCamel(
+        data
+      ) as import("../types/chatbot").VisitorMessagesResponse;
+    } catch (error) {
+      console.error("Widget visitor messages API request failed:", error);
+      throw error;
+    }
+  }
 }
 
 // Utility to get config from URL parameters for widget

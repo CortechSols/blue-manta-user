@@ -36,7 +36,6 @@ const sidebarItems = [
   { icon: Database, label: "Data Sources", path: "/data" },
   { icon: Bot, label: "Chatbots", path: "/chatbots" },
   { icon: History, label: "Chat History", path: "/chat-history" },
-  { icon: ShieldCheck, label: "Quality Assurance", path: "/qa" },
   { icon: Zap, label: "Integrations", path: "/integrations" },
 ];
 

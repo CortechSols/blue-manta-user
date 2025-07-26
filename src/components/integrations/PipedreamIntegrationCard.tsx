@@ -29,7 +29,7 @@ export const PipedreamIntegrationCard: React.FC = () => {
     resolver: zodResolver(pipedreamIntegrationSchema),
     defaultValues: integration && integration.configBlob
       ? {
-          is_active: integration.is_active,
+          is_active: integration.isActive,
           config_blob: {
             url: integration.configBlob.url,
             secret: "",
@@ -45,7 +45,7 @@ export const PipedreamIntegrationCard: React.FC = () => {
   React.useEffect(() => {
     if (integration && integration.configBlob) {
       form.reset({
-        is_active: integration.is_active,
+        is_active: integration.isActive,
         config_blob: {
           url: integration.configBlob.url,
           secret: "",

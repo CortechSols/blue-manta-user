@@ -1,4 +1,3 @@
-import apiClient from "@/lib/api";
 import { useApiQuery, useApiMutation } from "./useApi";
 import { usePipedreamIntegrationStore } from "@/stores/pipedreamIntegrationStore";
 import { useEffect } from "react";
