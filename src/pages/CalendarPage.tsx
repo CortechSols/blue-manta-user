@@ -167,7 +167,7 @@ export default function CalendarPage() {
       subtitle="Appointment Calendar"
       activePath="/calendar"
     >
-      <div className="border-2 border-[#0077B6] rounded-lg bg-white">
+      <div className="dashboard-shadow rounded-lg bg-white">
         <div className="p-4 md:p-8">
           <h3 className="text-lg md:text-2xl font-semibold text-[#0077B6] mb-4 md:mb-8">
             Calendar Management

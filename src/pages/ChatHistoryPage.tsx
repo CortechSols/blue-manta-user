@@ -337,7 +337,7 @@ export default function ChatHistoryPage() {
         ) : filteredConversations.length > 0 ? (
           <>
             {/* Chat History List */}
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+            <div className="bg-white dashboard-shadow rounded-lg border border-gray-200 divide-y divide-gray-100">
               {filteredConversations.map((conversation, index) => {
                 return (
                   <div

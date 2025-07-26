@@ -74,7 +74,7 @@ export default function LoginPage() {
               className="w-10 h-10 object-contain"
             />
           </div>
-          
+
           {/* User Icon on the right */}
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -89,7 +89,7 @@ export default function LoginPage() {
           {/* Company Branding - positioned at top center */}
           <div className="absolute top-4 md:top-8 left-1/2 transform -translate-x-1/2 text-center z-10">
             <h1
-              className="text-2xl md:text-4xl font-bold mb-2"
+              className="!text-[20px] md:!text-4xl font-bold mb-2 text-nowrap"
               style={{ color: "#0077B6" }}
             >
               Blue Manta Labs
@@ -100,17 +100,17 @@ export default function LoginPage() {
           </div>
 
           {/* Background Logo - hidden on small screens to prevent overlap */}
-          <div className="hidden lg:block absolute left-0 top-0 bottom-0 opacity-30">
+          <div className="hidden lg:block absolute left-0 top-0 bottom-0">
             <img
               src="/bml-side-logo.png"
               alt="Blue Manta Labs Logo"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain relative z-99 lg:w-[327px] xl:w-full xl:h-full xl:object-cover xl:object-center "
             />
           </div>
 
-          <div className="grid place-items-center h-full w-full pt-24 md:pt-32 px-4">
+          <div className="grid place-items-center h-full w-full pt-20 md:pt-32 px-4 lg:pt-[32px] xl:pt-0">
             <Card
-              className="shadow-xl rounded-2xl border-0 w-full max-w-sm md:max-w-md"
+              className="shadow-xl rounded-2xl border-0 w-full mb-[20px] lg:mb-0 max-w-sm md:max-w-md"
               style={{ backgroundColor: "#EBF9FC" }}
             >
               <CardContent className="flex flex-col items-center justify-center h-full p-6 md:p-8">
@@ -130,7 +130,10 @@ export default function LoginPage() {
                   </Alert>
                 )}
 
-                <form onSubmit={handleSubmit} className="w-full md:w-[75%] space-y-6">
+                <form
+                  onSubmit={handleSubmit}
+                  className="w-full md:w-[75%] space-y-6"
+                >
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
@@ -189,12 +192,12 @@ export default function LoginPage() {
                   <Button
                     type="submit"
                     disabled={isLoading || !email || !password}
-                    className="w-full px-16 py-3 text-white font-medium rounded-full h-12 text-base disabled:opacity-50 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
+                    className="w-full px-16 py-3 text-white cursor-pointer font-medium rounded-full h-12 text-base disabled:opacity-50 transition-all duration-200 hover:shadow-lg transform hover:-translate-y-0.5"
                     style={{ backgroundColor: "#03045E" }}
                   >
                     {isLoading ? (
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="flex items-center cursor-pointer justify-center">
+                        <div className="animate-spin cursor-pointer rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Logging in...
                       </div>
                     ) : (
