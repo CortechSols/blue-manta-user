@@ -16,7 +16,7 @@ import {
 
 export default function AdminProfilePage() {
   const navigate = useNavigate();
-  
+
   // Fetch organization details
   const { data: organization, isLoading, error } = useOrganizationDetails();
 
@@ -111,7 +111,7 @@ export default function AdminProfilePage() {
       activePath="/settings"
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="border-2 border-[#0077B6] rounded-lg p-8 bg-white">
+        <div className="dashboard-shadow rounded-lg p-8 bg-white">
           <div className="space-y-8">
             {/* Profile Information */}
             <div className="space-y-6">
@@ -197,7 +197,7 @@ export default function AdminProfilePage() {
                 <button
                   type="button"
                   onClick={() => navigate("/password-reset/request")}
-                  className="text-gray-500 hover:text-[#0077B6] text-sm"
+                  className="text-gray-500 cursor-pointer hover:text-[#0077B6] text-sm"
                 >
                   Reset Password
                 </button>

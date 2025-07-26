@@ -537,7 +537,7 @@ export default function DataSourcesPage() {
         </div>
 
         {/* Data Sources List */}
-        <Card className="border-2 border-[#0077B6] rounded-lg bg-white">
+        <Card className="dashboard-shadow rounded-lg bg-white">
           <CardHeader className="p-4 md:p-6">
             <CardTitle className="text-base md:text-lg text-[#0077B6]">
               Uploaded Documents

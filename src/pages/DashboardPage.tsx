@@ -119,7 +119,7 @@ export default function DashboardPage() {
     },
     {
       label: "Avg Chat Duration",
-      value: `${dashboardData.averageChatDuration} min`,
+      value: `${dashboardData.averageChatDuration} sec`,
       trend: { value: "Optimal", positive: true },
       color: "#0077B6",
     },
@@ -132,7 +132,7 @@ export default function DashboardPage() {
       name: chat.visitorName || `Visitor ${chat.visitorId.slice(0, 8)}`,
       initials: getInitials(chat.visitorName || "U"),
     },
-    message: chat.lastMessage.content,
+    message: chat?.lastMessage?.content || "No message",
     timestamp: formatTimestamp(chat.startedAt),
     status: chat.status as "online" | "offline",
   }));
@@ -146,17 +146,18 @@ export default function DashboardPage() {
       <DashboardContainer
         title="Organization Dashboard"
         subtitle="Chatbot Analytics & Performance"
+        className="gap-0 space-y-0"
       >
         {/* First Row - Performance Metrics, Total Conversations, Top Performing Chatbots */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-6 min-h-[320px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 h-1/2 mb-2">
           {/* Performance Metrics */}
-          <div className="w-full h-[320px]">
+          <div className="w-full h-full">
             <MetricCard title="Performance Metrics" metrics={keyMetrics} />
           </div>
 
           {/* Total Conversations Section */}
           <div className="w-full h-full">
-            <Card className="shadow-lg rounded-2xl h-full">
+            <Card className="h-full border border-gray-200 rounded-lg dashboard-shadow">
               <CardHeader className="pb-2 md:pb-3">
                 <CardTitle
                   className="text-base md:text-lg font-semibold"
@@ -212,7 +213,7 @@ export default function DashboardPage() {
 
           {/* Top Performing Chatbots */}
           <div className="w-full h-full">
-            <Card className="shadow-lg rounded-2xl h-full">
+            <Card className="h-full border border-gray-200 rounded-lg dashboard-shadow">
               <CardHeader className="pb-2 md:pb-3">
                 <CardTitle
                   className="text-base md:text-lg font-semibold"
@@ -253,10 +254,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Second Row - System Status and Recent Chats */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 h-[360px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 h-1/2">
           {/* System Status */}
           <div className="w-full h-full">
-            <Card className="shadow-lg rounded-2xl h-full">
+            <Card className="h-full border border-gray-200 rounded-lg dashboard-shadow">
               <CardHeader className="pb-2 md:pb-3">
                 <CardTitle
                   className="text-base md:text-lg font-semibold"

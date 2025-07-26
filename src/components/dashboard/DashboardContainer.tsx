@@ -15,7 +15,7 @@ export function DashboardContainer({
 }: DashboardContainerProps) {
   return (
     <div
-      className={`border-2 rounded-lg p-4 md:p-6 ${className}`}
+      className={`bg-white dashboard-shadow !min-h-screen rounded-lg p-4 md:p-6 flex flex-col ${className}`}
       style={{ borderColor: "#0077B6" }}
     >
       {/* Page Header */}
@@ -32,7 +32,7 @@ export function DashboardContainer({
           </p>
         )}
       </div>
-      {children}
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

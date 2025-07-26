@@ -93,7 +93,7 @@ export function DashboardLayout({
                 }`}
                 title={item.label}
               >
-                <item.icon className="w-6 h-6" />
+                <item.icon className="w-6 h-6 !text-[#0077B6]" />
               </Link>
             ))}
           </div>
@@ -105,14 +105,14 @@ export function DashboardLayout({
               className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-white/20"
               title="Settings"
             >
-              <Settings className="w-6 h-6" />
+              <Settings className="w-6 h-6 !text-[#0077B6]" />
             </Link>
             <button
               onClick={handleLogout}
               className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-red-100 hover:text-red-600 transition-colors"
               title="Logout"
             >
-              <LogOut className="w-6 h-6" />
+              <LogOut className="w-6 h-6 !text-[#0077B6]" />
             </button>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function DashboardLayout({
               <Link
                 key={item.path}
                 to={item.path}
-                className={`h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors text-[#0077B6] text-sm whitespace-nowrap ${
+                className={`h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors !text-[#0077B6] !text-sm whitespace-nowrap ${
                   activePath === item.path
                     ? "bg-[#E0F2FE]"
                     : "hover:bg-[#E0F2FE]/50"
@@ -151,16 +151,17 @@ export function DashboardLayout({
           <div className="px-3 pb-6 space-y-2">
             <Link
               to="/settings"
-              className="h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors text-[#0077B6] text-sm hover:bg-[#E0F2FE]/50"
+              className="h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors !text-[#0077B6] !text-sm hover:bg-[#E0F2FE]/50"
             >
               <span>Settings</span>
             </Link>
-            <button
+            <Link
+              to="/"
               onClick={handleLogout}
-              className="h-12 flex w-full items-center px-3 rounded-lg cursor-pointer transition-colors text-[#0077B6] text-sm hover:bg-red-50 hover:text-red-600"
+              className="h-12 flex w-full items-center px-3 rounded-lg cursor-pointer !text-[#0077B6] !text-sm hover:bg-red-50 hover:text-red-600"
             >
               <span>Logout</span>
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -194,7 +195,7 @@ export function DashboardLayout({
                     key={item.path}
                     to={item.path}
                     onClick={closeMobileSidebar}
-                    className={`w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer transition-colors text-[#0077B6] ${
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer transition-colors !text-[#0077B6] ${
                       activePath === item.path
                         ? "bg-white/30"
                         : "hover:bg-white/20"
@@ -210,9 +211,9 @@ export function DashboardLayout({
                 <Link
                   to="/settings"
                   onClick={closeMobileSidebar}
-                  className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer text-[#0077B6] hover:bg-white/20"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center cursor-pointer !text-[#0077B6] hover:bg-white/20"
                 >
-                  <Settings className="w-6 h-6" />
+                  <Settings className="w-6 h-6 !text-[#0077B6]" />
                 </Link>
                 <button
                   onClick={() => {
@@ -262,7 +263,7 @@ export function DashboardLayout({
                 <Link
                   to="/settings"
                   onClick={closeMobileSidebar}
-                  className="h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors text-[#0077B6] text-sm hover:bg-[#E0F2FE]/50"
+                  className="h-12 flex items-center px-3 rounded-lg cursor-pointer transition-colors !text-[#0077B6] text-sm hover:bg-[#E0F2FE]/50"
                 >
                   <span>Settings</span>
                 </Link>
@@ -271,9 +272,9 @@ export function DashboardLayout({
                     handleLogout();
                     closeMobileSidebar();
                   }}
-                  className="h-12 flex w-full items-center px-3 rounded-lg cursor-pointer transition-colors text-[#0077B6] text-sm hover:bg-red-50 hover:text-red-600"
+                  className="h-12 flex w-full items-center px-3 rounded-lg cursor-pointer transition-colors !text-[#0077B6] text-sm hover:bg-red-50 hover:text-red-600"
                 >
-                  <span>Logout</span>
+                  <span>Logousst</span>
                 </button>
               </div>
             </div>
@@ -298,11 +299,15 @@ export function DashboardLayout({
           </div>
 
           {/* Right Icons */}
-          <div className="flex items-center gap-2 lg:gap-4 ml-auto">
+          <div className="flex items-center gap-2 lg:gap-4 cursor-pointer ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-blue-600">
-                  <User className="w-5 h-5" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-blue-600 cursor-pointer"
+                >
+                  <User className="w-5 h-5 " />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
