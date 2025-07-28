@@ -60,7 +60,7 @@ export default function DataSourcesPage() {
   const [selectedChatbotFilter, setSelectedChatbotFilter] =
     useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 1;
+  const pageSize = 20;
 
   // Debounce search query
   useEffect(() => {
