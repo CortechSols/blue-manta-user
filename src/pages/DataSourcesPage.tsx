@@ -60,7 +60,7 @@ export default function DataSourcesPage() {
   const [selectedChatbotFilter, setSelectedChatbotFilter] =
     useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 1;
 
   // Debounce search query
   useEffect(() => {
@@ -91,38 +91,20 @@ export default function DataSourcesPage() {
         ? parseInt(selectedChatbotFilter)
         : undefined,
   });
+
+  console.log("Data sources data:", dataSourcesData);
+
   const { user } = useAuthStore();
 
   const createDataSource = useCreateDataSource();
   const deleteDataSource = useDeleteDataSource();
   const { refreshDataSources } = useChatbotRefresh();
 
-  // Extract data sources from response
+  // Use server-filtered data directly
   const dataSources = Array.isArray(dataSourcesData)
     ? dataSourcesData
-    : dataSourcesData?.data_sources || [];
+    : dataSourcesData?.dataSources || [];
 
-  // Extract pagination info with camelCase conversion
-  const paginationInfo =
-    !Array.isArray(dataSourcesData) && dataSourcesData
-      ? {
-          totalCount:
-            dataSourcesData.totalCount ||
-            (dataSourcesData as Record<string, any>).total_count || // eslint-disable-line @typescript-eslint/no-explicit-any
-            dataSources.length,
-          page: dataSourcesData.page || 1,
-          totalPages:
-            dataSourcesData.totalPages ||
-            (dataSourcesData as Record<string, any>).total_pages || // eslint-disable-line @typescript-eslint/no-explicit-any
-            1,
-        }
-      : {
-          totalCount: dataSources.length,
-          page: 1,
-          totalPages: 1,
-        };
-
-  // Handle pagination and search changes
   const handleRefresh = () => {
     refreshDataSources();
     refetchDataSources();
@@ -328,8 +310,10 @@ export default function DataSourcesPage() {
               Data Sources
             </h1>
             <p className="text-sm md:text-base text-gray-600">
-              {dataSources.length > 0
-                ? `${paginationInfo.totalCount} total data sources`
+              {!Array.isArray(dataSourcesData) && dataSourcesData?.totalCount
+                ? `${dataSourcesData.totalCount} total data sources`
+                : dataSources.length > 0
+                ? `${dataSources.length} data sources`
                 : "Upload documents to train your chatbots with specific knowledge"}
             </p>
           </div>
@@ -520,6 +504,26 @@ export default function DataSourcesPage() {
 
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
+            {/* Chatbot Filter */}
+            <div className="flex-1">
+              <Select
+                value={selectedChatbotFilter}
+                onValueChange={handleChatbotFilterChange}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Filter by chatbot" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All chatbots</SelectItem>
+                  {chatbots?.map((chatbot) => (
+                    <SelectItem key={chatbot.id} value={chatbot.id.toString()}>
+                      {chatbot.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Clear Filters Button */}
             {(searchQuery || selectedChatbotFilter !== "all") && (
               <Button
@@ -602,13 +606,7 @@ export default function DataSourcesPage() {
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
                           <div className="flex flex-col">
-                            <span
-                              className={`text-sm font-medium ${
-                                dataSource.fileName === "Comfort Air FAQ"
-                                  ? "text-[#0077B6]"
-                                  : "text-gray-700"
-                              }`}
-                            >
+                            <span className={"text-sm truncate font-medium"}>
                               {dataSource.fileName}
                             </span>
                             <span className="text-xs text-gray-500">
@@ -681,15 +679,7 @@ export default function DataSourcesPage() {
                     <div className="hidden md:block p-4">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-gray-500" />
-                        <span
-                          className={`text-sm ${
-                            dataSource.fileName === "Comfort Air FAQ"
-                              ? "text-[#0077B6]"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {dataSource.fileName}
-                        </span>
+                        <span className="text-sm truncate">{dataSource.fileName}</span>
                       </div>
                     </div>
                     <div className="hidden md:block p-4">
@@ -796,19 +786,19 @@ export default function DataSourcesPage() {
             )}
           </CardContent>
         </Card>
-        {/* Pagination */}
-        {dataSources.length > 0 && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-600 mt-6 p-4">
+        {/* Pagination Info */}
+        {dataSourcesData && !Array.isArray(dataSourcesData) && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-600">
             <div>
               Showing {(currentPage - 1) * pageSize + 1} to{" "}
-              {Math.min(currentPage * pageSize, paginationInfo.totalCount)} of{" "}
-              {paginationInfo.totalCount} data sources
+              {Math.min(currentPage * pageSize, dataSourcesData.totalCount)} of{" "}
+              {dataSourcesData.totalCount} data sources
             </div>
             <div className="flex items-center gap-2">
               <span>
-                Page {paginationInfo.page} of {paginationInfo.totalPages}
+                Page {dataSourcesData.page} of {dataSourcesData.totalPages}
               </span>
-              {paginationInfo.totalPages > 1 && (
+              {dataSourcesData.totalPages > 1 && (
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -823,10 +813,10 @@ export default function DataSourcesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={currentPage >= paginationInfo.totalPages}
+                    disabled={currentPage >= dataSourcesData.totalPages}
                     onClick={() =>
                       setCurrentPage((prev) =>
-                        Math.min(paginationInfo.totalPages, prev + 1)
+                        Math.min(dataSourcesData.totalPages, prev + 1)
                       )
                     }
                   >

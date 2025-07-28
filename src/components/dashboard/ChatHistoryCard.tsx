@@ -13,6 +13,7 @@ interface ChatMessage {
   message: string;
   timestamp: string;
   status?: "online" | "offline";
+  visitorId?: string;
 }
 
 interface ChatHistoryCardProps {

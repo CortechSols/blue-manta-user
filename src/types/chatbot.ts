@@ -51,7 +51,7 @@ export interface CreateDataSourceRequest {
 }
 
 export interface DataSourcesResponse {
-  data_sources: DataSource[];
+  dataSources: DataSource[];
   total_count: number;
 }
 
@@ -82,6 +82,7 @@ export interface ChatMessage {
   content: string;
   sentAt: string;
   calendlyUrl?: string;
+  visitorId?: string;
 }
 
 export interface ChatRequest {

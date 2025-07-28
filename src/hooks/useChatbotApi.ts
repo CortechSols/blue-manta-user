@@ -308,7 +308,7 @@ export function useChatInterface(chatbotId: number) {
   const visitorIdRef = useRef<string | null>(null);
   const sendMessage = useSendMessage();
 
-  const sendChatMessage = async (content: string) => {
+  const sendChatMessage = async (content: string, visitorId?: string) => {
     if (!content.trim() || !chatbotId) return;
 
     // Add user message to local state immediately
@@ -325,7 +325,7 @@ export function useChatInterface(chatbotId: number) {
     try {
       const requestPayload = {
         message: content,
-        visitorId: visitorIdRef.current || undefined,
+        visitor_id: visitorId || undefined,
       };
 
       const response = await sendMessage.mutateAsync({

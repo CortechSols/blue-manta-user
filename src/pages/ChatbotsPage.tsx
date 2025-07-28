@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -97,7 +97,23 @@ export default function ChatbotsPage() {
 
   // Chat interface
   const chatInterface = useChatInterface(selectedChatbot?.id || 0);
+
+  console.log("chatInterface: ", chatInterface);
+
   const [chatMessage, setChatMessage] = useState("");
+  const [visitorId, setVisitorId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!visitorId && chatInterface?.messages.length) {
+      const visitorId = chatInterface.visitorId;
+      if (visitorId) {
+        setVisitorId(visitorId);
+        console.log("Visitor ID set:", visitorId);
+      }
+    }
+  }, [chatInterface?.messages, visitorId]);
+
+  const [, setState] = useState("init");
 
   const handleUpdateChatbot = async () => {
     if (!selectedChatbot) return;
@@ -186,7 +202,7 @@ export default function ChatbotsPage() {
     if (!chatMessage.trim() || !chatInterface) return;
 
     setChatMessage("");
-    await chatInterface.sendMessage(chatMessage);
+    await chatInterface.sendMessage(chatMessage, visitorId);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -585,6 +601,7 @@ export default function ChatbotsPage() {
                             </p>
                             <div className="border-t pt-3">
                               <CalendlyInlineWidget
+                                setState={setState}
                                 url={message.calendlyUrl}
                                 height={500}
                                 onEventScheduled={(event) => {
@@ -709,24 +726,6 @@ export default function ChatbotsPage() {
                     assistant
                   </li>
                 </ol>
-              </div>
-
-              <div className="bg-amber-50 p-4 rounded-lg">
-                <h4 className="font-medium text-amber-900 mb-2">
-                  Important Notes:
-                </h4>
-                <ul className="text-sm text-amber-800 space-y-1">
-                  <li>
-                    • Update the iframe URL in the code to point to your
-                    deployed chatbot
-                  </li>
-                  <li>• Make sure your website allows iframe embedding</li>
-                  <li>• The chatbot will work on any website with this code</li>
-                  <li>
-                    • You can customize the theme, colors, and position by
-                    modifying the configuration
-                  </li>
-                </ul>
               </div>
             </div>
             <DialogFooter>

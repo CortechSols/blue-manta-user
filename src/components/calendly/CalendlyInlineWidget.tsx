@@ -28,6 +28,7 @@ interface CalendlyInlineWidgetProps {
   borderRadius?: string;
   border?: string;
   overflow?: string;
+  setState?: (state: string) => void;
 }
 
 interface CalendlyEvent {
@@ -130,6 +131,7 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
   borderRadius = "8px",
   border = "1px solid #e5e7eb",
   overflow = "auto",
+  setState,
 }) => {
   console.log("url inside calendly inline widget: ", url);
   const widgetRef = useRef<HTMLDivElement>(null);
@@ -146,6 +148,7 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
       };
       document.head.appendChild(script);
       scriptRef.current = script;
+      setState?.("loaded");
     } else if (window.Calendly) {
       initializeWidget();
     }

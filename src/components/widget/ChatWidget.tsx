@@ -41,6 +41,7 @@ export function ChatWidget({
   const [inputMessage, setInputMessage] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [, setState] = useState("init");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -364,6 +365,7 @@ export function ChatWidget({
                               console.log("Event scheduled:", event);
                               // You can add custom logic here when an event is scheduled
                             }}
+                            setState={setState}
                           />
                         </div>
                       )}

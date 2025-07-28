@@ -163,7 +163,7 @@ export class ChatbotService {
   async getConversationStatuses(): Promise<ConversationStatus[]> {
     try {
       return await apiClient
-        .get("/conversation-statuses/")
+        .get("/conversations/conversation-statuses/")
         .then((response) => response.data);
     } catch (error: any) {
       console.error("Conversation statuses API error:", error);
@@ -198,18 +198,29 @@ export class ChatbotService {
     page_size?: number;
     search_by?: string;
     chatbot_id?: number;
-  }): Promise<DataSource[] | { data_sources: DataSource[]; totalCount: number; page: number; totalPages: number }> {
+  }): Promise<
+    | DataSource[]
+    | {
+        dataSources: DataSource[];
+        totalCount: number;
+        page: number;
+        totalPages: number;
+      }
+  > {
     try {
       let endpoint = "/data-sources/";
-      
+
       // Add query parameters if provided
       if (params) {
         const searchParams = new URLSearchParams();
         if (params.page) searchParams.append("page", params.page.toString());
-        if (params.page_size) searchParams.append("page_size", params.page_size.toString());
-        if (params.search_by) searchParams.append("search_by", params.search_by);
-        if (params.chatbot_id) searchParams.append("chatbot_id", params.chatbot_id.toString());
-        
+        if (params.page_size)
+          searchParams.append("page_size", params.page_size.toString());
+        if (params.search_by)
+          searchParams.append("search_by", params.search_by);
+        if (params.chatbot_id)
+          searchParams.append("chatbot_id", params.chatbot_id.toString());
+
         const queryString = searchParams.toString();
         if (queryString) {
           endpoint += `?${queryString}`;
@@ -220,34 +231,7 @@ export class ChatbotService {
         .get(endpoint)
         .then((response) => response.data);
 
-      console.log("Data sources response:", response);
-
-      // Check if response has pagination info (new format)
-      if (response?.data_sources && Array.isArray(response.data_sources)) {
-        return {
-          data_sources: response.data_sources,
-          totalCount: response.total_count || response.data_sources.length,
-          page: response.page || 1,
-          totalPages: response.total_pages || 1,
-        };
-      }
-
-      // Check if response is directly an array of data sources (legacy format)
-      if (Array.isArray(response)) {
-        return response;
-      }
-
-      // Check if response has data_sources wrapper (legacy format)
-      if (response?.dataSources && Array.isArray(response.dataSources)) {
-        console.log(
-          "Response has data_sources wrapper, returning:",
-          response.dataSources
-        );
-        return response.dataSources;
-      }
-
-      console.log("Response format unexpected, returning empty array");
-      return [];
+      return response;
     } catch (error: any) {
       console.error("Data sources API error:", error);
       if (error.response?.status === 404 || error.response?.status === 405) {
