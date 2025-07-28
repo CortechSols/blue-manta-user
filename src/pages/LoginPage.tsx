@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { User, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth, useAuthActions } from "@/stores/authStore";
 
@@ -73,14 +73,6 @@ export default function LoginPage() {
               alt="Blue Manta Labs"
               className="w-10 h-10 object-contain"
             />
-          </div>
-
-          {/* User Icon on the right */}
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "#0077B6" }}
-          >
-            <User className="w-5 h-5 text-white" />
           </div>
         </div>
 

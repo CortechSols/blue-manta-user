@@ -152,9 +152,7 @@ export default function AdminProfilePage() {
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-600">Phone Number</Label>
                   <div className="flex">
-                    <div className="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md h-11">
-                      <span className="text-sm text-gray-600">+81</span>
-                    </div>
+                    <div className="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md h-11"></div>
                     <Input
                       placeholder="Eg. your text here"
                       className="rounded-l-none h-11"
