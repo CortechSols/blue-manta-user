@@ -142,7 +142,6 @@ export default function ClientProfilePage() {
                   </div>
                   <Input
                     placeholder="Eg. your text here"
-                    className="rounded-l-none"
                     value={phoneNumber.replace("+1", "")} // Remove +1 prefix for display
                     onChange={(e) => setPhoneNumber(`+1${e.target.value}`)}
                   />
