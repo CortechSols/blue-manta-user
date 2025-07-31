@@ -93,8 +93,21 @@ This project integrates with the Blue Manta backend API. The following endpoints
 Create a `.env` file in the root directory:
 
 ```
+# API Configuration
 VITE_API_BASE_URL=http://127.0.0.1:8000/api
+
+# Calendly OAuth Configuration (Required for Calendar integration)
+VITE_CALENDLY_CLIENT_ID=your_calendly_client_id_here
+VITE_CALENDLY_REDIRECT_URI=http://localhost:5173/calendly/callback
+
+# App Configuration
+VITE_APP_URL=http://localhost:5173
 ```
+
+**Note:** For Calendly integration to work, you need to:
+1. Create a Calendly OAuth application in your Calendly account
+2. Set the redirect URI to `http://localhost:5173/calendly/callback`
+3. Copy the Client ID and add it to the `VITE_CALENDLY_CLIENT_ID` variable
 
 ### API Client Features
 

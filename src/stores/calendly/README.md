@@ -17,8 +17,7 @@ src/stores/calendly/
 ├── actions/
 │   ├── connectionActions.ts    # Calendly connection management
 │   ├── dataActions.ts          # Data loading and fetching
-│   ├── meetingActions.ts       # Meeting operations (cancel, reschedule)
-│   ├── eventTypeActions.ts     # Event type management
+│   ├── meetingActions.ts       # Meeting operations (cancel, batch cancel)
 │   └── uiActions.ts            # UI state and modal management
 └── README.md                   # This documentation
 ```
@@ -58,8 +57,7 @@ src/stores/calendly/
 import { 
   useCalendlyEvents,
   useCalendlyMeetings,
-  useCalendlyConnectionActions,
-  useCalendlyDataActions 
+  useCalendlyActions
 } from '../stores/calendly';
 
 function CalendlyDashboard() {
@@ -68,8 +66,7 @@ function CalendlyDashboard() {
   const meetings = useCalendlyMeetings();
   
   // Action selectors
-  const { connectCalendly, checkConnectionStatus } = useCalendlyConnectionActions();
-  const { loadEvents, loadMeetings } = useCalendlyDataActions();
+  const actions = useCalendlyActions();
   
   // Use the data and actions...
 }
@@ -80,40 +77,35 @@ function CalendlyDashboard() {
 ```typescript
 import { 
   useCalendlyDashboard,
-  useCalendlyStatus,
-  useCalendlyUI 
+  useCalendlyConnection,
+  useCalendlyLoading
 } from '../stores/calendly';
 
 function CalendlyComponent() {
   // Combined selectors for related state
   const dashboard = useCalendlyDashboard();
-  const status = useCalendlyStatus();
-  const ui = useCalendlyUI();
+  const connectionStatus = useCalendlyConnection();
+  const loading = useCalendlyLoading();
   
-  if (status.isLoading) return <Loading />;
-  if (status.hasError) return <Error message={status.error} />;
-  if (!status.isConnected) return <ConnectPrompt />;
+  if (loading.connection) return <Loading />;
+  if (!connectionStatus?.is_connected) return <ConnectPrompt />;
   
-  return <DashboardView data={dashboard} ui={ui} />;
+  return <DashboardView data={dashboard} />;
 }
 ```
 
 ### Action-Specific Usage
 
 ```typescript
-import { 
-  useCalendlyMeetingActions,
-  useCalendlyModalActions 
-} from '../stores/calendly';
+import { useCalendlyActions } from '../stores/calendly';
 
 function MeetingItem({ meeting }) {
-  const { cancelMeeting, rescheduleMeeting } = useCalendlyMeetingActions();
-  const { openCancelMeetingModal } = useCalendlyModalActions();
+  const actions = useCalendlyActions();
   
   return (
     <div>
       <h3>{meeting.name}</h3>
-      <button onClick={() => openCancelMeetingModal(meeting.uri)}>
+      <button onClick={() => actions.openCancelMeetingModal(meeting.uri)}>
         Cancel Meeting
       </button>
     </div>
@@ -133,7 +125,6 @@ function MeetingItem({ meeting }) {
 ### Status Selectors
 - `useCalendlyLoading()` - Loading states
 - `useCalendlyError()` - Error state
-- `useCalendlyStatus()` - Combined status (connected, loading, error)
 
 ### UI Selectors
 - `useCalendlySelectedDate()` - Currently selected date
@@ -143,19 +134,10 @@ function MeetingItem({ meeting }) {
 - `useCalendlyModals()` - Modal states
 
 ### Action Selectors
-- `useCalendlyConnectionActions()` - Connection management
-- `useCalendlyDataActions()` - Data loading
-- `useCalendlyMeetingActions()` - Meeting operations
-- `useCalendlyEventTypeActions()` - Event type management
-- `useCalendlyUIActions()` - UI state management
-- `useCalendlyModalActions()` - Modal management
-- `useCalendlyUtilityActions()` - Utility functions
+- `useCalendlyActions()` - All actions in one object
 
 ### Combined Selectors
 - `useCalendlyDashboard()` - All dashboard data
-- `useCalendlyUI()` - All UI state
-- `useCalendlyData()` - All Calendly data
-- `useCalendlyStatus()` - Status with computed properties
 
 ## 🛠️ Utility Functions
 
@@ -193,7 +175,7 @@ import {
   useCalendlyStore,
   useCalendlyActions,
   useCalendlyEvents,
-  useCalendlyConnectionActions 
+  useCalendlyConnection
 } from '../stores/calendly';
 ```
 
@@ -209,7 +191,7 @@ const loadEvents = store.actions.loadEvents;
 **After:**
 ```typescript
 const events = useCalendlyEvents();
-const { loadEvents } = useCalendlyDataActions();
+const { loadEvents } = useCalendlyActions();
 ```
 
 ### Step 3: Benefits You'll Get

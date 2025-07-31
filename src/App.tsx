@@ -1,20 +1,22 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useIsAuthenticated } from "@/stores/authStore";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import CalendarPage from "./pages/CalendarPage";
-import ChatHistoryPage from "./pages/ChatHistoryPage";
-import ConversationDetailPage from "./pages/ConversationDetailPage";
-import AdminProfilePage from "./pages/AdminProfilePage";
-import DataSourcesPage from "./pages/DataSourcesPage";
-import CalendarCallbackPage from "./pages/CalendarCallbackPage";
-import ChatbotsPage from "./pages/ChatbotsPage";
-import ChatbotConfigurationPage from "./pages/ChatbotConfigurationPage";
-import CreateChatbotPage from "./pages/CreateChatbotPage";
-import PasswordResetRequestPage from "./pages/PasswordResetRequestPage";
-import PasswordResetVerifyPage from "./pages/PasswordResetVerifyPage";
-import WidgetPage from "./pages/WidgetPage";
-import IntegrationsPage from "./pages/IntegrationsPage";
+import {
+  LoginPage,
+  DashboardPage,
+  CalendarPage,
+  ChatHistoryPage,
+  ConversationDetailPage,
+  ProfilePage,
+  DataSourcesPage,
+  CalendarCallbackPage,
+  ChatbotsPage,
+  ChatbotConfigurationPage,
+  CreateChatbotPage,
+  PasswordResetRequestPage,
+  PasswordResetVerifyPage,
+  WidgetPage,
+  IntegrationsPage,
+} from "./pages";
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -113,7 +115,7 @@ function App() {
         path="/settings"
         element={
           <ProtectedRoute>
-            <AdminProfilePage />
+            <ProfilePage />
           </ProtectedRoute>
         }
       />

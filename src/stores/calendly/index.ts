@@ -11,7 +11,7 @@
 
 import { useCalendlyStore } from "./store";
 
-// Selector exports (using the hook pattern)
+// Core data selectors
 export const useCalendlyConnection = () =>
   useCalendlyStore((state) => state.connectionStatus);
 export const useCalendlyEvents = () =>
@@ -38,19 +38,11 @@ export const useCalendlySelectedMeetings = () =>
 export const useCalendlyModals = () =>
   useCalendlyStore((state) => state.modals);
 
-// Individual action selectors to prevent infinite loops
-export const useSetCalendarView = () =>
-  useCalendlyStore((state) => state.actions.setCalendarView);
-export const useSetSelectedDate = () =>
-  useCalendlyStore((state) => state.actions.setSelectedDate);
-export const useLoadEvents = () =>
-  useCalendlyStore((state) => state.actions.loadEvents);
-
-// Action selectors (only supported operations) - cached to prevent infinite loops
+// Action selector
 export const useCalendlyActions = () =>
   useCalendlyStore((state) => state.actions);
 
-// Combined dashboard data - using individual selectors to prevent infinite loops
+// Combined dashboard data
 export const useCalendlyDashboard = () => {
   const connectionStatus = useCalendlyConnection();
   const events = useCalendlyEvents();

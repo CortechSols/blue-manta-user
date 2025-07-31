@@ -311,3 +311,19 @@ export type CalendlyEventPayload = {
     uri: string;
   };
 };
+
+// Calendar Component Types
+export interface CalendarDay {
+  date: Date;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  meetings: CalendlyMeeting[];
+}
+
+export interface CalendarViewProps {
+  meetings: CalendlyMeeting[];
+  calendarView: CalendarViewType;
+  onMeetingClick: (meeting: CalendlyMeeting, e: React.MouseEvent) => void;
+  onDayClick?: (day: CalendarDay) => void;
+}

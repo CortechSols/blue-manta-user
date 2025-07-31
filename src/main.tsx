@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { queryClient } from "./lib/react-query";
-import ErrorBoundary from "./components/ErrorBoundary";
+import { ErrorBoundary } from "./components/common";
 
 createRoot(document.getElementById("root")!).render(
   // Temporarily disabled StrictMode to prevent double rendering issues

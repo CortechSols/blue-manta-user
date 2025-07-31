@@ -3,7 +3,7 @@ import { useChatInterface } from "../../hooks/useChatInterface";
 import { ChatbotAPIClient } from "../../lib/api";
 import type { ChatbotAppearance } from "../../types/chatbot";
 import { ArrowDownIcon, SendHorizonal, Zap } from "lucide-react";
-import { CalendlyInlineWidget } from "../calendly/CalendlyInlineWidget";
+import { CalendlyInlineWidget } from "@/components/calendly";
 
 interface ChatWidgetProps {
   chatbotId: number;

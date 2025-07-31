@@ -278,44 +278,6 @@ export class ChatbotService {
     }
   }
 
-  // API Capability Information
-  getSupportedOperations(): {
-    read: string[];
-    write: string[];
-    limitations: string[];
-  } {
-    return {
-      read: [
-        "List chatbots",
-        "Get chatbot details",
-        "Get conversation messages",
-        "List conversations with search and filtering",
-        "Get conversation statuses",
-        "Get organization chatbots (Platform Admin)",
-        "List organizations (Platform Admin)",
-        "List data sources",
-        "Get organization dashboard data",
-      ],
-      write: [
-        "Create chatbot",
-        "Update chatbot",
-        "Delete chatbot",
-        "Send chat messages",
-        "Upload data sources",
-      ],
-      limitations: [
-        "Chat messages are public (no authentication required)",
-        "File uploads only supported for logo images and data sources",
-        "Data sources support PDF and DOCX formats only",
-        "Conversation limits are enforced per chatbot",
-        "Platform admin endpoints require special permissions",
-        "Dashboard data includes mock chart data for visualization",
-        "Conversation search supports visitor name, email, chatbot name, and message content",
-        "Conversation filtering supports chatbot ID and status",
-      ],
-    };
-  }
-
   // Dashboard Operations
   async getOrganizationDashboard(): Promise<OrganizationDashboardData> {
     try {

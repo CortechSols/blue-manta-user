@@ -1,9 +1,4 @@
-// Calendly OAuth Configuration
-const CALENDLY_CLIENT_ID = import.meta.env.VITE_CALENDLY_CLIENT_ID;
-const CALENDLY_REDIRECT_URI =
-  import.meta.env.VITE_CALENDLY_REDIRECT_URI ||
-  `${window.location.origin}/calendly/callback`;
-const CALENDLY_SCOPE = "default";
+const CALENDLY_OAUTH_BASE_URL = "https://auth.calendly.com";
 
 // PKCE helper functions
 function generateRandomString(length: number): string {
@@ -16,11 +11,7 @@ function generateRandomString(length: number): string {
   return result;
 }
 
-// Fallback SHA-256 implementation for non-secure contexts
-// TODO: THIS CAN BE REMOVED IN PRODUCTION. THIS IS JUST A POLYFILL FOR NON-SECURE CONTEXTS (http).
 function fallbackSha256(message: string): ArrayBuffer {
-  // Simple SHA-256 implementation using built-in JavaScript
-  // This is a basic implementation - for production, consider using a library like js-sha256
   function rotateRight(value: number, amount: number): number {
     return (value >>> amount) | (value << (32 - amount));
   }
@@ -176,6 +167,30 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 export const calendlyAuth = {
   // Generate OAuth URL with PKCE
   async getAuthUrl(): Promise<string> {
+    // Temporary configuration inside function
+    const CALENDLY_CLIENT_ID = import.meta.env.VITE_CALENDLY_CLIENT_ID || "8IwTBZ8XJddQwIQIgpwCc9dJkFxTuQhS5J4rvtfcsrY";
+    const CALENDLY_REDIRECT_URI =
+      import.meta.env.VITE_CALENDLY_REDIRECT_URI ||
+      `${window.location.origin}/calendly/callback`;
+    const CALENDLY_SCOPE = "default";
+    const APP_ENV = import.meta.env.VITE_APP_ENV || "dev";
+
+    console.log("getAuthUrl called - generating OAuth URL...");
+    console.log("Calendly OAuth Configuration:");
+    console.log("VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
+    console.log("VITE_CALENDLY_REDIRECT_URI:", import.meta.env.VITE_CALENDLY_REDIRECT_URI);
+    console.log("VITE_APP_ENV:", import.meta.env.VITE_APP_ENV);
+    console.log("Final CALENDLY_CLIENT_ID:", CALENDLY_CLIENT_ID);
+    console.log("Final CALENDLY_REDIRECT_URI:", CALENDLY_REDIRECT_URI);
+    console.log("Using OAuth endpoint:", CALENDLY_OAUTH_BASE_URL);
+    
+    // Check if required environment variables are set
+    if (!CALENDLY_CLIENT_ID) {
+      const errorMsg = "Calendly OAuth is not properly configured. Please set VITE_CALENDLY_CLIENT_ID in your environment variables.";
+      console.error(errorMsg);
+      throw new Error(errorMsg);
+    }
+    
     // Generate PKCE parameters
     const codeVerifier = generateRandomString(128);
     const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -192,13 +207,51 @@ export const calendlyAuth = {
       code_challenge_method: "S256",
     });
 
-    return `https://auth.calendly.com/oauth/authorize?${params.toString()}`;
+    const authUrl = `${CALENDLY_OAUTH_BASE_URL}/oauth/authorize?${params.toString()}`;
+    console.log("Generated OAuth URL:", authUrl);
+    return authUrl;
   },
 
   // Start OAuth flow
   async initiateOAuth(): Promise<void> {
-    const authUrl = await this.getAuthUrl();
-    window.location.href = authUrl;
+    // Temporary configuration inside function
+    const CALENDLY_CLIENT_ID = import.meta.env.VITE_CALENDLY_CLIENT_ID;
+    
+    console.log("=== DEBUGGING ENVIRONMENT VARIABLES ===");
+    console.log("import.meta.env:", import.meta.env);
+    console.log("import.meta.env.VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
+    console.log("typeof import.meta.env.VITE_CALENDLY_CLIENT_ID:", typeof import.meta.env.VITE_CALENDLY_CLIENT_ID);
+    console.log("CALENDLY_CLIENT_ID variable:", CALENDLY_CLIENT_ID);
+    
+    // Check if the old client ID is stored in localStorage
+    console.log("localStorage.getItem('calendly_client_id'):", localStorage.getItem('calendly_client_id'));
+    console.log("All localStorage keys:", Object.keys(localStorage));
+    
+    // Check if there's any cached value in sessionStorage
+    console.log("sessionStorage.getItem('calendly_client_id'):", sessionStorage.getItem('calendly_client_id'));
+    console.log("All sessionStorage keys:", Object.keys(sessionStorage));
+    
+    console.log("========================================");
+    
+    try {
+      console.log("initiateOAuth called - starting OAuth flow...");
+      
+      // Check if environment variables are properly configured
+      if (!CALENDLY_CLIENT_ID) {
+        const errorMsg = "Calendly OAuth is not properly configured. Please set VITE_CALENDLY_CLIENT_ID in your environment variables.";
+        console.error(errorMsg);
+        throw new Error(errorMsg);
+      }
+      
+      const authUrl = await this.getAuthUrl();
+      console.log("About to redirect to:", authUrl);
+      
+      window.location.href = authUrl;
+      console.log("Redirect initiated");
+    } catch (error) {
+      console.error("Failed to initiate OAuth:", error);
+      throw error;
+    }
   },
 
   // Get stored code verifier
