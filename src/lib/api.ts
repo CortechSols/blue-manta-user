@@ -76,41 +76,19 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // Add authorization header if token exists
-    // Try to get token from auth store first, fallback to localStorage for backward compatibility
     let token: string | null = null;
 
-    // Get token using the utility function
     token = getAuthToken();
-    console.log("Token from auth utility:", token ? "Present" : "Missing");
-
-    console.log("Request URL:", config.url);
-    console.log("Token available:", token ? "Yes" : "No");
-    console.log("Is login URL:", config.url?.includes("/login/"));
-
     if (token && !config.url?.includes("/login/")) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log("Authorization header added");
-    } else {
-      console.log(
-        "Authorization header NOT added - Token:",
-        !!token,
-        "Not login:",
-        !config.url?.includes("/login/")
-      );
     }
 
-    // Handle FormData vs JSON data
     if (config.data instanceof FormData) {
-      // For FormData, convert field names to snake_case but preserve FormData structure
       const originalFormData = config.data;
       const convertedFormData = new FormData();
 
-      console.log("🔍 FormData conversion - Original entries:");
-      // Iterate through all form data entries and convert keys to snake_case
       for (const [key, value] of originalFormData.entries()) {
         const snakeKey = snakeCase(key);
         console.log(`  Converting: "${key}" -> "${snakeKey}"`);
@@ -119,16 +97,14 @@ apiClient.interceptors.request.use(
 
       config.data = convertedFormData;
 
-      // Remove Content-Type header so browser sets it automatically with boundary
+
       delete config.headers["Content-Type"];
       console.log(
         "FormData detected - Field names converted to snake_case and Content-Type header removed for multipart/form-data"
       );
     } else if (config.data && typeof config.data === "object") {
-      // For regular objects, convert to snake_case and ensure JSON content type
-      console.log("🔍 JSON conversion - Original data:", config.data);
+
       config.data = camelToSnake(config.data);
-      console.log("🔍 JSON conversion - Converted data:", config.data);
       config.headers["Content-Type"] = "application/json";
     }
 
@@ -159,8 +135,6 @@ apiClient.interceptors.response.use(
         originalRequest.url?.includes("/refresh/") ||
         originalRequest.url?.includes("/login/")
       ) {
-        // This is a refresh or login request that failed, logout user
-        console.log("Refresh/Login request failed, logging out user");
         handleLogout();
         return Promise.reject(error);
       }
@@ -184,7 +158,6 @@ apiClient.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refreshToken");
 
-      // If we have a refresh token, try to refresh
       if (refreshToken) {
         try {
           const refreshResponse = await apiClient.post(

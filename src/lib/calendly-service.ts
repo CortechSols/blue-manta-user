@@ -4,10 +4,8 @@ import type {
   CalendlyMeetingsResponse,
   CalendlyEventTypesResponse,
   CalendlyAvailabilityResponse,
-  CalendlyAvailableSlotsResponse,
   ConnectionStatus,
   CancelMeetingRequest,
-  AvailableTimesRequest,
 } from "../types/calendly";
 import type { AxiosRequestConfig } from "axios";
 
@@ -45,20 +43,6 @@ interface ConfigBlobData {
 }
 
 export class CalendlyService {
-  updateEventType(
-    eventTypeUri: string,
-    updates: Partial<{
-      name: string;
-      description: string;
-      duration: number;
-      active: boolean;
-    }>
-  ): Promise<unknown> {
-    return this.makeRequest<unknown>(`/event_types/${eventTypeUri}/`, {
-      method: "PATCH",
-      data: updates,
-    });
-  }
   private baseURL: string;
 
   constructor() {
@@ -104,9 +88,6 @@ export class CalendlyService {
       const response = await this.makeRequest<ConnectionStatusResponse>(
         "/connection_status/"
       );
-      console.log("Raw connection status response:", response);
-      console.log("Response type:", typeof response);
-      console.log("Response keys:", Object.keys(response));
 
       // Handle different response formats
       if ("isConnected" in response) {
@@ -264,240 +245,14 @@ export class CalendlyService {
     return this.makeRequest<CalendlyAvailabilityResponse>("/availability/");
   }
 
-  async getAvailableSlots(
-    request: AvailableTimesRequest
-  ): Promise<CalendlyAvailableSlotsResponse> {
-    return this.makeRequest<CalendlyAvailableSlotsResponse>(
-      "/available_times/",
-      {
-        method: "POST",
-        data: request,
-      }
-    );
-  }
-
   // Event Types (Read Only)
   async getEventTypes(): Promise<CalendlyEventTypesResponse> {
     return this.makeRequest<CalendlyEventTypesResponse>("/event_types/");
   }
 
-  // Note: Event type creation/modification is not supported via API
-  // Users must use the Calendly dashboard for these operations
-
-  // User Information (Read Only)
-  async getCurrentUser(): Promise<{
-    uri: string;
-    name: string;
-    email: string;
-    slug: string;
-    timezone: string;
-    avatar_url?: string;
-    scheduling_url: string;
-  }> {
-    return this.makeRequest<{
-      uri: string;
-      name: string;
-      email: string;
-      slug: string;
-      timezone: string;
-      avatar_url?: string;
-      scheduling_url: string;
-    }>("/user/");
-  }
-
-  // Webhook Management (if supported by backend)
-  async createWebhook(
-    url: string,
-    events: string[],
-    organization?: string,
-    user?: string,
-    scope?: string
-  ): Promise<{
-    uri: string;
-    callback_url: string;
-    created_at: string;
-    updated_at: string;
-    retry_started_at?: string;
-    state: string;
-    events: string[];
-    scope: string;
-    organization?: string;
-    user?: string;
-  }> {
-    return this.makeRequest<{
-      uri: string;
-      callback_url: string;
-      created_at: string;
-      updated_at: string;
-      retry_started_at?: string;
-      state: string;
-      events: string[];
-      scope: string;
-      organization?: string;
-      user?: string;
-    }>("/webhooks/", {
-      method: "POST",
-      data: {
-        url,
-        events,
-        organization,
-        user,
-        scope,
-      },
-    });
-  }
-
-  async deleteWebhook(webhookUri: string): Promise<{ success: boolean }> {
-    return this.makeRequest<{ success: boolean }>(
-      `/webhooks/${encodeURIComponent(webhookUri)}/`,
-      {
-        method: "DELETE",
-      }
-    );
-  }
-
-  // Analytics and Reporting (Limited - redirect to Calendly)
-  async getEventTypeMetrics(
-    eventTypeUri: string,
-    startDate: string,
-    endDate: string
-  ): Promise<{
-    total_bookings: number;
-    cancelled_bookings: number;
-    rescheduled_bookings: number;
-    no_show_bookings: number;
-    conversion_rate: number;
-    popular_times: Array<{
-      hour: number;
-      count: number;
-    }>;
-  }> {
-    // Limited analytics available via API - recommend using Calendly dashboard
-    const params = new URLSearchParams({
-      event_type_uri: eventTypeUri,
-      start_date: startDate,
-      end_date: endDate,
-    });
-    return this.makeRequest<{
-      total_bookings: number;
-      cancelled_bookings: number;
-      rescheduled_bookings: number;
-      no_show_bookings: number;
-      conversion_rate: number;
-      popular_times: Array<{
-        hour: number;
-        count: number;
-      }>;
-    }>(`/analytics/event_types/?${params.toString()}`);
-  }
-
   // Utility Methods
   formatDateForAPI(date: Date): string {
     return date.toISOString().split("T")[0];
-  }
-
-  formatDateTimeForAPI(date: Date): string {
-    return date.toISOString();
-  }
-
-  parseCalendlyDateTime(dateTimeString: string): Date {
-    return new Date(dateTimeString);
-  }
-
-  generateSchedulingUrl(slug: string): string {
-    return `https://calendly.com/${slug}`;
-  }
-
-  extractSlugFromUri(uri: string): string {
-    const parts = uri.split("/");
-    return parts[parts.length - 1];
-  }
-
-  // Batch Operations (Limited to cancellation)
-  async batchCancelMeetings(
-    meetingUris: string[],
-    reason: string
-  ): Promise<Array<{ uri: string; success: boolean; error?: string }>> {
-    const results = await Promise.allSettled(
-      meetingUris.map((uri) =>
-        this.cancelMeeting({
-          meeting_uri: uri,
-          reason,
-        })
-      )
-    );
-
-    return results.map((result, index) => ({
-      uri: meetingUris[index],
-      success: result.status === "fulfilled",
-      error: result.status === "rejected" ? result.reason?.message : undefined,
-    }));
-  }
-
-  // Data Export (Basic)
-  async exportMeetings(
-    format: "csv" | "json",
-    startDate: string,
-    endDate: string,
-    filters?: {
-      status?: string;
-      event_type?: string;
-    }
-  ): Promise<Blob> {
-    const params = new URLSearchParams({
-      format,
-      start_date: startDate,
-      end_date: endDate,
-      ...filters,
-    });
-
-    const response = await fetch(
-      `${apiClient.defaults.baseURL}${
-        this.baseURL
-      }/export/meetings/?${params.toString()}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Export failed: ${response.statusText}`);
-    }
-
-    return response.blob();
-  }
-
-  // API Capability Information
-  getSupportedOperations(): {
-    read: string[];
-    write: string[];
-    limitations: string[];
-  } {
-    return {
-      read: [
-        "Get connection status",
-        "Get events/meetings",
-        "Get event types",
-        "Get user information",
-        "Get availability",
-        "Get webhook subscriptions",
-      ],
-      write: [
-        "Cancel meetings",
-        "Create webhook subscriptions",
-        "Delete webhook subscriptions",
-        "Connect/disconnect Calendly account",
-      ],
-      limitations: [
-        "Cannot create or modify event types",
-        "Cannot schedule events directly",
-        "Cannot reschedule events (use reschedule URLs)",
-        "Cannot modify availability/schedules",
-        "Limited analytics data available",
-      ],
-    };
   }
 }
 
