@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
-import { ChatWidget } from "../components/widget/ChatWidget";
-import { ChatbotAPIClient, getConfigFromURL } from "../lib/api";
-import { useChatbotAppearance } from "../hooks/useChatbotAppearance";
+import { ChatWidget } from "@/components/widget";
+import { ChatbotAPIClient, getConfigFromURL } from "@/lib/api";
+import { useChatbotAppearance } from "@/hooks/useChatbotAppearance";
 
 function WidgetPage() {
   const [config, setConfig] = useState<{

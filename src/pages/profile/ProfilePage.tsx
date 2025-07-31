@@ -17,15 +17,12 @@ import {
 export default function AdminProfilePage() {
   const navigate = useNavigate();
 
-  // Fetch organization details
   const { data: organization, isLoading, error } = useOrganizationDetails();
 
   console.log("organization", organization);
 
-  // Update organization details mutation
   const updateOrganizationMutation = useUpdateOrganizationDetails();
 
-  // Initialize form with React Hook Form and Zod validation
   const {
     register,
     handleSubmit,
@@ -41,10 +38,8 @@ export default function AdminProfilePage() {
     },
   });
 
-  // Populate form when organization data loads
   useEffect(() => {
     if (organization) {
-      console.log("🔥 Populating form with organization data:", organization);
       reset({
         firstName: organization.organization.firstName || "",
         lastName: organization.organization.lastName || "",
@@ -54,12 +49,10 @@ export default function AdminProfilePage() {
     }
   }, [organization, reset]);
 
-  // Handle form submission
   const onSubmit = async (data: AdminProfileSchema) => {
     try {
       console.log("Form submitted with data:", data);
 
-      // Only send the first three fields (firstName, lastName, phoneNumber)
       const updateData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -81,33 +74,18 @@ export default function AdminProfilePage() {
       >
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-gray-600">
-            Loading organization data...
+            Loading profile data...
           </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (error) {
-    return (
-      <DashboardLayout
-        title="Blue Manta Labs"
-        subtitle="Admin Profile"
-        activePath="/settings"
-      >
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-600">
-            Error loading organization data
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout
       title="Blue Manta Labs"
-      subtitle="Admin Profile"
+      subtitle="Profile"
       activePath="/settings"
     >
       <form onSubmit={handleSubmit(onSubmit)}>

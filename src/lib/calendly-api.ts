@@ -11,11 +11,7 @@ function generateRandomString(length: number): string {
   return result;
 }
 
-// Fallback SHA-256 implementation for non-secure contexts
-// TODO: THIS CAN BE REMOVED IN PRODUCTION. THIS IS JUST A POLYFILL FOR NON-SECURE CONTEXTS (http).
 function fallbackSha256(message: string): ArrayBuffer {
-  // Simple SHA-256 implementation using built-in JavaScript
-  // This is a basic implementation - for production, consider using a library like js-sha256
   function rotateRight(value: number, amount: number): number {
     return (value >>> amount) | (value << (32 - amount));
   }
