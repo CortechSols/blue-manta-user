@@ -5,7 +5,6 @@ import type {
   MeetingFilters,
   CalendarViewType,
   CalendlyState,
-  EventTypeFormData,
 } from '../../types/calendly';
 
 // Store-specific types
@@ -21,40 +20,10 @@ export interface CalendlyModals {
     isOpen: boolean;
     meetingUri: string | null;
   };
-  rescheduleMeeting: {
-    isOpen: boolean;
-    meetingUri: string | null;
-  };
   meetingDetails: {
     isOpen: boolean;
     meeting: CalendlyMeeting | null;
   };
-  eventTypeDetails: {
-    isOpen: boolean;
-    eventType: EventType | null;
-  };
-  availabilityEditor: {
-    isOpen: boolean;
-  };
-  bookingForm: {
-    isOpen: boolean;
-    eventTypeUri: string | null;
-  };
-}
-
-export interface CreateEventTypeResponse {
-  uri: string;
-  name: string;
-  description: string;
-  duration: number;
-  kind: string;
-  scheduling_url: string;
-  date_setting?: {
-    type: string;
-    start_date: string;
-    end_date: string;
-  };
-  note?: string;
 }
 
 export interface BatchCancelResult {
@@ -81,13 +50,7 @@ export interface DataLoadingActions {
 
 export interface MeetingManagementActions {
   cancelMeeting: (meetingUri: string, reason: string) => Promise<void>;
-  rescheduleMeeting: (meetingUri: string, newStartTime: string, newEndTime: string, reason?: string) => Promise<void>;
   batchCancelMeetings: (meetingUris: string[], reason: string) => Promise<BatchCancelResult[]>;
-}
-
-export interface EventTypeManagementActions {
-  createEventType: (eventTypeData: EventTypeFormData) => Promise<CreateEventTypeResponse>;
-  updateEventType: (eventTypeUri: string, updates: Partial<EventType>) => Promise<void>;
 }
 
 export interface UIActions {
@@ -102,16 +65,9 @@ export interface UIActions {
 export interface ModalActions {
   openCancelMeetingModal: (meetingUri: string) => void;
   closeCancelMeetingModal: () => void;
-  openRescheduleMeetingModal: (meetingUri: string) => void;
-  closeRescheduleMeetingModal: () => void;
   openMeetingDetailsModal: (meeting: CalendlyMeeting) => void;
   closeMeetingDetailsModal: () => void;
-  openEventTypeDetailsModal: (eventType: EventType) => void;
-  closeEventTypeDetailsModal: () => void;
-  openAvailabilityEditor: () => void;
-  closeAvailabilityEditor: () => void;
-  openBookingForm: (eventTypeUri: string) => void;
-  closeBookingForm: () => void;
+  closeAllModals: () => void;
 }
 
 export interface UtilityActions {
@@ -125,29 +81,13 @@ export interface CalendlyActions extends
   ConnectionActions,
   DataLoadingActions,
   MeetingManagementActions,
-  EventTypeManagementActions,
   UIActions,
   ModalActions,
   UtilityActions {
-  closeAllModals: () => void;
   checkConnection: () => Promise<void>;
 }
 
 export interface CalendlyStore extends CalendlyState, CalendlyUIState {
   modals: CalendlyModals;
   actions: CalendlyActions;
-}
-
-// Event Type Actions (Read Only)
-export type EventTypeActions = object
-
-// Meeting Actions (Limited)
-export interface MeetingActions {
-  loadMeetings: (filters?: MeetingFilters) => Promise<void>;
-  cancelMeeting: (meetingUri: string, reason: string) => Promise<void>;
-  setMeetingFilters: (filters: MeetingFilters) => void;
-  toggleMeetingSelection: (meetingUri: string) => void;
-  selectAllMeetings: () => void;
-  clearMeetingSelection: () => void;
-  // Note: openRescheduleMeetingModal removed - use reschedule URLs instead
 } 

@@ -36,24 +36,9 @@ export const createInitialState = (): Omit<CalendlyStore, 'actions'> => ({
       isOpen: false,
       meetingUri: null,
     },
-    rescheduleMeeting: {
-      isOpen: false,
-      meetingUri: null,
-    },
     meetingDetails: {
       isOpen: false,
       meeting: null,
-    },
-    eventTypeDetails: {
-      isOpen: false,
-      eventType: null,
-    },
-    availabilityEditor: {
-      isOpen: false,
-    },
-    bookingForm: {
-      isOpen: false,
-      eventTypeUri: null,
     },
   },
 });

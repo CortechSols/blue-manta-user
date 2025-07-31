@@ -35,30 +35,6 @@ export const createMeetingActions: StateCreator<
       }
     },
 
-    rescheduleMeeting: async (meetingUri, newStartTime, newEndTime, reason) => {
-      try {
-        await calendlyService.rescheduleMeeting(
-          meetingUri,
-          newStartTime,
-          newEndTime,
-          reason
-        );
-
-        // Refresh meetings and events
-        await get().actions.loadMeetings();
-        await get().actions.loadEvents();
-
-        // Close modal
-        get().actions.closeRescheduleMeetingModal();
-      } catch (error) {
-        set((state) => {
-          state.error = createErrorMessage("reschedule meeting", error);
-          return state;
-        });
-        throw error;
-      }
-    },
-
     batchCancelMeetings: async (meetingUris, reason) => {
       try {
         const results = await calendlyService.batchCancelMeetings(

@@ -125,25 +125,6 @@ export const formatDateForAPI = (date: Date): string => {
 };
 
 /**
- * Creates a new event type object for the store
- */
-export const createEventTypeForStore = (response: any): any => {
-  return {
-    uri: response.uri,
-    name: response.name,
-    description: response.description,
-    duration: response.duration,
-    kind: response.kind,
-    scheduling_url: response.scheduling_url,
-    active: true,
-    color: "#0069ff",
-    slug: response.uri.split("/").pop() || "",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-};
-
-/**
  * Handles navigation to first meeting date if needed
  */
 export const shouldNavigateToMeetingDate = (

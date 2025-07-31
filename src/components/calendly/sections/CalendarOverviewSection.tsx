@@ -4,9 +4,6 @@ import {
   useCalendlyDashboard,
   useCalendlyActions,
   useCalendlyCalendarView,
-  useSetCalendarView,
-  useSetSelectedDate,
-  useLoadEvents,
 } from "@/stores/calendlyStore";
 import { CalendarHeader, MonthView, WeekView, DayView, AgendaView } from "@/components/calendly";
 import type { CalendlyMeeting, CalendarDay } from "@/types/calendly";
@@ -14,13 +11,10 @@ import type { CalendlyMeeting, CalendarDay } from "@/types/calendly";
 export const CalendarOverviewSection: React.FC = () => {
   const { meetings } = useCalendlyDashboard();
   const calendarView = useCalendlyCalendarView();
-  const setCalendarView = useSetCalendarView();
-  const setSelectedDate = useSetSelectedDate();
-  const loadEvents = useLoadEvents();
   const actions = useCalendlyActions();
 
   const handleViewChange = (view: string) => {
-    setCalendarView({
+    actions.setCalendarView({
       ...calendarView,
       view: view.toLowerCase() as "month" | "week" | "day" | "agenda",
     });
@@ -46,9 +40,9 @@ export const CalendarOverviewSection: React.FC = () => {
         newDate = currentDate;
     }
 
-    setCalendarView({ ...calendarView, date: newDate });
-    setSelectedDate(newDate);
-    loadEvents();
+    actions.setCalendarView({ ...calendarView, date: newDate });
+    actions.setSelectedDate(newDate);
+    actions.loadEvents();
   };
 
   const handleMeetingClick = (meeting: CalendlyMeeting, e: React.MouseEvent) => {
