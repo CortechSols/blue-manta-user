@@ -6,56 +6,31 @@ import { ChatHistoryCard } from "@/components/dashboard/ChatHistoryCard";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState, ErrorState } from "@/components/ui/loading-states";
 import { useDashboardData } from "@/hooks/useChatbotApi";
 import { useAuthStore } from "@/stores/authStore";
-
-// Helper function to format timestamp
-const formatTimestamp = (timestamp: string) => {
-  const date = new Date(timestamp);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-
-  if (diffMins < 60) {
-    return `${diffMins}m`;
-  } else if (diffMins < 1440) {
-    return `${Math.floor(diffMins / 60)}h`;
-  } else {
-    return `${Math.floor(diffMins / 1440)}d`;
-  }
-};
-
-// Helper function to get initials
-const getInitials = (name: string | null) => {
-  if (!name) return "U";
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-};
+import { formatTimestamp, getInitials } from "@/lib/formatUtils";
 
 export default function DashboardPage() {
   const { data: dashboardData, isLoading, error } = useDashboardData();
   const { user } = useAuthStore();
+
+  const dashboardTitle = `${user?.firstName} ${user?.lastName}`;
+  const dashboardSubtitle = "Chatbot Analytics & Performance";
+
   // Loading state
   if (isLoading) {
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
-        subtitle="Chatbot Analytics & Performance"
+        title={dashboardTitle}
+        subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
         <DashboardContainer
-          title={`${user?.firstName} ${user?.lastName}`}
-          subtitle="Chatbot Analytics & Performance"
+          title={dashboardTitle}
+          subtitle={dashboardSubtitle}
         >
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading dashboard data...</p>
-            </div>
-          </div>
+          <LoadingState message="Loading dashboard data..." />
         </DashboardContainer>
       </DashboardLayout>
     );
@@ -65,23 +40,15 @@ export default function DashboardPage() {
   if (error) {
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
-        subtitle="Chatbot Analytics & Performance"
+        title={dashboardTitle}
+        subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
         <DashboardContainer
-          title={`${user?.firstName} ${user?.lastName}`}
-          subtitle="Chatbot Analytics & Performance"
+          title={dashboardTitle}
+          subtitle={dashboardSubtitle}
         >
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="text-red-500 text-xl mb-4">⚠️</div>
-              <p className="text-red-600 mb-2">Failed to load dashboard data</p>
-              <p className="text-gray-600 text-sm">
-                {(error as Error).message}
-              </p>
-            </div>
-          </div>
+          <ErrorState error={error} />
         </DashboardContainer>
       </DashboardLayout>
     );
@@ -91,13 +58,13 @@ export default function DashboardPage() {
   if (!dashboardData) {
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
-        subtitle="Chatbot Analytics & Performance"
+        title={dashboardTitle}
+        subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
         <DashboardContainer
-          title={`${user?.firstName} ${user?.lastName}`}
-          subtitle="Chatbot Analytics & Performance"
+          title={dashboardTitle}
+          subtitle={dashboardSubtitle}
         >
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
@@ -139,13 +106,13 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout
-      title={`${user?.firstName} ${user?.lastName}`}
-      subtitle="Chatbot Analytics & Performance"
+      title={dashboardTitle}
+      subtitle={dashboardSubtitle}
       activePath="/dashboard"
     >
       <DashboardContainer
         title="Organization Dashboard"
-        subtitle="Chatbot Analytics & Performance"
+        subtitle={dashboardSubtitle}
         className="gap-0 space-y-0"
       >
         {/* First Row - Performance Metrics, Total Conversations, Top Performing Chatbots */}

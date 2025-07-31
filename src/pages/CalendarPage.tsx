@@ -18,35 +18,43 @@ const CalendlyConnectState = ({
 }: {
   onConnect: () => void;
   isLoading: boolean;
-}) => (
-  <div className="flex flex-col items-center justify-center py-8 md:py-16 px-4 md:px-8">
-    <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 md:mb-6">
-      <Calendar className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+}) => {
+  const handleButtonClick = () => {
+    console.log("Connect to Calendly button clicked");
+    alert("Button clicked!"); // Simple test to see if click is registered
+    onConnect();
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center py-8 md:py-16 px-4 md:px-8">
+      <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 md:mb-6">
+        <Calendar className="w-8 h-8 md:w-10 md:h-10 text-blue-600" />
+      </div>
+      <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-3 md:mb-4 text-center">
+        Connect Your Calendly Account
+      </h3>
+      <p className="text-sm md:text-base text-gray-600 text-center max-w-sm md:max-w-md mb-6 md:mb-8 px-2">
+        To manage your appointment scheduling, connect your Calendly account to
+        sync your event types and bookings.
+      </p>
+      <Button
+        className="bg-blue-600 hover:bg-blue-700 text-white gap-2 text-sm md:text-base px-4 md:px-6"
+        onClick={handleButtonClick}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <RefreshCw className="w-4 h-4 animate-spin" />
+        ) : (
+          <ExternalLink className="w-4 h-4" />
+        )}
+        {isLoading ? "Connecting..." : "Connect to Calendly"}
+      </Button>
+      <p className="text-xs md:text-sm text-gray-500 mt-3 md:mt-4 text-center px-2">
+        You'll be redirected to Calendly to authorize the connection
+      </p>
     </div>
-    <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-3 md:mb-4 text-center">
-      Connect Your Calendly Account
-    </h3>
-    <p className="text-sm md:text-base text-gray-600 text-center max-w-sm md:max-w-md mb-6 md:mb-8 px-2">
-      To manage your appointment scheduling, connect your Calendly account to
-      sync your event types and bookings.
-    </p>
-    <Button
-      className="bg-blue-600 hover:bg-blue-700 text-white gap-2 text-sm md:text-base px-4 md:px-6"
-      onClick={onConnect}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <RefreshCw className="w-4 h-4 animate-spin" />
-      ) : (
-        <ExternalLink className="w-4 h-4" />
-      )}
-      {isLoading ? "Connecting..." : "Connect to Calendly"}
-    </Button>
-    <p className="text-xs md:text-sm text-gray-500 mt-3 md:mt-4 text-center px-2">
-      You'll be redirected to Calendly to authorize the connection
-    </p>
-  </div>
-);
+  );
+};
 
 export default function CalendarPage() {
   const { initiateOAuth, isPending, error } = useCalendlyConnect();
@@ -54,6 +62,15 @@ export default function CalendarPage() {
   const { checkConnectionStatus } = useCalendlyActions();
   const loading = useCalendlyLoading();
   const { user } = useAuthStore();
+
+  // Debug environment variables
+  useEffect(() => {
+    console.log("CalendarPage mounted - checking environment variables:");
+    console.log("VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
+    console.log("VITE_CALENDLY_REDIRECT_URI:", import.meta.env.VITE_CALENDLY_REDIRECT_URI);
+    console.log("VITE_APP_ENV:", import.meta.env.VITE_APP_ENV);
+    console.log("All env vars:", import.meta.env);
+  }, []);
 
   // Check connection status and load data on mount
   useEffect(() => {
@@ -65,72 +82,14 @@ export default function CalendarPage() {
     });
   }, [checkConnectionStatus]);
 
-  // Listen for window focus to refresh connection status when user returns from Calendly
-  useEffect(() => {
-    let timeoutId: number | ReturnType<typeof setTimeout>;
-
-    const handleFocus = () => {
-      console.log(
-        "Window focused - Current connection status:",
-        connectionStatus?.is_connected
-      );
-
-      // Check connection status regardless of current state to catch new connections
-      if (!loading.connection) {
-        console.log("Window focused, checking connection status...");
-        checkConnectionStatus().catch(() => {
-          console.log("Connection status check failed on focus");
-        });
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      console.log(
-        "Visibility changed - Hidden:",
-        document.hidden,
-        "Connected:",
-        connectionStatus?.is_connected
-      );
-
-      if (!document.hidden && !loading.connection) {
-        console.log("Page became visible, checking connection status...");
-
-        // Add a small delay to ensure OAuth redirect has completed
-        timeoutId = setTimeout(() => {
-          checkConnectionStatus().catch(() => {
-            console.log("Connection status check failed on visibility change");
-          });
-        }, 500);
-      }
-    };
-
-    // Add event listeners
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Also check on page load/hash change in case of redirect
-    const handleHashChange = () => {
-      console.log("Hash changed, checking connection status...");
-      if (!loading.connection) {
-        checkConnectionStatus().catch(() => {
-          console.log("Connection status check failed on hash change");
-        });
-      }
-    };
-
-    window.addEventListener("hashchange", handleHashChange);
-
-    // Cleanup
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("hashchange", handleHashChange);
-    };
-  }, [connectionStatus, loading.connection, checkConnectionStatus]);
-
   const handleConnect = () => {
-    initiateOAuth();
+    console.log("handleConnect called - initiating OAuth...");
+    try {
+      initiateOAuth();
+      console.log("initiateOAuth called successfully");
+    } catch (error) {
+      console.error("Error in handleConnect:", error);
+    }
   };
 
   // Show error if any
@@ -149,6 +108,14 @@ export default function CalendarPage() {
             <p className="text-sm md:text-base text-red-600 mb-4 md:mb-6">
               {error.message || "Failed to connect to Calendly"}
             </p>
+            {error.message?.includes("not properly configured") && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Configuration Issue:</strong> The Calendly integration requires environment variables to be set up. 
+                  Please contact your administrator to configure the Calendly OAuth settings.
+                </p>
+              </div>
+            )}
             <RefreshButton
               onRefresh={() => window.location.reload()}
               label="Try Again"

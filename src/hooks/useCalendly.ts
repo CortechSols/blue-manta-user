@@ -10,7 +10,12 @@ export function useCalendlyConnect() {
 	const [isSuccess, setIsSuccess] = useState(false);
 
 	const initiateOAuth = async () => {
-		await calendlyAuth.initiateOAuth();
+		try {
+			await calendlyAuth.initiateOAuth();
+		} catch (error) {
+			console.error("Failed to initiate Calendly OAuth:", error);
+			setError(error instanceof Error ? error : new Error('Failed to initiate OAuth'));
+		}
 	};
 
 	const connect = async (code: string) => {

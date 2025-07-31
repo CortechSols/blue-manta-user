@@ -57,7 +57,7 @@ export function DashboardLayout({
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { logout } = useAuthActions();
   const { user } = useAuthStore();
-  console.log(user);
+
 
   const handleLogout = () => {
     logout();
