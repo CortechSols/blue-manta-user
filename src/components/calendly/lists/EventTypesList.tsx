@@ -29,7 +29,7 @@ import {
   useCalendlyActions,
   useCalendlyLoading,
 } from "@/stores/calendlyStore";
-import { BookingModal } from "./BookingModal";
+import { BookingModal } from "@/components/calendly";
 
 interface EventTypesListProps {
   className?: string;

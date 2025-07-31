@@ -7,16 +7,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarView } from "./CalendarView";
-import { MeetingsList } from "./MeetingsList";
-import { EventTypesList } from "./EventTypesList";
-import { CancelMeetingModal } from "./CancelMeetingModal";
-import { MeetingDetailsModal } from "./MeetingDetailsModal";
-import { CalendlyMetricCard } from "./MetricCard";
-import { QuickActionsSection } from "./QuickActionsSection";
-import { ConnectionStatusSection } from "./ConnectionStatusSection";
-import { UserSelectionSection } from "./UserSelectionSection";
-import { CalendarOverviewSection } from "./CalendarOverviewSection";
+import { CalendarView, MeetingsList, EventTypesList, CancelMeetingModal, MeetingDetailsModal, MetricCard, QuickActionsSection, ConnectionStatusSection, UserSelectionSection, CalendarOverviewSection } from "@/components/calendly";
 import { useCalendlyDashboard } from "@/stores/calendlyStore";
 
 interface CalendlyDashboardProps {
@@ -92,25 +83,25 @@ export const CalendlyDashboard: React.FC<CalendlyDashboardProps> = ({
 
         {/* Header Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <CalendlyMetricCard
+          <MetricCard
             title="Today's Meetings"
             value={todaysMeetings.length}
             icon={<Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-blue-500"
           />
-          <CalendlyMetricCard
+          <MetricCard
             title="Active Event Types"
             value={activeEventTypes.length}
             icon={<Activity className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-purple-500"
           />
-          <CalendlyMetricCard
+          <MetricCard
             title="Upcoming Meetings"
             value={totalMeetings}
             icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />}
             color="bg-orange-500"
           />
-          <CalendlyMetricCard
+          <MetricCard
             title="Total Meetings"
             value={meetings.length}
             icon={<BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-white" />}

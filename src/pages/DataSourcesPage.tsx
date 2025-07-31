@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 import {
   Search,
   Upload,

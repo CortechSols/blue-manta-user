@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Legend } from "./Legend";
+import { Legend } from "@/components/dashboard/items";
 
 interface ProgressBarProps {
   title: string;

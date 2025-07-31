@@ -1,5 +1,5 @@
 import { Search, Bell, User } from "lucide-react"
-import { Button } from "./ui/button"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,8 +7,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { Input } from "./ui/input"
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 
 interface HeaderProps {
   title: string

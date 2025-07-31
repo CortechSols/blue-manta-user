@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChatHistoryItem } from "./ChatHistoryItem";
+import { ChatHistoryItem } from "@/components/dashboard";
 
 interface ChatMessage {
   id: string;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,7 @@ import {
   useChatbotRefresh,
 } from "@/hooks/useChatbotApi";
 import type { CreateChatbotRequest, Chatbot } from "@/types/chatbot";
-import { CalendlyInlineWidget } from "@/components/calendly/CalendlyInlineWidget";
+import { CalendlyInlineWidget } from "@/components/calendly";
 import { useAuthStore } from "@/stores/authStore";
 
 // Helper function to safely format dates

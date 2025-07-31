@@ -11,7 +11,7 @@ import {
   User,
   Bot,
 } from "lucide-react";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 import {
   useConversationMessages,
   useChatbotRefresh,

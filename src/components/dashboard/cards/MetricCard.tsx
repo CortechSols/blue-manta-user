@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "@/components/dashboard/index";
 import { cn } from "@/lib/utils";
 
 interface MetricItem {

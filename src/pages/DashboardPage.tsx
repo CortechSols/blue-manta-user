@@ -1,9 +1,7 @@
 "use client";
 
-import { DashboardContainer } from "@/components/dashboard/DashboardContainer";
-import { MetricCard } from "@/components/dashboard/MetricCard";
-import { ChatHistoryCard } from "@/components/dashboard/ChatHistoryCard";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardContainer, MetricCard, ChatHistoryCard } from "@/components/dashboard";
+import { DashboardLayout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingState, ErrorState } from "@/components/ui/loading-states";

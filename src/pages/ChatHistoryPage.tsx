@@ -21,7 +21,7 @@ import {
   Eye,
 } from "lucide-react";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 import {
   useConversations,
   useChatbotRefresh,

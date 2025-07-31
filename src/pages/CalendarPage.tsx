@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { Calendar, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { CalendlyDashboard } from "@/components/calendly/CalendlyDashboard";
+import { DashboardLayout } from "@/components/layout";
+import { CalendlyDashboard } from "@/components/calendly";
 import { useCalendlyConnect } from "@/hooks/useCalendly";
 import {
   useCalendlyConnection,
@@ -19,11 +19,6 @@ const CalendlyConnectState = ({
   onConnect: () => void;
   isLoading: boolean;
 }) => {
-  const handleButtonClick = () => {
-    console.log("Connect to Calendly button clicked");
-    alert("Button clicked!"); // Simple test to see if click is registered
-    onConnect();
-  };
 
   return (
     <div className="flex flex-col items-center justify-center py-8 md:py-16 px-4 md:px-8">
@@ -39,7 +34,7 @@ const CalendlyConnectState = ({
       </p>
       <Button
         className="bg-blue-600 hover:bg-blue-700 text-white gap-2 text-sm md:text-base px-4 md:px-6"
-        onClick={handleButtonClick}
+        onClick={onConnect}
         disabled={isLoading}
       >
         {isLoading ? (
@@ -66,8 +61,14 @@ export default function CalendarPage() {
   // Debug environment variables
   useEffect(() => {
     console.log("CalendarPage mounted - checking environment variables:");
-    console.log("VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
-    console.log("VITE_CALENDLY_REDIRECT_URI:", import.meta.env.VITE_CALENDLY_REDIRECT_URI);
+    console.log(
+      "VITE_CALENDLY_CLIENT_ID:",
+      import.meta.env.VITE_CALENDLY_CLIENT_ID
+    );
+    console.log(
+      "VITE_CALENDLY_REDIRECT_URI:",
+      import.meta.env.VITE_CALENDLY_REDIRECT_URI
+    );
     console.log("VITE_APP_ENV:", import.meta.env.VITE_APP_ENV);
     console.log("All env vars:", import.meta.env);
   }, []);
@@ -111,8 +112,9 @@ export default function CalendarPage() {
             {error.message?.includes("not properly configured") && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  <strong>Configuration Issue:</strong> The Calendly integration requires environment variables to be set up. 
-                  Please contact your administrator to configure the Calendly OAuth settings.
+                  <strong>Configuration Issue:</strong> The Calendly integration
+                  requires environment variables to be set up. Please contact
+                  your administrator to configure the Calendly OAuth settings.
                 </p>
               </div>
             )}

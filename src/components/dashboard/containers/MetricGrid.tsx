@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge } from "./StatusBadge";
+import { StatusBadge } from "@/components/dashboard/items";
 
 interface MetricGridProps {
   metrics: Array<{

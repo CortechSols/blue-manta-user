@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardLayout } from "@/components/layout";
 
 const promptText = `You are PoolProBot, the friendly virtual assistant for **SparkleBlue Pool Services**!
 

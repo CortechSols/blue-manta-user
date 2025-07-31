@@ -11,7 +11,22 @@
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@components/*": ["./src/components/*"],
+			"@ui/*": ["./src/components/ui/*"],
+			"@common/*": ["./src/components/common/*"],
+			"@calendly/*": ["./src/components/calendly/*"],
+			"@dashboard/*": ["./src/components/dashboard/*"],
+			"@integrations/*": ["./src/components/integrations/*"],
+			"@chatbot/*": ["./src/components/chatbot/*"],
+			"@layout/*": ["./src/components/layout/*"],
+			"@widget/*": ["./src/components/widget/*"],
+			"@hooks/*": ["./src/hooks/*"],
+			"@stores/*": ["./src/stores/*"],
+			"@lib/*": ["./src/lib/*"],
+			"@types/*": ["./src/types/*"],
+			"@schemas/*": ["./src/schemas/*"],
+			"@pages/*": ["./src/pages/*"]
 		}
 	}
 }

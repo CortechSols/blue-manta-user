@@ -28,7 +28,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 
 const sidebarItems = [
   { icon: BarChart3, label: "Dashboard", path: "/dashboard" },

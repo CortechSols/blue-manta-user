@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { ChatbotForm } from "@/components/ChatbotForm";
+import { DashboardLayout } from "@/components/layout";
+import { ChatbotForm } from "@/components/chatbot";
 import { useChatbot, useUpdateChatbot } from "@/hooks/useChatbotApi";
 
 export default function ChatbotConfigurationPage() {

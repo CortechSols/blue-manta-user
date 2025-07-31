@@ -1,6 +1,5 @@
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { PipedreamIntegrationCard } from "@/components/integrations/PipedreamIntegrationCard";
-import { OutboundEventsTab } from "@/components/integrations/OutboundEventsTab";
+import { DashboardLayout } from "@/components/layout";
+import { PipedreamIntegrationCard, OutboundEventsTab } from "@/components/integrations";
 import { useState } from "react";
 
 export default function IntegrationsPage() {

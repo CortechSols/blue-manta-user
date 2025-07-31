@@ -8,11 +8,7 @@ import {
   useSetSelectedDate,
   useLoadEvents,
 } from "@/stores/calendlyStore";
-import { CalendarHeader } from "./CalendarHeader";
-import { MonthView } from "./MonthView";
-import { WeekView } from "./WeekView";
-import { DayView } from "./DayView";
-import { AgendaView } from "./AgendaView";
+import { CalendarHeader, MonthView, WeekView, DayView, AgendaView } from "@/components/calendly";
 import type { CalendlyMeeting, CalendarDay } from "@/types/calendly";
 
 export const CalendarOverviewSection: React.FC = () => {

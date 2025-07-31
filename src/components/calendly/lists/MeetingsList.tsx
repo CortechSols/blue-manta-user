@@ -44,8 +44,7 @@ import {
   useCalendlySelectedMeetings,
   useCalendlyLoading,
 } from "@/stores/calendlyStore";
-import { BulkCancelMeetingsModal } from "./BulkCancelMeetingsModal";
-import { MeetingCancellationGuide } from "./MeetingCancellationGuide";
+import { BulkCancelMeetingsModal, MeetingCancellationGuide } from "@/components/calendly";
 
 interface MeetingsListProps {
   className?: string;
