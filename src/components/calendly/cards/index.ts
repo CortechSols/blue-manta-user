@@ -1,1 +1,1 @@
-export { CalendlyMetricCard as MetricCard } from './MetricCard'; 
+export { CalendlyMetricCard } from "./MetricCard";

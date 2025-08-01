@@ -8,6 +8,7 @@ import type {
   CancelMeetingRequest,
 } from "../types/calendly";
 import type { AxiosRequestConfig } from "axios";
+import type { BatchCancelResult } from "@/stores/calendly/types";
 
 // Define interfaces for connection status response formats
 interface CamelCaseConnectionResponse {
@@ -43,6 +44,22 @@ interface ConfigBlobData {
 }
 
 export class CalendlyService {
+  exportMeetings(): Promise<unknown> {
+    throw new Error("Method not implemented.");
+  }
+  getCurrentUser(): any {
+    throw new Error("Method not implemented.");
+  }
+  async batchCancelMeetings(meetingUris: string[], reason: string): Promise<BatchCancelResult[]> {
+    return this.makeRequest<BatchCancelResult[]>("/batch_cancel_meetings/", {
+      method: "POST",
+      data: {
+        meeting_uris: meetingUris,
+        reason,
+      },
+    });
+  }
+
   private baseURL: string;
 
   constructor() {

@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { CalendlyStore, MeetingManagementActions } from "../types";
+import type { BatchCancelResult, CalendlyStore, MeetingManagementActions } from "../types";
 import { calendlyService } from "../../../lib/calendly-service";
 import { createErrorMessage, processBatchResults } from "../utils";
 
@@ -40,7 +40,7 @@ export const createMeetingActions: StateCreator<
         const results = await calendlyService.batchCancelMeetings(
           meetingUris,
           reason
-        );
+        ) as unknown as BatchCancelResult[];
 
         // Refresh meetings and events
         await get().actions.loadMeetings();

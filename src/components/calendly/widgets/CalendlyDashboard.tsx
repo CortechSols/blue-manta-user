@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CalendarView, MeetingsList, EventTypesList, CancelMeetingModal, MeetingDetailsModal, MetricCard, QuickActionsSection, ConnectionStatusSection, UserSelectionSection, CalendarOverviewSection } from "@/components/calendly";
+import { CalendarView, MeetingsList, EventTypesList, CancelMeetingModal, MeetingDetailsModal, CalendlyMetricCard as MetricCard, QuickActionsSection, ConnectionStatusSection, UserSelectionSection, CalendarOverviewSection } from "@/components/calendly";
 import { useCalendlyDashboard } from "@/stores/calendlyStore";
 
 interface CalendlyDashboardProps {

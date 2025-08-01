@@ -1,6 +1,5 @@
 import type {
   CalendlyMeeting,
-  EventType,
   ConnectionStatus,
   MeetingFilters,
   CalendarViewType,

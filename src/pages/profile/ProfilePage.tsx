@@ -17,7 +17,7 @@ import {
 export default function AdminProfilePage() {
   const navigate = useNavigate();
 
-  const { data: organization, isLoading, error } = useOrganizationDetails();
+  const { data: organization, isLoading } = useOrganizationDetails();
 
   console.log("organization", organization);
 
@@ -73,14 +73,11 @@ export default function AdminProfilePage() {
         activePath="/settings"
       >
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-gray-600">
-            Loading profile data...
-          </div>
+          <div className="text-lg text-gray-600">Loading profile data...</div>
         </div>
       </DashboardLayout>
     );
   }
-
 
   return (
     <DashboardLayout

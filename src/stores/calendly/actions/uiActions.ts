@@ -8,7 +8,6 @@ import type {
 import type {
   CalendarViewType,
   MeetingFilters,
-  CalendlyMeeting,
 } from "../../../types/calendly";
 
 /**
@@ -113,7 +112,7 @@ export const createModalActions: StateCreator<
       })),
 
     closeAllModals: () =>
-      set((state) => ({
+      set(() => ({
         modals: {
           cancelMeeting: {
             isOpen: false,

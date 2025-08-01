@@ -173,7 +173,6 @@ export const calendlyAuth = {
       import.meta.env.VITE_CALENDLY_REDIRECT_URI ||
       `${window.location.origin}/calendly/callback`;
     const CALENDLY_SCOPE = "default";
-    const APP_ENV = import.meta.env.VITE_APP_ENV || "dev";
 
     console.log("getAuthUrl called - generating OAuth URL...");
     console.log("Calendly OAuth Configuration:");

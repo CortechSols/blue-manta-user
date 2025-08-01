@@ -1,4 +1,3 @@
-import { useCalendlyStore } from "./store";
 import { type CalendlyStore } from "./types";
 
 /**
