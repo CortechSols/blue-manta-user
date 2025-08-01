@@ -21,7 +21,6 @@ export const PipedreamIntegrationCard: React.FC = () => {
   } = usePipedreamIntegration();
 
   const integration = store.integration;
-  console.log("🚀 ~ PipedreamIntegrationCard ~ integration:", integration)
   const [showSecret, setShowSecret] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
 

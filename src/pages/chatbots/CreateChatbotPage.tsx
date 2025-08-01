@@ -8,10 +8,6 @@ export default function CreateChatbotPage() {
   const createChatbot = useCreateChatbot();
 
   const handleSubmit = async (formData: FormData) => {
-    console.log("Form data: ");
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
-    }
     await createChatbot.mutateAsync(formData);
     navigate("/chatbots");
   };

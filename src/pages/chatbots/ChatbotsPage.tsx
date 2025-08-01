@@ -98,8 +98,6 @@ export default function ChatbotsPage() {
   // Chat interface
   const chatInterface = useChatInterface(selectedChatbot?.id || 0);
 
-  console.log("chatInterface: ", chatInterface);
-
   const [chatMessage, setChatMessage] = useState("");
   const [visitorId, setVisitorId] = useState<string | undefined>(undefined);
 
@@ -108,7 +106,6 @@ export default function ChatbotsPage() {
       const visitorId = chatInterface.visitorId;
       if (visitorId) {
         setVisitorId(visitorId);
-        console.log("Visitor ID set:", visitorId);
       }
     }
   }, [chatInterface?.messages, visitorId]);
@@ -179,10 +176,7 @@ export default function ChatbotsPage() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // You might want to show a toast notification here
-      console.log("Copied to clipboard");
-    });
+    navigator.clipboard.writeText(text).then(() => {});
   };
 
   const resetForm = () => {
@@ -604,10 +598,7 @@ export default function ChatbotsPage() {
                                 setState={setState}
                                 url={message.calendlyUrl}
                                 height={500}
-                                onEventScheduled={(event) => {
-                                  console.log("Event scheduled:", event);
-                                  // You can add custom logic here when an event is scheduled
-                                }}
+                                onEventScheduled={() => {}}
                               />
                             </div>
                           </div>

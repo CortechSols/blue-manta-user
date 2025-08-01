@@ -96,7 +96,6 @@ export function useChatInterface(
         };
 
         const response = await apiClient.sendMessage(chatbotId, requestPayload);
-        console.log("message response: ", response);
 
         // Handle conversation ending
         if (

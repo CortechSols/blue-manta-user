@@ -3,46 +3,22 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   useCalendlyDashboard,
   useCalendlyActions,
-  useCalendlyCalendarView,
 } from "@/stores/calendlyStore";
 import { CalendarHeader, MonthView, WeekView, DayView, AgendaView } from "@/components/calendly";
-import type { CalendlyMeeting, CalendarDay } from "@/types/calendly";
+import { useCalendly } from "@/hooks/useCalendly";
+import type { CalendlyMeeting } from "@/types/calendly";
 
 export const CalendarOverviewSection: React.FC = () => {
   const { meetings } = useCalendlyDashboard();
-  const calendarView = useCalendlyCalendarView();
   const actions = useCalendlyActions();
+  const { navigateCalendar, changeCalendarView, calendarView } = useCalendly();
 
   const handleViewChange = (view: string) => {
-    actions.setCalendarView({
-      ...calendarView,
-      view: view.toLowerCase() as "month" | "week" | "day" | "agenda",
-    });
+    changeCalendarView(view.toLowerCase() as "month" | "week" | "day" | "agenda");
   };
 
   const handleNavigate = (direction: "prev" | "next" | "today") => {
-    const currentDate = new Date(calendarView.date);
-    let newDate: Date;
-
-    switch (direction) {
-      case "prev":
-        newDate = new Date(currentDate);
-        newDate.setMonth(newDate.getMonth() - 1);
-        break;
-      case "next":
-        newDate = new Date(currentDate);
-        newDate.setMonth(newDate.getMonth() + 1);
-        break;
-      case "today":
-        newDate = new Date();
-        break;
-      default:
-        newDate = currentDate;
-    }
-
-    actions.setCalendarView({ ...calendarView, date: newDate });
-    actions.setSelectedDate(newDate);
-    actions.loadEvents();
+    navigateCalendar(direction);
   };
 
   const handleMeetingClick = (meeting: CalendlyMeeting, e: React.MouseEvent) => {
@@ -50,9 +26,8 @@ export const CalendarOverviewSection: React.FC = () => {
     actions.openMeetingDetailsModal(meeting);
   };
 
-  const handleDayClick = (day: CalendarDay) => {
+  const handleDayClick = () => {
     // TODO: Implement day selection logic
-    console.log("Day clicked:", day);
   };
 
   const getCurrentViewName = () => {

@@ -216,3 +216,90 @@ export const groupUpcomingMeetingsByDate = (meetings: CalendlyMeeting[]): Record
       return groups;
     }, {});
 };
+
+/**
+ * Navigate calendar date based on view type and direction
+ */
+export const navigateCalendarDate = (
+  currentDate: Date,
+  view: "month" | "week" | "day" | "agenda",
+  direction: "prev" | "next" | "today"
+): Date => {
+  const newDate = new Date(currentDate);
+
+  switch (direction) {
+    case "prev":
+      switch (view) {
+        case "month":
+          newDate.setMonth(newDate.getMonth() - 1);
+          break;
+        case "week":
+          newDate.setDate(newDate.getDate() - 7);
+          break;
+        case "day":
+          newDate.setDate(newDate.getDate() - 1);
+          break;
+        case "agenda":
+          newDate.setDate(newDate.getDate() - 7);
+          break;
+        default:
+          newDate.setMonth(newDate.getMonth() - 1);
+      }
+      break;
+    case "next":
+      switch (view) {
+        case "month":
+          newDate.setMonth(newDate.getMonth() + 1);
+          break;
+        case "week":
+          newDate.setDate(newDate.getDate() + 7);
+          break;
+        case "day":
+          newDate.setDate(newDate.getDate() + 1);
+          break;
+        case "agenda":
+          newDate.setDate(newDate.getDate() + 7);
+          break;
+        default:
+          newDate.setMonth(newDate.getMonth() + 1);
+      }
+      break;
+    case "today":
+      return new Date();
+    default:
+      return currentDate;
+  }
+
+  return newDate;
+};
+
+/**
+ * Format calendar header title based on view type
+ */
+export const formatCalendarHeaderTitle = (
+  date: Date,
+  view: "month" | "week" | "day" | "agenda"
+): string => {
+  switch (view) {
+    case "month":
+      return format(date, "MMMM yyyy");
+    case "week": {
+      const startOfWeek = new Date(date);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      return `${format(startOfWeek, "MMM d")} - ${format(endOfWeek, "MMM d, yyyy")}`;
+    }
+    case "day":
+      return format(date, "EEEE, MMMM d, yyyy");
+    case "agenda": {
+      const startOfWeek = new Date(date);
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(endOfWeek.getDate() + 6);
+      return `${format(startOfWeek, "MMM d")} - ${format(endOfWeek, "MMM d, yyyy")}`;
+    }
+    default:
+      return format(date, "MMMM yyyy");
+  }
+};

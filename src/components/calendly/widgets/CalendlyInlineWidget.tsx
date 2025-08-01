@@ -133,7 +133,6 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
   overflow = "auto",
   setState,
 }) => {
-  console.log("url inside calendly inline widget: ", url);
   const widgetRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
 

@@ -1,6 +1,7 @@
 import { calendlyAuth } from "@/lib/calendly-api";
-import { useCalendlyActions } from "@/stores/calendlyStore";
-import { useState } from "react";
+import { useCalendlyActions, useCalendlyCalendarView } from "@/stores/calendlyStore";
+import { useState, useCallback } from "react";
+import { navigateCalendarDate } from "@/lib/calendar-utils";
 
 // Hook to handle OAuth connection
 export function useCalendlyConnect() {
@@ -44,3 +45,39 @@ export function useCalendlyConnect() {
 		isSuccess,
 	};
 }
+
+export const useCalendly = () => {
+  const actions = useCalendlyActions();
+  const calendarView = useCalendlyCalendarView();
+
+  const navigateCalendar = useCallback(
+    (direction: "prev" | "next" | "today") => {
+      const newDate = navigateCalendarDate(
+        new Date(calendarView.date),
+        calendarView.view,
+        direction
+      );
+
+      actions.setCalendarView({ ...calendarView, date: newDate });
+      actions.setSelectedDate(newDate);
+      actions.loadEvents();
+    },
+    [calendarView, actions]
+  );
+
+  const changeCalendarView = useCallback(
+    (view: "month" | "week" | "day" | "agenda") => {
+      actions.setCalendarView({
+        ...calendarView,
+        view,
+      });
+    },
+    [calendarView, actions]
+  );
+
+  return {
+    navigateCalendar,
+    changeCalendarView,
+    calendarView,
+  };
+};

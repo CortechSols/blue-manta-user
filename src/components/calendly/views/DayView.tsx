@@ -35,11 +35,7 @@ export const DayView: React.FC<CalendarViewProps> = ({
         <div className="grid grid-cols-1 divide-y">
           {Array.from({ length: 24 }, (_, hourIndex) => {
             const hour = hourIndex; // Start from 0 AM to 11 PM (24 hours)
-            
-            // Debug: Log first few hours to verify
-            if (hourIndex < 3) {
-              console.log(`DayView hour ${hourIndex}: ${hour} (${format(new Date().setHours(hour, 0, 0, 0), "h:mm a")})`);
-            }
+
             const currentHour = new Date(currentDate);
             currentHour.setHours(hour, 0, 0, 0);
 

@@ -127,12 +127,10 @@
 
         case "chatbot-expanded":
           // Handle chat expansion - could be used for analytics
-          console.log("Chat expanded");
           break;
 
         case "chatbot-collapsed":
           // Handle chat collapse - could be used for analytics
-          console.log("Chat collapsed");
           break;
 
         case "chatbot-resize":
@@ -220,6 +218,4 @@
       iframe.contentWindow.postMessage({ type: "toggle-chat" }, "*");
     }
   };
-
-  console.log("BlueManta Chatbot loaded successfully");
 })();

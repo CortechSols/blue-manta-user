@@ -3,10 +3,6 @@ import apiClient from "../lib/api";
 import { queryClient } from "../lib/react-query";
 import { useCalendlyStore } from "@/stores/calendly/store";
 import type {
-  //   PlatformAdminLoginRequest,
-  //   PlatformAdminLoginResponse,
-  //   OrganizationLoginRequest,
-  //   OrganizationLoginResponse,
   CalendlyConnectRequest,
   CalendlyConnectResponse,
 } from "../lib/react-query";
@@ -99,8 +95,6 @@ export function useLogin() {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log(data);
-
       // Clear React Query cache to ensure fresh data for new user
       queryClient.invalidateQueries();
 
@@ -126,62 +120,6 @@ export function useLogin() {
     },
   });
 }
-
-// Platform Admin Login Hook (Old - Commented)
-/*
-export function usePlatformAdminLogin() {
-	return useMutation<
-		PlatformAdminLoginResponse,
-		Error,
-		PlatformAdminLoginRequest
-	>({
-		mutationFn: async (credentials) => {
-			const response = await apiClient.post(
-				"/auth/platform-admins/login/",
-				credentials
-			);
-			return response.data;
-		},
-		onSuccess: (data) => {
-			console.log(data);
-			// Store tokens in localStorage
-			localStorage.setItem("accessToken", data.tokens.access);
-			localStorage.setItem("refreshToken", data.tokens.refresh);
-			localStorage.setItem("userType", "platform_admin");
-			localStorage.setItem("userInfo", JSON.stringify(data.user));
-		},
-	});
-}
-*/
-
-// Organization Login Hook (Old - Commented)
-/*
-export function useOrganizationLogin() {
-	return useMutation<
-		OrganizationLoginResponse,
-		Error,
-		OrganizationLoginRequest
-	>({
-		mutationFn: async (credentials) => {
-			const response = await apiClient.post(
-				"/auth/organizations/login/",
-				credentials
-			);
-			return response.data;
-		},
-		onSuccess: (data) => {
-			// Store tokens in localStorage
-			localStorage.setItem("accessToken", data.tokens.access);
-			localStorage.setItem("refreshToken", data.tokens.refresh);
-			localStorage.setItem("userType", "organization");
-			localStorage.setItem(
-				"organizationInfo",
-				JSON.stringify(data.organization)
-			);
-		},
-	});
-}
-*/
 
 // Chatbots API hooks - Updated to use new chatbot service
 export function useChatbots() {
@@ -240,9 +178,7 @@ export function useCalendlyConnect() {
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      console.log("Calendly connected successfully:", data);
-    },
+    onSuccess: () => {},
     onError: (error) => {
       console.error("Calendly connection failed:", error);
     },

@@ -28,7 +28,6 @@ export const createConnectionActions: StateCreator<
 
       try {
         const response = await calendlyService.getConnectionStatus();
-        console.log("Store - Connection status response:", response);
 
         set((state) => {
           state.connectionStatus = response;
@@ -36,11 +35,8 @@ export const createConnectionActions: StateCreator<
           return state;
         });
 
-        console.log("Store - Connection status updated in store");
-
         // If connected, load initial data
         if (response.is_connected) {
-          console.log("Store - Loading initial data...");
           await get().actions.refreshAll();
         }
       } catch (error) {

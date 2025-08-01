@@ -74,7 +74,6 @@ export function useOrganization(organizationId: number | string) {
       const response = await apiClient.get(
         `/auth/organizations/${organizationId}/`
       );
-      console.log("🔥 Single Organization API Response:", response.data);
       return response.data;
     },
     enabled: !!organizationId, // Only run query if organizationId is provided
@@ -91,7 +90,6 @@ export function useOrganizationDetails() {
       const response = await apiClient.get(
         "/auth/organizations/organization_details/"
       );
-      console.log("🔥 Organization Details API Response:", response.data);
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -107,17 +105,9 @@ export function useUpdateOrganizationDetails() {
         "/auth/organizations/update_organization_details/",
         data
       );
-      console.log(
-        "🔥 Update Organization Details API Response:",
-        response.data
-      );
       return response.data;
     },
-    onSuccess: () => {
-      // Invalidate and refetch organization details
-      // This will trigger a refetch of the organization details
-      console.log("Organization details updated successfully");
-    },
+    onSuccess: () => {},
   });
 }
 
@@ -181,7 +171,6 @@ export function useSendPasswordResetOtp() {
   return useMutation({
     mutationFn: async () => {
       const response = await apiClient.post("/auth/organizations/send_otp/");
-      console.log("🔥 Send OTP API Response:", response.data);
       return response.data;
     },
   });
@@ -195,7 +184,6 @@ export function useResetPassword() {
         "/auth/organizations/reset_password/",
         data
       );
-      console.log("🔥 Reset Password API Response:", response.data);
       return response.data;
     },
   });

@@ -173,15 +173,6 @@ export const calendlyAuth = {
       import.meta.env.VITE_CALENDLY_REDIRECT_URI ||
       `${window.location.origin}/calendly/callback`;
     const CALENDLY_SCOPE = "default";
-
-    console.log("getAuthUrl called - generating OAuth URL...");
-    console.log("Calendly OAuth Configuration:");
-    console.log("VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
-    console.log("VITE_CALENDLY_REDIRECT_URI:", import.meta.env.VITE_CALENDLY_REDIRECT_URI);
-    console.log("VITE_APP_ENV:", import.meta.env.VITE_APP_ENV);
-    console.log("Final CALENDLY_CLIENT_ID:", CALENDLY_CLIENT_ID);
-    console.log("Final CALENDLY_REDIRECT_URI:", CALENDLY_REDIRECT_URI);
-    console.log("Using OAuth endpoint:", CALENDLY_OAUTH_BASE_URL);
     
     // Check if required environment variables are set
     if (!CALENDLY_CLIENT_ID) {
@@ -207,7 +198,6 @@ export const calendlyAuth = {
     });
 
     const authUrl = `${CALENDLY_OAUTH_BASE_URL}/oauth/authorize?${params.toString()}`;
-    console.log("Generated OAuth URL:", authUrl);
     return authUrl;
   },
 
@@ -216,24 +206,7 @@ export const calendlyAuth = {
     // Temporary configuration inside function
     const CALENDLY_CLIENT_ID = import.meta.env.VITE_CALENDLY_CLIENT_ID;
     
-    console.log("=== DEBUGGING ENVIRONMENT VARIABLES ===");
-    console.log("import.meta.env:", import.meta.env);
-    console.log("import.meta.env.VITE_CALENDLY_CLIENT_ID:", import.meta.env.VITE_CALENDLY_CLIENT_ID);
-    console.log("typeof import.meta.env.VITE_CALENDLY_CLIENT_ID:", typeof import.meta.env.VITE_CALENDLY_CLIENT_ID);
-    console.log("CALENDLY_CLIENT_ID variable:", CALENDLY_CLIENT_ID);
-    
-    // Check if the old client ID is stored in localStorage
-    console.log("localStorage.getItem('calendly_client_id'):", localStorage.getItem('calendly_client_id'));
-    console.log("All localStorage keys:", Object.keys(localStorage));
-    
-    // Check if there's any cached value in sessionStorage
-    console.log("sessionStorage.getItem('calendly_client_id'):", sessionStorage.getItem('calendly_client_id'));
-    console.log("All sessionStorage keys:", Object.keys(sessionStorage));
-    
-    console.log("========================================");
-    
     try {
-      console.log("initiateOAuth called - starting OAuth flow...");
       
       // Check if environment variables are properly configured
       if (!CALENDLY_CLIENT_ID) {
@@ -243,10 +216,8 @@ export const calendlyAuth = {
       }
       
       const authUrl = await this.getAuthUrl();
-      console.log("About to redirect to:", authUrl);
       
       window.location.href = authUrl;
-      console.log("Redirect initiated");
     } catch (error) {
       console.error("Failed to initiate OAuth:", error);
       throw error;

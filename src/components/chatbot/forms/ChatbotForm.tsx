@@ -82,8 +82,6 @@ export function ChatbotForm({
         initialData.textPrompt ||
         (initialData as Record<string, any>).text_prompt; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-      console.log("ChatbotForm: Initial data text prompt:", textPromptSource);
-
       if (textPromptSource) {
         if (typeof textPromptSource === "string") {
           // Legacy format - put the string in English field

@@ -91,7 +91,6 @@ apiClient.interceptors.request.use(
 
       for (const [key, value] of originalFormData.entries()) {
         const snakeKey = snakeCase(key);
-        console.log(`  Converting: "${key}" -> "${snakeKey}"`);
         convertedFormData.append(snakeKey, value);
       }
 
@@ -99,9 +98,6 @@ apiClient.interceptors.request.use(
 
 
       delete config.headers["Content-Type"];
-      console.log(
-        "FormData detected - Field names converted to snake_case and Content-Type header removed for multipart/form-data"
-      );
     } else if (config.data && typeof config.data === "object") {
 
       config.data = camelToSnake(config.data);
@@ -111,7 +107,6 @@ apiClient.interceptors.request.use(
     if (config.params) {
       config.params = camelToSnake(config.params);
     }
-    console.log("config url -->>> ", config);
     return config;
   },
   (error) => Promise.reject(error)
@@ -221,7 +216,6 @@ apiClient.interceptors.response.use(
 
 // Helper function to handle logout
 function handleLogout() {
-  console.log("Authentication failed, logging out user");
 
   // Clear all auth data
   clearAuthToken();

@@ -45,12 +45,7 @@ export const WeekView: React.FC<CalendarViewProps> = ({
       {/* Week Grid */}
       <div className="grid grid-cols-8 gap-px bg-gray-200 rounded-lg overflow-hidden max-h-96 md:max-h-[600px] overflow-y-auto">
         {Array.from({ length: 24 }, (_, hourIndex) => {
-          const hour = hourIndex; // Start from 0 AM to 11 PM (24 hours)
-          
-          // Debug: Log first few hours to verify
-          if (hourIndex < 3) {
-            console.log(`WeekView hour ${hourIndex}: ${hour} (${format(new Date().setHours(hour, 0, 0, 0), "h:mm a")})`);
-          }
+          const hour = hourIndex;
 
           return (
             <React.Fragment key={hour}>

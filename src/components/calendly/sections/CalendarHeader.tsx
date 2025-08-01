@@ -1,7 +1,7 @@
 import React from "react";
 import { Users, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { formatCalendarHeaderTitle } from "@/lib/calendar-utils";
 import type { CalendarViewType } from "@/types/calendly";
 
 interface CalendarHeaderProps {
@@ -60,7 +60,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       {/* Calendar Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-4 md:mt-6">
         <h3 className="text-lg md:text-xl font-semibold text-gray-900">
-          {format(new Date(calendarView.date), "MMMM yyyy")}
+          {formatCalendarHeaderTitle(new Date(calendarView.date), calendarView.view)}
         </h3>
         <div className="flex items-center gap-1">
           <Button

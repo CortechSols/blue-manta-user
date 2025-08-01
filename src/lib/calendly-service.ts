@@ -108,24 +108,18 @@ export class CalendlyService {
 
       // Handle different response formats
       if ("isConnected" in response) {
-        // CamelCase format: { isConnected: true, schedulingUrl: "...", userName: "..." }
-        console.log("Using camelCase format");
         return {
           is_connected: response.isConnected,
           scheduling_url: response.schedulingUrl || "",
           user_name: response.userName || "",
         };
       } else if ("is_connected" in response) {
-        // Snake_case format: { is_connected: true, scheduling_url: "...", user_name: "..." }
-        console.log("Using snake_case format");
         return {
           is_connected: response.is_connected,
           scheduling_url: response.scheduling_url || "",
           user_name: response.user_name || "",
         };
       } else if ("is_active" in response) {
-        // Integration format: { id: 1, is_active: true, config_blob: "..." }
-        console.log("Using integration format");
         let userInfo: ConfigBlobData = {};
         try {
           if (

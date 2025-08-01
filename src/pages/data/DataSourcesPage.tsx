@@ -92,8 +92,6 @@ export default function DataSourcesPage() {
         : undefined,
   });
 
-  console.log("Data sources data:", dataSourcesData);
-
   const { user } = useAuthStore();
 
   const createDataSource = useCreateDataSource();
@@ -679,7 +677,9 @@ export default function DataSourcesPage() {
                     <div className="hidden md:block p-4">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm truncate">{dataSource.fileName}</span>
+                        <span className="text-sm truncate">
+                          {dataSource.fileName}
+                        </span>
                       </div>
                     </div>
                     <div className="hidden md:block p-4">

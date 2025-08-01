@@ -52,17 +52,12 @@ const EventTypeCard: React.FC<{ eventType: EventType }> = ({ eventType }) => {
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(eventType.scheduling_url);
-      // You could add a toast notification here
-      console.log("URL copied to clipboard");
     } catch (error) {
       console.error("Failed to copy URL:", error);
     }
   };
 
   const generateQRCode = () => {
-    // This would typically generate a QR code for the scheduling URL
-    console.log("Generate QR code for:", eventType.scheduling_url);
-    // For now, just open a QR code generator with the URL
     window.open(
       `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
         eventType.scheduling_url

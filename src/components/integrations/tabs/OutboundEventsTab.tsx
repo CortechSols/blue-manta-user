@@ -7,6 +7,8 @@ import {
   useRetryOutboundEvent,
 } from "@/hooks/useOutboundEvents";
 import { format, parseISO } from "date-fns";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const statusOptions = [
   { label: "All", value: "" },
@@ -244,21 +246,33 @@ export const OutboundEventsTab: React.FC = () => {
 
   return (
     <div>
-      <div className="mb-4 flex gap-2 items-center">
-        <span className="font-medium">Filter by status:</span>
-        {statusOptions.map((opt) => (
-          <button
-            key={opt.value}
-            className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${
-              status === opt.value
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
-            }`}
-            onClick={() => setStatus(opt.value)}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <div className="mb-4 flex justify-between items-center">
+        <div className="flex gap-2 items-center">
+          <span className="font-medium">Filter by status:</span>
+          {statusOptions.map((opt) => (
+            <button
+              key={opt.value}
+              className={`px-3 py-1 rounded border text-sm font-medium transition-colors ${
+                status === opt.value
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-blue-50"
+              }`}
+              onClick={() => setStatus(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => (list as any).refetch()}
+          disabled={list.isLoading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${list.isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
       {list.isLoading && <div className="text-gray-500">Loading events...</div>}
       {list.error && <div className="text-red-500">Error loading events.</div>}

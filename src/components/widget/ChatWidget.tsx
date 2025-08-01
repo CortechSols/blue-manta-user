@@ -55,8 +55,6 @@ export function ChatWidget({
     restartConversation,
   } = useChatInterface(chatbotId, apiClient);
 
-  console.log("messages: ", messages);
-
   // Handle window resize for responsiveness
   useEffect(() => {
     const handleResize = () => {
@@ -361,10 +359,7 @@ export function ChatWidget({
                           <CalendlyInlineWidget
                             url={message.calendlyUrl || ""}
                             height={isMobile ? 200 : 350}
-                            onEventScheduled={(event) => {
-                              console.log("Event scheduled:", event);
-                              // You can add custom logic here when an event is scheduled
-                            }}
+                            onEventScheduled={() => {}}
                             setState={setState}
                           />
                         </div>

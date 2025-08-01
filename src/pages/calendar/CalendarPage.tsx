@@ -19,7 +19,6 @@ const CalendlyConnectState = ({
   onConnect: () => void;
   isLoading: boolean;
 }) => {
-
   return (
     <div className="flex flex-col items-center justify-center py-8 md:py-16 px-4 md:px-8">
       <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 md:mb-6">
@@ -58,36 +57,13 @@ export default function CalendarPage() {
   const loading = useCalendlyLoading();
   const { user } = useAuthStore();
 
-  // Debug environment variables
   useEffect(() => {
-    console.log("CalendarPage mounted - checking environment variables:");
-    console.log(
-      "VITE_CALENDLY_CLIENT_ID:",
-      import.meta.env.VITE_CALENDLY_CLIENT_ID
-    );
-    console.log(
-      "VITE_CALENDLY_REDIRECT_URI:",
-      import.meta.env.VITE_CALENDLY_REDIRECT_URI
-    );
-    console.log("VITE_APP_ENV:", import.meta.env.VITE_APP_ENV);
-    console.log("All env vars:", import.meta.env);
-  }, []);
-
-  // Check connection status and load data on mount
-  useEffect(() => {
-    // Always check connection status on mount to ensure we have the latest state
-    checkConnectionStatus().catch(() => {
-      console.log(
-        "Connection status check failed on mount, assuming not connected"
-      );
-    });
+    checkConnectionStatus().catch(() => {});
   }, [checkConnectionStatus]);
 
   const handleConnect = () => {
-    console.log("handleConnect called - initiating OAuth...");
     try {
       initiateOAuth();
-      console.log("initiateOAuth called successfully");
     } catch (error) {
       console.error("Error in handleConnect:", error);
     }
@@ -143,12 +119,6 @@ export default function CalendarPage() {
           </h3>
 
           {(() => {
-            console.log("Render decision:", {
-              loadingConnection: loading.connection,
-              isConnected: connectionStatus?.is_connected,
-              connectionStatus: connectionStatus,
-            });
-
             if (loading.connection) {
               return (
                 <div className="flex flex-col items-center justify-center py-8 md:py-16 px-4 md:px-8">

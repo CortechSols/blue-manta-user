@@ -14,28 +14,20 @@ export function usePipedreamIntegration() {
   // Fetch current integration
   const getIntegration = useApiQuery<any>(["pipedream-integration"], BASE_URL, {
     onSuccess: (data: any) => {
-      console.log("[Pipedream] onSuccess data:", data);
-      // Expect paginated response with 'results' array
       const integration =
         data && Array.isArray(data.results) ? data.results[0] || null : null;
-      console.log("[Pipedream] integration extracted:", integration);
       store.setIntegration(integration);
       store.setError(null);
     },
     onError: (err: any) => {
-      console.log("[Pipedream] onError:", err);
       store.setError(err.message || "Failed to load integration");
     },
   });
-
-  // Log the query data
-  console.log("[Pipedream] getIntegration.data:", getIntegration.data);
 
   // Update Zustand store when query data changes
   useEffect(() => {
     if (getIntegration.data && Array.isArray(getIntegration.data.results)) {
       const integration = getIntegration.data.results[0] || null;
-      console.log("[Pipedream] useEffect integration:", integration);
       store.setIntegration(integration);
     }
   }, [getIntegration.data]);

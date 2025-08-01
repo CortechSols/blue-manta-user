@@ -19,8 +19,6 @@ export default function AdminProfilePage() {
 
   const { data: organization, isLoading } = useOrganizationDetails();
 
-  console.log("organization", organization);
-
   const updateOrganizationMutation = useUpdateOrganizationDetails();
 
   const {
@@ -51,8 +49,6 @@ export default function AdminProfilePage() {
 
   const onSubmit = async (data: AdminProfileSchema) => {
     try {
-      console.log("Form submitted with data:", data);
-
       const updateData = {
         firstName: data.firstName,
         lastName: data.lastName,
