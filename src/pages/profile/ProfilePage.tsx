@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DashboardLayout } from "@/components/layout";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import {
@@ -13,6 +13,33 @@ import {
   useOrganizationDetails,
   useUpdateOrganizationDetails,
 } from "@/hooks/useOrganizations";
+import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
+// Custom styles for admin phone input
+const adminPhoneInputStyles = `
+  .admin-phone-input .PhoneInputInput {
+    height: 2.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  .admin-phone-input .PhoneInputCountrySelect {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem 0 0 0.375rem;
+    border-right: 0;
+    height: 2.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .admin-phone-input .PhoneInputInput,
+    .admin-phone-input .PhoneInputCountrySelect {
+      height: 2.75rem;
+    }
+  }
+`;
 
 export default function AdminProfilePage() {
   const navigate = useNavigate();
@@ -24,13 +51,13 @@ export default function AdminProfilePage() {
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<AdminProfileSchema>({
     resolver: zodResolver(adminProfileSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      organizationName: "",
       phoneNumber: "",
       contactEmail: "",
     },
@@ -38,10 +65,19 @@ export default function AdminProfilePage() {
 
   useEffect(() => {
     if (organization) {
+      // Combine country code and phone number for PhoneInput
+      let fullPhoneNumber = "";
+      if (organization.organization.phoneNumber) {
+        const countryCode =
+          (organization.organization as Record<string, string>).countryCode ||
+          "+1";
+        const nationalNumber = organization.organization.phoneNumber;
+        fullPhoneNumber = countryCode + nationalNumber;
+      }
+
       reset({
-        firstName: organization.organization.firstName || "",
-        lastName: organization.organization.lastName || "",
-        phoneNumber: organization.organization.phoneNumber || "",
+        organizationName: organization.organization.organizationName || "",
+        phoneNumber: fullPhoneNumber,
         contactEmail: organization.organization.contactEmail || "",
       });
     }
@@ -49,10 +85,26 @@ export default function AdminProfilePage() {
 
   const onSubmit = async (data: AdminProfileSchema) => {
     try {
+      // Process phone number to separate country code
+      let phoneNumber = data.phoneNumber;
+      let countryCode = "+1"; // Default
+
+      if (phoneNumber && phoneNumber.startsWith("+")) {
+        try {
+          const parsed = parsePhoneNumber(phoneNumber);
+          if (parsed) {
+            countryCode = `+${parsed.countryCallingCode}`;
+            phoneNumber = parsed.nationalNumber;
+          }
+        } catch (error) {
+          console.warn("Could not parse phone number:", error);
+        }
+      }
+
       const updateData = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phoneNumber: data.phoneNumber,
+        organizationName: data.organizationName,
+        phoneNumber: phoneNumber,
+        countryCode: countryCode,
       };
 
       await updateOrganizationMutation.mutateAsync(updateData);
@@ -81,6 +133,7 @@ export default function AdminProfilePage() {
       subtitle="Profile"
       activePath="/settings"
     >
+      <style>{adminPhoneInputStyles}</style>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="dashboard-shadow rounded-lg p-8 bg-white">
           <div className="space-y-8">
@@ -92,28 +145,17 @@ export default function AdminProfilePage() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-sm text-gray-600">First Name</Label>
+                  <Label className="text-sm text-gray-600">
+                    Organization Name
+                  </Label>
                   <Input
                     placeholder="Eg. your text here"
                     className="h-11"
-                    {...register("firstName")}
+                    {...register("organizationName")}
                   />
-                  {errors.firstName && (
+                  {errors.organizationName && (
                     <p className="text-sm text-red-600 mt-1">
-                      {errors.firstName.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm text-gray-600">Last Name</Label>
-                  <Input
-                    placeholder="Eg. your text here"
-                    className="h-11"
-                    {...register("lastName")}
-                  />
-                  {errors.lastName && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {errors.lastName.message}
+                      {errors.organizationName.message}
                     </p>
                   )}
                 </div>
@@ -122,13 +164,36 @@ export default function AdminProfilePage() {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-600">Phone Number</Label>
-                  <div className="flex">
-                    <Input
-                      placeholder="Eg. your text here"
-                      className="rounded-l-none h-11"
-                      {...register("phoneNumber")}
-                    />
-                  </div>
+                  <Controller
+                    name="phoneNumber"
+                    control={control}
+                    render={({ field: { onChange, value } }) => {
+                      // Try to detect country from current value, fallback to US
+                      let detectedCountry = "US";
+                      if (value && value.startsWith("+")) {
+                        try {
+                          const parsed = parsePhoneNumber(value);
+                          if (parsed && parsed.country) {
+                            detectedCountry = parsed.country;
+                          }
+                        } catch {
+                          // Keep default if parsing fails
+                        }
+                      }
+
+                      return (
+                        <PhoneInput
+                          value={value}
+                          onChange={(phoneValue: string | undefined) => {
+                            onChange(phoneValue || "");
+                          }}
+                          defaultCountry={detectedCountry as any}
+                          placeholder="Enter phone number"
+                          className="admin-phone-input"
+                        />
+                      );
+                    }}
+                  />
                   {errors.phoneNumber && (
                     <p className="text-sm text-red-600 mt-1">
                       {errors.phoneNumber.message}

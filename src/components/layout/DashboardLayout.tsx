@@ -58,7 +58,6 @@ export function DashboardLayout({
   const { logout } = useAuthActions();
   const { user } = useAuthStore();
 
-
   const handleLogout = () => {
     logout();
   };
@@ -311,8 +310,8 @@ export function DashboardLayout({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  {user ? `${user.firstName} ${user.lastName}` : "Admin"}
+                <DropdownMenuLabel> 
+                  {user ? `${user.organizationName}` : "Admin"}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

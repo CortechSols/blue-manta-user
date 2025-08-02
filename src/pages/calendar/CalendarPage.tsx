@@ -73,7 +73,7 @@ export default function CalendarPage() {
   if (error) {
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
+        title={`${user?.organizationName}`}
         subtitle="Appointment Calendar"
         activePath="/calendar"
       >
@@ -108,7 +108,7 @@ export default function CalendarPage() {
 
   return (
     <DashboardLayout
-      title={`${user?.firstName} ${user?.lastName}`}
+      title={`${user?.organizationName}`}
       subtitle="Appointment Calendar"
       activePath="/calendar"
     >

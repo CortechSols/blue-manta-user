@@ -245,7 +245,7 @@ export default function DataSourcesPage() {
 
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
+        title={`${user?.organizationName}`}
         subtitle="Data Sources"
         activePath="/data"
       >
@@ -296,7 +296,7 @@ export default function DataSourcesPage() {
 
   return (
     <DashboardLayout
-      title={`${user?.firstName} ${user?.lastName}`}
+      title={`${user?.organizationName}`}
       subtitle="Data Sources"
       activePath="/data"
     >

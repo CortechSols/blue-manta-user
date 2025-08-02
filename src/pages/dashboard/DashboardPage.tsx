@@ -1,6 +1,10 @@
 "use client";
 
-import { DashboardContainer, MetricCard, ChatHistoryCard } from "@/components/dashboard";
+import {
+  DashboardContainer,
+  MetricCard,
+  ChatHistoryCard,
+} from "@/components/dashboard";
 import { DashboardLayout } from "@/components/layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +17,7 @@ export default function DashboardPage() {
   const { data: dashboardData, isLoading, error } = useDashboardData();
   const { user } = useAuthStore();
 
-  const dashboardTitle = `${user?.firstName} ${user?.lastName}`;
+  const dashboardTitle = `${user?.organizationName}`;
   const dashboardSubtitle = "Chatbot Analytics & Performance";
 
   // Loading state
@@ -24,10 +28,7 @@ export default function DashboardPage() {
         subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
-        <DashboardContainer
-          title={dashboardTitle}
-          subtitle={dashboardSubtitle}
-        >
+        <DashboardContainer title={dashboardTitle} subtitle={dashboardSubtitle}>
           <LoadingState message="Loading dashboard data..." />
         </DashboardContainer>
       </DashboardLayout>
@@ -42,10 +43,7 @@ export default function DashboardPage() {
         subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
-        <DashboardContainer
-          title={dashboardTitle}
-          subtitle={dashboardSubtitle}
-        >
+        <DashboardContainer title={dashboardTitle} subtitle={dashboardSubtitle}>
           <ErrorState error={error} />
         </DashboardContainer>
       </DashboardLayout>
@@ -60,10 +58,7 @@ export default function DashboardPage() {
         subtitle={dashboardSubtitle}
         activePath="/dashboard"
       >
-        <DashboardContainer
-          title={dashboardTitle}
-          subtitle={dashboardSubtitle}
-        >
+        <DashboardContainer title={dashboardTitle} subtitle={dashboardSubtitle}>
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <p className="text-gray-600">No dashboard data available</p>

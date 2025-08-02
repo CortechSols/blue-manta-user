@@ -9,8 +9,7 @@ import { useCalendlyStore } from "@/stores/calendly/store";
 interface User {
   id: number;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  organizationName?: string;
   organization_id?: number;
 }
 

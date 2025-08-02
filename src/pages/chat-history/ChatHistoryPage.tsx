@@ -173,7 +173,7 @@ export default function ChatHistoryPage() {
 
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
+        title={`${user?.organizationName}`}
         subtitle="View and manage conversation history"
         activePath="/chat-history"
       >
@@ -231,7 +231,7 @@ export default function ChatHistoryPage() {
 
   return (
     <DashboardLayout
-      title={`${user?.firstName} ${user?.lastName}`}
+      title={`${user?.organizationName}`}
       subtitle="View and manage conversation history"
       activePath="/chat-history"
     >

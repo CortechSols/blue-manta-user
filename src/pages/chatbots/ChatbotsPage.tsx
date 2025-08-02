@@ -213,7 +213,7 @@ export default function ChatbotsPage() {
 
     return (
       <DashboardLayout
-        title={`${user?.firstName} ${user?.lastName}`}
+        title={`${user?.organizationName}`}
         subtitle="Manage your AI chatbots"
         activePath="/chatbots"
       >
@@ -271,7 +271,7 @@ export default function ChatbotsPage() {
 
   return (
     <DashboardLayout
-      title={`${user?.firstName} ${user?.lastName}`}
+      title={`${user?.organizationName}`}
       subtitle="Manage your AI chatbots"
       activePath="/chatbots"
     >
@@ -332,8 +332,7 @@ export default function ChatbotsPage() {
                               {chatbot.name}
                             </CardTitle>
                             <p className="text-sm text-gray-500 truncate">
-                              {chatbot.organization.firstName}{" "}
-                              {chatbot.organization.lastName}
+                              {chatbot.organization.organizationName}
                             </p>
                           </div>
                         </div>

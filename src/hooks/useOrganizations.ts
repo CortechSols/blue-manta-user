@@ -4,8 +4,7 @@ import apiClient from "../lib/api";
 // Organization type based on API response (Updated to match actual response)
 export type Organization = {
   id: number;
-  firstName: string; // Changed from first_name to firstName
-  lastName: string; // Changed from last_name to lastName
+  organizationName: string;
   phoneNumber: string; // Changed from phone_number to phoneNumber
   contactEmail: string; // Changed from contact_email to contactEmail
   colors: string[];
@@ -22,8 +21,7 @@ export type Organization = {
 // Organization type for single organization endpoint (seems to use snake_case)
 export type OrganizationDetail = {
   id: number;
-  first_name: string;
-  last_name: string;
+  organizationName: string;
   phone_number: string;
   contact_email: string;
   colors: string[];
@@ -39,8 +37,7 @@ export type OrganizationDetail = {
 // Organization details type for the specific endpoint
 export type OrganizationDetails = {
   organization: {
-    firstName: string;
-    lastName: string;
+    organizationName: string;
     phoneNumber: string;
     contactEmail: string;
   };
@@ -48,8 +45,7 @@ export type OrganizationDetails = {
 
 // Update organization details request type
 export type UpdateOrganizationDetailsRequest = {
-  firstName: string;
-  lastName: string;
+  organizationName: string;
   phoneNumber: string;
 };
 
@@ -117,14 +113,13 @@ export function getOrganizationFullName(organization: Organization): string {
     return "Unknown Organization";
   }
 
-  const firstName = organization?.firstName || ""; // Changed to firstName
-  const lastName = organization?.lastName || ""; // Changed to lastName
+  const organizationName = organization?.organizationName || "";
 
-  if (!firstName && !lastName) {
+  if (!organizationName) {
     return "Unnamed Organization";
   }
 
-  const result = `${firstName} ${lastName}`.trim();
+  const result = `${organizationName}`.trim();
   return result;
 }
 
@@ -136,14 +131,13 @@ export function getOrganizationDetailFullName(
     return "Unknown Organization";
   }
 
-  const firstName = organization?.first_name || "";
-  const lastName = organization?.last_name || "";
+  const organizationName = organization?.organizationName || "";
 
-  if (!firstName && !lastName) {
+  if (!organizationName) {
     return "Unnamed Organization";
   }
 
-  const result = `${firstName} ${lastName}`.trim();
+  const result = `${organizationName}`.trim();
   return result;
 }
 
@@ -155,14 +149,13 @@ export function getOrganizationDetailsFullName(
     return "Unknown Organization";
   }
 
-  const firstName = organization?.organization?.firstName || "";
-  const lastName = organization?.organization?.lastName || "";
+  const organizationName = organization?.organization?.organizationName || "";
 
-  if (!firstName && !lastName) {
+  if (!organizationName) {
     return "Unnamed Organization";
   }
 
-  const result = `${firstName} ${lastName}`.trim();
+  const result = `${organizationName}`.trim();
   return result;
 }
 

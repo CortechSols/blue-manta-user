@@ -3,9 +3,8 @@
 export interface Chatbot {
   id: number;
   organization: {
+    organizationName: string;
     id: number;
-    firstName: string;
-    lastName: string;
     contactEmail: string;
   };
   name: string;
