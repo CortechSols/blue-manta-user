@@ -48,7 +48,7 @@ export function snakeToCamel(obj: unknown): unknown {
 // Create axios instance
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 30000,
+  timeout: 300000,
   headers: {
     "Content-Type": "application/json",
   },
