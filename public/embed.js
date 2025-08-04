@@ -47,6 +47,7 @@
   iframe.setAttribute("allowtransparency", "true");
   iframe.setAttribute("frameborder", "0");
   iframe.setAttribute("scrolling", "no");
+  iframe.style.colorScheme = "light";
 
   // Check if device is mobile
   const isMobile = window.innerWidth < 768;

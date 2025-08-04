@@ -90,16 +90,16 @@ export function ChatbotForm({
         } else if (typeof textPromptSource === "object") {
           // New format - extract text_prompt_en and text_prompt_es from the nested object
           const textPromptData = textPromptSource as {
-            text_prompt_en?: string;
-            text_prompt_es?: string;
-            textPromptEn?: string; // Also check camelCase versions
+            tpEng?: string;
+            tpEs?: string;
+            textPromptEn?: string;
             textPromptEs?: string;
           };
           setTextPromptEn(
-            textPromptData.text_prompt_en || textPromptData.textPromptEn || ""
+            textPromptData.tpEng || textPromptData.textPromptEn || ""
           );
           setTextPromptEs(
-            textPromptData.text_prompt_es || textPromptData.textPromptEs || ""
+            textPromptData.tpEs || textPromptData.textPromptEs || ""
           );
         }
       } else {

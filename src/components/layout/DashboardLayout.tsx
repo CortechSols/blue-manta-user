@@ -273,7 +273,7 @@ export function DashboardLayout({
                   }}
                   className="h-12 flex w-full items-center px-3 rounded-lg cursor-pointer transition-colors !text-[#0077B6] text-sm hover:bg-red-50 hover:text-red-600"
                 >
-                  <span>Logousst</span>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
