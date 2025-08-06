@@ -672,7 +672,10 @@ export default function DataSourcesPage() {
                             }
                           >
                             {isProcessing(dataSource.id)
-                              ? processingStatus?.message || "Processing..."
+                              ? processingStatus?.processingStatus ===
+                                "completed"
+                                ? "Uploaded"
+                                : processingStatus?.message || "Processing..."
                               : "Uploaded"}
                           </span>
                         </div>
@@ -732,7 +735,9 @@ export default function DataSourcesPage() {
                           }`}
                         >
                           {isProcessing(dataSource.id)
-                            ? processingStatus?.message || "Processing..."
+                            ? processingStatus?.processingStatus === "completed"
+                              ? "Uploaded"
+                              : processingStatus?.message || "Processing..."
                             : "Uploaded"}
                         </span>
                       </div>
