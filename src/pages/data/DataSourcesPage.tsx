@@ -659,14 +659,16 @@ export default function DataSourcesPage() {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          {isProcessing(dataSource.id) ? (
+                          {isProcessing(dataSource.id) &&
+                          processingStatus?.processingStatus !== "completed" ? (
                             <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
                           ) : (
                             <CheckCircle className="w-4 h-4 text-green-600" />
                           )}
                           <span
                             className={
-                              isProcessing(dataSource.id)
+                              isProcessing(dataSource.id) &&
+                              processingStatus?.processingStatus !== "completed"
                                 ? "text-blue-600"
                                 : "text-green-600"
                             }
@@ -722,14 +724,16 @@ export default function DataSourcesPage() {
                     </div>
                     <div className="hidden md:block p-4">
                       <div className="flex items-center gap-2">
-                        {isProcessing(dataSource.id) ? (
+                        {isProcessing(dataSource.id) &&
+                        processingStatus?.processingStatus !== "completed" ? (
                           <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
                         ) : (
                           <CheckCircle className="w-4 h-4 text-green-600" />
                         )}
                         <span
                           className={`text-sm ${
-                            isProcessing(dataSource.id)
+                            isProcessing(dataSource.id) &&
+                            processingStatus?.processingStatus !== "completed"
                               ? "text-blue-600"
                               : "text-green-600"
                           }`}
