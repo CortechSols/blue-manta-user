@@ -250,10 +250,8 @@ export class ChatbotService {
   ): Promise<CreateDataSourceResponse> {
     try {
       const formData = new FormData();
-      // Append each chatbot ID
-      data.chatbot_ids.forEach((id) => {
-        formData.append("chatbot_ids", id.toString());
-      });
+      
+      formData.append("chatbot_ids", JSON.stringify(data.chatbot_ids));
       formData.append("source_type", data.source_type);
       formData.append("file", data.file);
 
