@@ -384,6 +384,14 @@ export function useDashboardData() {
   });
 }
 
+function usePrevious<T>(value: T) {
+  const ref = useRef<T | undefined>(undefined);
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
 // Data Source Processing Status Hook with Polling
 export function useDataSourceProcessingStatus(
   dataSourceId: number | null,
@@ -428,16 +436,24 @@ export function useDataSourceProcessingStatus(
     },
   });
 
+  const prevProcessingStatus = usePrevious(queryResult.data?.processingStatus);
+
   // Handle completion and failure callbacks
   useEffect(() => {
-    if (queryResult.data) {
-      if (queryResult.data.processingStatus === "completed" && onCompleted) {
-        onCompleted(queryResult.data);
-      } else if (queryResult.data.processingStatus === "failed" && onFailed) {
-        onFailed(queryResult.data);
+    const currentStatus = queryResult.data;
+    if (currentStatus) {
+      const isCompleted = currentStatus.processingStatus === "completed";
+      const isFailed = currentStatus.processingStatus === "failed";
+      const wasCompleted = prevProcessingStatus === "completed";
+      const wasFailed = prevProcessingStatus === "failed";
+
+      if (isCompleted && !wasCompleted && onCompleted) {
+        onCompleted(currentStatus);
+      } else if (isFailed && !wasFailed && onFailed) {
+        onFailed(currentStatus);
       }
     }
-  }, [queryResult.data, onCompleted, onFailed]);
+  }, [queryResult.data, prevProcessingStatus, onCompleted, onFailed]);
 
   return queryResult;
 }
