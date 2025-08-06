@@ -11,6 +11,7 @@ export interface Chatbot {
   logo: string | null;
   systemPrompt: string;
   textPrompt?: string | null;
+  temperature?: number;
   sendButtonColor?: string;
   botTextColor?: string;
   userTextColor?: string;
@@ -33,8 +34,8 @@ export interface Chatbot {
 // Data Source Types
 export interface DataSource {
   id: number;
-  chatbotId: number;
-  chatbotName: string;
+  chatbotIds: number[];
+  chatbotNames: string[];
   sourceType: "pdf" | "docx";
   content: string; // This is the file name
   file: string; // File URL
@@ -44,7 +45,7 @@ export interface DataSource {
 }
 
 export interface CreateDataSourceRequest {
-  chatbot_id: number;
+  chatbot_ids: number[];
   source_type: "pdf" | "docx";
   file: File;
 }
@@ -54,12 +55,30 @@ export interface DataSourcesResponse {
   total_count: number;
 }
 
+export interface DataSourceProcessingStatus {
+  id: number;
+  processingStatus: "pending" | "processing" | "completed" | "failed";
+  processingMessage?: string;
+  processedAt?: string;
+  errorMessage?: string;
+  message?: string;
+}
+
+export interface CreateDataSourceResponse {
+  message: string;
+  data: DataSource;
+  processingStatus: "started" | "pending";
+  backgroundProcessing: boolean;
+  note?: string;
+}
+
 export interface CreateChatbotRequest {
   name: string;
   logo?: File | null;
   image?: File | null;
   systemPrompt: string;
   textPrompt?: string;
+  temperature?: number;
   sendButtonColor?: string;
   botTextColor?: string;
   userTextColor?: string;

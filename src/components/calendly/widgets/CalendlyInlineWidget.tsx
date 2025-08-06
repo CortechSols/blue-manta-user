@@ -121,9 +121,9 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
   height = 630,
   prefill,
   utm,
-  onEventScheduled,
-  onDateAndTimeSelected,
-  onEventTypeViewed,
+  // onEventScheduled,
+  // onDateAndTimeSelected,
+  // onEventTypeViewed,
   className,
   containerStyle,
   widgetStyle,
@@ -131,103 +131,120 @@ export const CalendlyInlineWidget: React.FC<CalendlyInlineWidgetProps> = ({
   borderRadius = "8px",
   border = "1px solid #e5e7eb",
   overflow = "auto",
-  setState,
 }) => {
   const widgetRef = useRef<HTMLDivElement>(null);
   const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   useEffect(() => {
-    // Load Calendly script if not already loaded
+    let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    const initializeWidget = () => {
+      if (!mounted || !widgetRef.current) return;
+
+      // Clear previous content
+      widgetRef.current.innerHTML = "";
+
+      const loadWidget = () => {
+        if (!window.Calendly) {
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(loadWidget, 500 * retryCount);
+          }
+          return;
+        }
+
+        try {
+          // Ensure URL is properly formatted
+          const cleanUrl = url.split("?")[0].split("#")[0];
+          const fullUrl = url.includes("?") ? url : `${cleanUrl}?`;
+
+          window.Calendly.initInlineWidget({
+            url: fullUrl,
+            parentElement: widgetRef.current!,
+            prefill: prefill || {},
+            utm: utm || {},
+          });
+        } catch (error) {
+          console.error("Calendly initialization error:", error);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(loadWidget, 500 * retryCount);
+          }
+        }
+      };
+
+      // Initial load attempt
+      loadWidget();
+    };
+
+    // Load Calendly script if needed
     if (!window.Calendly && !scriptRef.current) {
       const script = document.createElement("script");
       script.src = "https://assets.calendly.com/assets/external/widget.js";
       script.async = true;
-      script.onload = () => {
-        initializeWidget();
-      };
+      script.onload = initializeWidget;
       document.head.appendChild(script);
       scriptRef.current = script;
-      setState?.("loaded");
-    } else if (window.Calendly) {
+    } else {
       initializeWidget();
     }
 
-    // Set up event listeners
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "https://calendly.com") return;
-
-      if (event.data.event) {
-        switch (event.data.event) {
-          case "calendly.event_scheduled":
-            onEventScheduled?.(event.data.payload);
-            break;
-          case "calendly.date_and_time_selected":
-            onDateAndTimeSelected?.(event.data.payload);
-            break;
-          case "calendly.event_type_viewed":
-            onEventTypeViewed?.(event.data.payload);
-            break;
-        }
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-
     return () => {
-      window.removeEventListener("message", handleMessage);
-      // Clean up script when component unmounts
-      if (scriptRef.current && scriptRef.current.parentNode) {
+      mounted = false;
+      if (scriptRef.current?.parentNode) {
         scriptRef.current.parentNode.removeChild(scriptRef.current);
         scriptRef.current = null;
       }
     };
-  }, [url, onEventScheduled, onDateAndTimeSelected, onEventTypeViewed]);
+  }, [url]); // Only re-run if URL changes
 
-  const initializeWidget = () => {
-    if (!widgetRef.current || !window.Calendly) return;
+  // const initializeWidget = () => {
+  //   if (!widgetRef.current || !window.Calendly) return;
 
-    // Clear any existing content
-    widgetRef.current.innerHTML = "";
+  //   // Clear any existing content
+  //   widgetRef.current.innerHTML = "";
 
-    // Build the data URL with parameters
-    const urlParams = new URLSearchParams();
+  //   // Build the data URL with parameters
+  //   const urlParams = new URLSearchParams();
 
-    // Add prefill data
-    if (prefill) {
-      if (prefill.name) urlParams.append("name", prefill.name);
-      if (prefill.email) urlParams.append("email", prefill.email);
-      if (prefill.firstName) urlParams.append("first_name", prefill.firstName);
-      if (prefill.lastName) urlParams.append("last_name", prefill.lastName);
+  //   // Add prefill data
+  //   if (prefill) {
+  //     if (prefill.name) urlParams.append("name", prefill.name);
+  //     if (prefill.email) urlParams.append("email", prefill.email);
+  //     if (prefill.firstName) urlParams.append("first_name", prefill.firstName);
+  //     if (prefill.lastName) urlParams.append("last_name", prefill.lastName);
 
-      // Add custom answers
-      if (prefill.customAnswers) {
-        Object.entries(prefill.customAnswers).forEach(([, value]) => {
-          urlParams.append(`a1`, value); // Calendly uses a1, a2, etc. for custom answers
-        });
-      }
-    }
+  //     // Add custom answers
+  //     if (prefill.customAnswers) {
+  //       Object.entries(prefill.customAnswers).forEach(([, value]) => {
+  //         urlParams.append(`a1`, value); // Calendly uses a1, a2, etc. for custom answers
+  //       });
+  //     }
+  //   }
 
-    // Add UTM parameters
-    if (utm) {
-      if (utm.utmCampaign) urlParams.append("utm_campaign", utm.utmCampaign);
-      if (utm.utmSource) urlParams.append("utm_source", utm.utmSource);
-      if (utm.utmMedium) urlParams.append("utm_medium", utm.utmMedium);
-      if (utm.utmContent) urlParams.append("utm_content", utm.utmContent);
-      if (utm.utmTerm) urlParams.append("utm_term", utm.utmTerm);
-    }
+  //   // Add UTM parameters
+  //   if (utm) {
+  //     if (utm.utmCampaign) urlParams.append("utm_campaign", utm.utmCampaign);
+  //     if (utm.utmSource) urlParams.append("utm_source", utm.utmSource);
+  //     if (utm.utmMedium) urlParams.append("utm_medium", utm.utmMedium);
+  //     if (utm.utmContent) urlParams.append("utm_content", utm.utmContent);
+  //     if (utm.utmTerm) urlParams.append("utm_term", utm.utmTerm);
+  //   }
 
-    const fullUrl = urlParams.toString()
-      ? `${url}?${urlParams.toString()}`
-      : url;
+  //   const fullUrl = urlParams.toString()
+  //     ? `${url}?${urlParams.toString()}`
+  //     : url;
 
-    // Initialize the widget
-    window.Calendly.initInlineWidget({
-      url: fullUrl,
-      parentElement: widgetRef.current,
-      prefill: prefill || {},
-      utm: utm || {},
-    });
-  };
+  //   // Initialize the widget
+  //   window.Calendly.initInlineWidget({
+  //     url: fullUrl,
+  //     parentElement: widgetRef.current,
+  //     prefill: prefill || {},
+  //     utm: utm || {},
+  //   });
+  // };
 
   const defaultWidgetStyle: React.CSSProperties = {
     minWidth,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -54,9 +54,15 @@ import {
   useChatInterface,
   useChatbotRefresh,
 } from "@/hooks/useChatbotApi";
-import type { CreateChatbotRequest, Chatbot } from "@/types/chatbot";
-import { CalendlyInlineWidget } from "@/components/calendly";
+import type {
+  CreateChatbotRequest,
+  Chatbot,
+  ChatMessage,
+} from "@/types/chatbot";
 import { useAuthStore } from "@/stores/authStore";
+import ReactMarkdown from "react-markdown";
+import { cleanBotMarkdown } from "@/lib/utils";
+import { CalendlyWidgetWrapper } from "@/components/calendly/widgets/CalendlyWidgetWrapper";
 
 // Helper function to safely format dates
 const safeFormatDate = (dateString: string, formatString: string): string => {
@@ -71,6 +77,59 @@ const safeFormatDate = (dateString: string, formatString: string): string => {
     return "Invalid date";
   }
 };
+
+// Create a memoized component for chat messages
+const MemoizedChatMessage = memo(
+  ({ message }: { message: ChatMessage }) => {
+    return (
+      <div
+        className={`flex ${
+          message.sender === "bot" ? "justify-start" : "justify-end"
+        }`}
+      >
+        <div
+          className={`${
+            message.sender === "bot" && message.calendlyUrl
+              ? "max-w-[95%] sm:max-w-[85%]"
+              : "max-w-[85%] sm:max-w-[70%]"
+          } p-3 rounded-lg ${
+            message.sender === "bot"
+              ? "bg-white border border-gray-200 shadow-sm"
+              : "bg-blue-600 text-white"
+          }`}
+        >
+          {message.sender === "bot" && message.calendlyUrl ? (
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed">{message.content}</p>
+              <div className="border-t pt-3">
+                <CalendlyWidgetWrapper
+                  key={message.id}
+                  url={message.calendlyUrl}
+                />
+              </div>
+            </div>
+          ) : (
+            <ReactMarkdown>{cleanBotMarkdown(message.content)}</ReactMarkdown>
+          )}
+          <p
+            className={`text-xs mt-1 ${
+              message.sender === "bot" ? "text-gray-500" : "text-blue-100"
+            }`}
+          >
+            {safeFormatDate(message.sentAt, "HH:mm")}
+          </p>
+        </div>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if message content or calendly URL changes
+    return (
+      prevProps.message.content === nextProps.message.content &&
+      prevProps.message.calendlyUrl === nextProps.message.calendlyUrl
+    );
+  }
+);
 
 export default function ChatbotsPage() {
   const navigate = useNavigate();
@@ -109,8 +168,6 @@ export default function ChatbotsPage() {
       }
     }
   }, [chatInterface?.messages, visitorId]);
-
-  const [, setState] = useState("init");
 
   const handleUpdateChatbot = async () => {
     if (!selectedChatbot) return;
@@ -506,25 +563,6 @@ export default function ChatbotsPage() {
                   className="mt-1 resize-none"
                 />
               </div>
-              {/* <div>
-                <Label htmlFor="edit-logo" className="text-sm font-medium">
-                  Logo (Optional)
-                </Label>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-1">
-                  <Input
-                    id="edit-logo"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                    className="flex-1"
-                  />
-                  {logoFile && (
-                    <Badge variant="secondary" className="text-xs">
-                      {logoFile.name}
-                    </Badge>
-                  )}
-                </div>
-              </div> */}
             </div>
             <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button
@@ -551,7 +589,7 @@ export default function ChatbotsPage() {
 
         {/* Chat Modal */}
         <Dialog open={showChatModal} onOpenChange={setShowChatModal}>
-          <DialogContent className="max-w-4xl mx-4 sm:mx-auto h-[80vh] sm:h-[600px] flex flex-col">
+          <DialogContent className="max-w-4xl mx-4 sm:mx-auto h-[80vh] sm:h-[600px] flex flex-col bg-white">
             <DialogHeader className="flex-shrink-0">
               <DialogTitle className="flex items-center gap-2">
                 <Bot className="w-5 h-5" />
@@ -568,55 +606,7 @@ export default function ChatbotsPage() {
                   </div>
                 ) : (
                   chatInterface?.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.sender === "bot"
-                          ? "justify-start"
-                          : "justify-end"
-                      }`}
-                    >
-                      <div
-                        className={`${
-                          message.sender === "bot" && message.calendlyUrl
-                            ? "max-w-[95%] sm:max-w-[85%]"
-                            : "max-w-[85%] sm:max-w-[70%]"
-                        } p-3 rounded-lg ${
-                          message.sender === "bot"
-                            ? "bg-white border border-gray-200 shadow-sm"
-                            : "bg-blue-600 text-white"
-                        }`}
-                      >
-                        {message.sender === "bot" && message.calendlyUrl ? (
-                          <div className="space-y-3">
-                            <p className="text-sm leading-relaxed">
-                              {message.content}
-                            </p>
-                            <div className="border-t pt-3">
-                              <CalendlyInlineWidget
-                                setState={setState}
-                                url={message.calendlyUrl}
-                                height={500}
-                                onEventScheduled={() => {}}
-                              />
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="text-sm leading-relaxed">
-                            {message.content}
-                          </p>
-                        )}
-                        <p
-                          className={`text-xs mt-1 ${
-                            message.sender === "bot"
-                              ? "text-gray-500"
-                              : "text-blue-100"
-                          }`}
-                        >
-                          {safeFormatDate(message.sentAt, "HH:mm")}
-                        </p>
-                      </div>
-                    </div>
+                    <MemoizedChatMessage key={message.id} message={message} />
                   ))
                 )}
                 {chatInterface?.isLoading && (

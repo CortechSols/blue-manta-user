@@ -60,6 +60,7 @@ export function ChatbotForm({
       name: "",
       systemPrompt: "",
       textPrompt: "",
+      temperature: 0.7,
       sendButtonColor: "#0077B6",
       botTextColor: "#000000",
       userTextColor: "#000000",
@@ -75,6 +76,11 @@ export function ChatbotForm({
     if (initialData && mode === "edit") {
       setValue("name", initialData.name || "");
       setValue("systemPrompt", initialData.systemPrompt || "");
+      setValue(
+        "temperature",
+        (initialData as Partial<Chatbot & { temperature?: number }>)
+          .temperature ?? 0.7
+      );
 
       // Handle text prompt structure - account for snake_case to camelCase conversion
       // The data might come in as textPrompt (camelCase) or text_prompt (snake_case)
@@ -209,6 +215,7 @@ export function ChatbotForm({
 
       formData.append("name", data.name || "");
       formData.append("systemPrompt", data.systemPrompt || "");
+      formData.append("temperature", data.temperature.toString());
 
       // Build the text prompt JSON structure
       const textPromptData = {
@@ -318,6 +325,41 @@ export function ChatbotForm({
                   {errors.systemPrompt.message}
                 </p>
               )}
+            </div>
+
+            <div>
+              <Label htmlFor="temperature" className="text-sm font-medium">
+                Temperature
+              </Label>
+              <Input
+                id="temperature"
+                type="number"
+                step="0.1"
+                min="0"
+                max="1"
+                {...register("temperature", {
+                  valueAsNumber: true,
+                  required: "Temperature is required",
+                  min: {
+                    value: 0,
+                    message: "Temperature must be at least 0",
+                  },
+                  max: {
+                    value: 1,
+                    message: "Temperature must be at most 1",
+                  },
+                })}
+                placeholder="0.7"
+                className="mt-1"
+              />
+              {errors.temperature && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.temperature.message}
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Controls randomness: 0 = focused, 1 = creative
+              </p>
             </div>
 
             <div>

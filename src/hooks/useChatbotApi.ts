@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { chatbotService } from "../lib/chatbot-service";
 import type {
@@ -6,6 +6,8 @@ import type {
   ChatRequest,
   ChatMessage,
   CreateDataSourceRequest,
+  CreateDataSourceResponse,
+  DataSourceProcessingStatus,
 } from "../types/chatbot";
 import { chatbotQueryKeys } from "../types/chatbot";
 
@@ -209,7 +211,7 @@ export function useDataSources(params?: {
 export function useCreateDataSource() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<CreateDataSourceResponse, Error, CreateDataSourceRequest>({
     mutationFn: (data: CreateDataSourceRequest) =>
       chatbotService.createDataSource(data),
     onSuccess: () => {
@@ -380,4 +382,62 @@ export function useDashboardData() {
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
   });
+}
+
+// Data Source Processing Status Hook with Polling
+export function useDataSourceProcessingStatus(
+  dataSourceId: number | null,
+  options?: {
+    enabled?: boolean;
+    onCompleted?: (status: DataSourceProcessingStatus) => void;
+    onFailed?: (status: DataSourceProcessingStatus) => void;
+    pollingInterval?: number;
+  }
+) {
+  const {
+    enabled = true,
+    onCompleted,
+    onFailed,
+    pollingInterval = 3000, // 3 seconds
+  } = options || {};
+
+  const queryResult = useQuery({
+    queryKey: ["dataSourceProcessingStatus", dataSourceId],
+    queryFn: () => {
+      if (dataSourceId === null) {
+        // This should not happen due to the `enabled` option, but for type safety:
+        return Promise.reject(new Error("dataSourceId cannot be null."));
+      }
+      return chatbotService.getDataSourceProcessingStatus(dataSourceId);
+    },
+    enabled: enabled && !!dataSourceId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.processingStatus;
+      if (status === "pending" || status === "processing") {
+        return pollingInterval;
+      }
+      return false;
+    },
+    retry: (failureCount, error: any) => {
+      // Don't retry if the endpoint doesn't exist (404/405)
+      if (error?.response?.status === 404 || error?.response?.status === 405) {
+        return false;
+      }
+      // Retry up to 3 times for other errors
+      return failureCount < 3;
+    },
+  });
+
+  // Handle completion and failure callbacks
+  useEffect(() => {
+    if (queryResult.data) {
+      if (queryResult.data.processingStatus === "completed" && onCompleted) {
+        onCompleted(queryResult.data);
+      } else if (queryResult.data.processingStatus === "failed" && onFailed) {
+        onFailed(queryResult.data);
+      }
+    }
+  }, [queryResult.data, onCompleted, onFailed]);
+
+  return queryResult;
 }

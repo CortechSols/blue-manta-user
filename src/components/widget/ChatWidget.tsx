@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { useChatInterface } from "../../hooks/useChatInterface";
 import { ChatbotAPIClient } from "../../lib/api";
 import type { ChatbotAppearance } from "../../types/chatbot";
 import { ArrowDownIcon, SendHorizonal, Zap } from "lucide-react";
-import { CalendlyInlineWidget } from "@/components/calendly";
+import { CalendlyWidgetWrapper } from "../calendly/widgets/CalendlyWidgetWrapper";
+import { cleanBotMarkdown } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
 
 interface ChatWidgetProps {
   chatbotId: number;
@@ -14,6 +16,192 @@ interface ChatWidgetProps {
   appearance?: ChatbotAppearance | null;
   appearanceLoading?: boolean;
 }
+
+// Helper function to safely format dates
+const formatTime = (dateString: string) => {
+  try {
+    return new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
+};
+
+// Memoized Chat Message Component
+const MemoizedChatMessage = memo(
+  ({
+    message,
+    appearance,
+    botMessageBubbleColor,
+    botTextColor,
+    userMessageBubbleColor,
+    userTextColor,
+  }: {
+    message: any;
+    appearance?: ChatbotAppearance | null;
+    botMessageBubbleColor: string;
+    botTextColor: string;
+    userMessageBubbleColor: string;
+    userTextColor: string;
+  }) => {
+    return (
+      <div
+        className={`flex animate-slideIn ${
+          message.sender === "bot" ? "justify-start" : "justify-end"
+        }`}
+      >
+        <div
+          className={`flex items-end space-x-3 max-w-[85%] ${
+            message.sender === "visitor"
+              ? "flex-row-reverse space-x-reverse"
+              : ""
+          }`}
+        >
+          {message.sender === "bot" && appearance?.image && (
+            <img
+              src={appearance.image}
+              alt="Bot avatar"
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
+            />
+          )}
+          <div className="flex flex-col max-w-full">
+            <div
+              className="p-4 rounded-2xl text-left shadow-sm relative"
+              style={
+                message.sender === "bot"
+                  ? {
+                      backgroundColor: botMessageBubbleColor,
+                      color: botTextColor,
+                      borderRadius: "16px 16px 16px 4px",
+                    }
+                  : {
+                      backgroundColor: userMessageBubbleColor,
+                      color: userTextColor,
+                      borderRadius: "16px 16px 4px 16px",
+                    }
+              }
+            >
+              <ReactMarkdown>{cleanBotMarkdown(message.content)}</ReactMarkdown>
+              <span className="absolute bottom-[3px] right-3 text-[10px] opacity-70">
+                {formatTime(message.sentAt)}
+              </span>
+            </div>
+            {message.sender === "bot" && message.calendlyUrl && (
+              <div className="mt-3">
+                <CalendlyWidgetWrapper
+                  key={`calendly-${message.id}`}
+                  url={message.calendlyUrl || ""}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    // Only re-render if message content or calendly URL changes
+    return (
+      prevProps.message.content === nextProps.message.content &&
+      prevProps.message.calendlyUrl === nextProps.message.calendlyUrl &&
+      prevProps.appearance?.image === nextProps.appearance?.image
+    );
+  }
+);
+
+// Memoized Loading Indicator
+const MemoizedLoadingIndicator = memo(
+  ({
+    appearance,
+    botMessageBubbleColor,
+    botTextColor,
+  }: {
+    appearance?: ChatbotAppearance | null;
+    botMessageBubbleColor: string;
+    botTextColor: string;
+  }) => {
+    return (
+      <div className="flex justify-start animate-fadeIn">
+        <div className="flex items-start space-x-3">
+          {appearance?.image && (
+            <img
+              src={appearance.image}
+              alt="Bot avatar"
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
+            />
+          )}
+          <div
+            className="p-4 rounded-2xl rounded-tl-md shadow-sm"
+            style={{
+              backgroundColor: botMessageBubbleColor,
+            }}
+          >
+            <div className="flex items-center space-x-1">
+              <div
+                className="w-2 h-2 rounded-full animate-bounce"
+                style={{ backgroundColor: botTextColor }}
+              />
+              <div
+                className="w-2 h-2 rounded-full animate-bounce"
+                style={{
+                  backgroundColor: botTextColor,
+                  animationDelay: "0.1s",
+                }}
+              />
+              <div
+                className="w-2 h-2 rounded-full animate-bounce"
+                style={{
+                  backgroundColor: botTextColor,
+                  animationDelay: "0.2s",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
+
+// Memoized Welcome Message
+const MemoizedWelcomeMessage = memo(
+  ({
+    appearance,
+    greeting,
+    botMessageBubbleColor,
+    botTextColor,
+  }: {
+    appearance?: ChatbotAppearance | null;
+    greeting: string;
+    botMessageBubbleColor: string;
+    botTextColor: string;
+  }) => {
+    return (
+      <div className="flex justify-start animate-fadeIn">
+        <div className="flex items-start space-x-3 max-w-[85%]">
+          {appearance?.image && (
+            <img
+              src={appearance.image}
+              alt="Bot avatar"
+              className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
+            />
+          )}
+          <div
+            className="p-4 rounded-2xl rounded-tl-md shadow-sm"
+            style={{
+              backgroundColor: botMessageBubbleColor,
+              color: botTextColor,
+            }}
+          >
+            <p className="text-sm leading-relaxed">{greeting}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
 
 export function ChatWidget({
   chatbotId,
@@ -41,7 +229,6 @@ export function ChatWidget({
   const [inputMessage, setInputMessage] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [, setState] = useState("init");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -76,14 +263,14 @@ export function ChatWidget({
       const target = event.target as HTMLElement;
       const chatWidget = document.querySelector(".chat-widget-container");
 
-      if (chatWidget && !chatWidget.contains(target) && !isExpanded) {
+      if (chatWidget && !chatWidget.contains(target)) {
         window.parent.postMessage({ type: "chatbot-click-outside" }, "*");
       }
     };
 
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [isExpanded]);
+  }, []);
 
   // Focus input when chat expands
   useEffect(() => {
@@ -124,17 +311,6 @@ export function ChatWidget({
     const textarea = e.target;
     textarea.style.height = "auto";
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + "px";
-  };
-
-  const formatTime = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return "";
-    }
   };
 
   const isDark = theme === "dark";
@@ -283,132 +459,34 @@ export function ChatWidget({
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-transparent via-transparent to-gray-50/50">
               {/* Welcome message */}
               {messages.length === 0 && (
-                <div className="flex justify-start animate-fadeIn">
-                  <div className="flex items-start space-x-3 max-w-[85%]">
-                    {appearance?.image && (
-                      <img
-                        src={appearance.image}
-                        alt="Bot avatar"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
-                      />
-                    )}
-                    <div
-                      className="p-4 rounded-2xl rounded-tl-md shadow-sm"
-                      style={{
-                        backgroundColor: botMessageBubbleColor,
-                        color: botTextColor,
-                      }}
-                    >
-                      <p className="text-sm leading-relaxed">{greeting}</p>
-                    </div>
-                  </div>
-                </div>
+                <MemoizedWelcomeMessage
+                  appearance={appearance}
+                  greeting={greeting}
+                  botMessageBubbleColor={botMessageBubbleColor}
+                  botTextColor={botTextColor}
+                />
               )}
 
               {/* Chat messages */}
-              {messages.map((message, index) => (
-                <div
+              {messages.map((message) => (
+                <MemoizedChatMessage
                   key={message.id}
-                  className={`flex animate-slideIn ${
-                    message.sender === "bot" ? "justify-start" : "justify-end"
-                  }`}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div
-                    className={`flex items-end space-x-3 max-w-[85%] ${
-                      message.sender === "visitor"
-                        ? "flex-row-reverse space-x-reverse"
-                        : ""
-                    }`}
-                  >
-                    {message.sender === "bot" && appearance?.image && (
-                      <img
-                        src={appearance.image}
-                        alt="Bot avatar"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
-                      />
-                    )}
-                    <div className="flex flex-col max-w-full">
-                      <div
-                        className="p-4 rounded-2xl text-left shadow-sm relative"
-                        style={
-                          message.sender === "bot"
-                            ? {
-                                backgroundColor: botMessageBubbleColor,
-                                color: botTextColor,
-                                borderRadius: "16px 16px 16px 4px",
-                              }
-                            : {
-                                backgroundColor: userMessageBubbleColor,
-                                color: userTextColor,
-                                borderRadius: "16px 16px 4px 16px",
-                              }
-                        }
-                      >
-                        <p className="text-sm leading-relaxed pr-12">
-                          {message.content}
-                        </p>
-                        {/* WhatsApp-style timestamp */}
-                        <span className="absolute bottom-[3px] right-3 text-[10px] opacity-70">
-                          {formatTime(message.sentAt)}
-                        </span>
-                      </div>
-                      {/* Calendly Widget - Outside the message bubble */}
-                      {message.sender === "bot" && message.calendlyUrl && (
-                        <div className="mt-3">
-                          <CalendlyInlineWidget
-                            url={message.calendlyUrl || ""}
-                            height={isMobile ? 200 : 350}
-                            onEventScheduled={() => {}}
-                            setState={setState}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  message={message}
+                  appearance={appearance}
+                  botMessageBubbleColor={botMessageBubbleColor}
+                  botTextColor={botTextColor}
+                  userMessageBubbleColor={userMessageBubbleColor}
+                  userTextColor={userTextColor}
+                />
               ))}
 
               {/* Loading indicator */}
               {isLoading && (
-                <div className="flex justify-start animate-fadeIn">
-                  <div className="flex items-start space-x-3">
-                    {appearance?.image && (
-                      <img
-                        src={appearance.image}
-                        alt="Bot avatar"
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 border-2 border-gray-200"
-                      />
-                    )}
-                    <div
-                      className="p-4 rounded-2xl rounded-tl-md shadow-sm"
-                      style={{
-                        backgroundColor: botMessageBubbleColor,
-                      }}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <div
-                          className="w-2 h-2 rounded-full animate-bounce"
-                          style={{ backgroundColor: botTextColor }}
-                        />
-                        <div
-                          className="w-2 h-2 rounded-full animate-bounce"
-                          style={{
-                            backgroundColor: botTextColor,
-                            animationDelay: "0.1s",
-                          }}
-                        />
-                        <div
-                          className="w-2 h-2 rounded-full animate-bounce"
-                          style={{
-                            backgroundColor: botTextColor,
-                            animationDelay: "0.2s",
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <MemoizedLoadingIndicator
+                  appearance={appearance}
+                  botMessageBubbleColor={botMessageBubbleColor}
+                  botTextColor={botTextColor}
+                />
               )}
 
               {/* Error message */}

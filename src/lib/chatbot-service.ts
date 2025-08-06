@@ -10,6 +10,8 @@ import type {
   OrganizationsListResponse,
   DataSource,
   CreateDataSourceRequest,
+  CreateDataSourceResponse,
+  DataSourceProcessingStatus,
   OrganizationDashboardData,
   ConversationStatus,
 } from "../types/chatbot";
@@ -243,10 +245,15 @@ export class ChatbotService {
     }
   }
 
-  async createDataSource(data: CreateDataSourceRequest): Promise<DataSource> {
+  async createDataSource(
+    data: CreateDataSourceRequest
+  ): Promise<CreateDataSourceResponse> {
     try {
       const formData = new FormData();
-      formData.append("chatbot_id", data.chatbot_id.toString());
+      // Append each chatbot ID
+      data.chatbot_ids.forEach((id) => {
+        formData.append("chatbot_ids", id.toString());
+      });
       formData.append("source_type", data.source_type);
       formData.append("file", data.file);
 
@@ -257,6 +264,23 @@ export class ChatbotService {
       if (error.response?.status === 404 || error.response?.status === 405) {
         throw new Error(
           "Data source endpoints are not available on the backend yet. Please contact your administrator to enable data source functionality."
+        );
+      }
+      throw error;
+    }
+  }
+
+  async getDataSourceProcessingStatus(
+    id: number
+  ): Promise<DataSourceProcessingStatus> {
+    try {
+      return await apiClient
+        .get(`/data-sources/${id}/processing-status/`)
+        .then((response) => response.data);
+    } catch (error: any) {
+      if (error.response?.status === 404 || error.response?.status === 405) {
+        throw new Error(
+          "Data source processing status endpoints are not available on the backend yet. Please contact your administrator to enable this functionality."
         );
       }
       throw error;

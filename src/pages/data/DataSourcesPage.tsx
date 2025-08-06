@@ -40,9 +40,11 @@ import {
   useDataSources,
   useChatbotRefresh,
   useDeleteDataSource,
+  useDataSourceProcessingStatus,
 } from "@/hooks/useChatbotApi";
-import type { CreateDataSourceRequest, DataSource } from "@/types/chatbot";
+import type { CreateDataSourceRequest } from "@/types/chatbot";
 import { useAuthStore } from "@/stores/authStore";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 export default function DataSourcesPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -51,10 +53,13 @@ export default function DataSourcesPage() {
     id: number;
     content: string;
   } | null>(null);
-  const [selectedChatbotId, setSelectedChatbotId] = useState<string>("");
+  const [selectedChatbotIds, setSelectedChatbotIds] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
+  const [, setUploadingFiles] = useState<Set<string>>(new Set());
+  const [processingDataSources, setProcessingDataSources] = useState<
+    Map<number, { fileName: string; chatbotIds: number[] }>
+  >(new Map());
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedChatbotFilter, setSelectedChatbotFilter] =
@@ -74,7 +79,7 @@ export default function DataSourcesPage() {
   // API hooks
   const {
     data: chatbots,
-    isLoading: chatbotsLoading,
+    // isLoading: chatbotsLoading,
     error: chatbotsError,
   } = useChatbots();
   const {
@@ -97,6 +102,48 @@ export default function DataSourcesPage() {
   const createDataSource = useCreateDataSource();
   const deleteDataSource = useDeleteDataSource();
   const { refreshDataSources } = useChatbotRefresh();
+
+  // Get the first processing data source ID for polling (we'll poll one at a time)
+  const processingDataSourceId =
+    Array.from(processingDataSources.keys())[0] || null;
+
+  // Use polling hook for the first processing data source
+  const { data: processingStatus } = useDataSourceProcessingStatus(
+    processingDataSourceId,
+    {
+      enabled: !!processingDataSourceId,
+      onCompleted: (status) => {
+        console.log(`Data source ${status.id} processing completed`);
+        // Remove from processing map
+        setProcessingDataSources((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(status.id);
+          return newMap;
+        });
+        // Refresh the data sources list to show the completed file
+        setTimeout(() => {
+          handleRefresh();
+        }, 1000);
+      },
+      onFailed: (status) => {
+        console.error(
+          `Data source ${status.id} processing failed:`,
+          status.errorMessage
+        );
+        // Remove from processing map
+        setProcessingDataSources((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(status.id);
+          return newMap;
+        });
+        // Refresh the data sources list
+        setTimeout(() => {
+          handleRefresh();
+        }, 1000);
+      },
+      pollingInterval: 3000, // Poll every 3 seconds
+    }
+  );
 
   // Use server-filtered data directly
   const dataSources = Array.isArray(dataSourcesData)
@@ -176,41 +223,48 @@ export default function DataSourcesPage() {
   };
 
   const handleUpload = async () => {
-    if (!selectedChatbotId || !selectedFile) {
+    if (selectedChatbotIds.length === 0 || !selectedFile) {
       return;
     }
 
-    // Add file to uploading set
-    const fileKey = `${selectedFile.name}_${selectedChatbotId}`;
+    const fileKey = `${selectedFile.name}_${selectedChatbotIds.join("_")}`;
     setUploadingFiles((prev) => new Set(prev).add(fileKey));
 
-    // Determine source type based on file extension
     const fileExtension = selectedFile.name
       .toLowerCase()
       .substring(selectedFile.name.lastIndexOf("."));
     const sourceType = fileExtension === ".pdf" ? "pdf" : "docx";
 
     const uploadData: CreateDataSourceRequest = {
-      chatbot_id: parseInt(selectedChatbotId),
+      chatbot_ids: selectedChatbotIds.map((id) => parseInt(id)), // Convert string IDs to numbers
       source_type: sourceType,
       file: selectedFile,
     };
 
     try {
-      await createDataSource.mutateAsync(uploadData);
-      // Reset form
-      setSelectedChatbotId("");
+      const response = await createDataSource.mutateAsync(uploadData);
+
+      setSelectedChatbotIds([]);
       setSelectedFile(null);
       setShowUploadModal(false);
 
-      // Refresh the list to show the newly uploaded file
+      if (response.backgroundProcessing && response.data?.id) {
+        setProcessingDataSources((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(response.data.id, {
+            fileName: response.data.fileName,
+            chatbotIds: response.data.chatbotIds,
+          });
+          return newMap;
+        });
+      }
+
       setTimeout(() => {
         handleRefresh();
       }, 1000);
     } catch (error) {
       console.error("Failed to upload data source:", error);
     } finally {
-      // Remove file from uploading set after a delay
       setTimeout(() => {
         setUploadingFiles((prev) => {
           const newSet = new Set(prev);
@@ -222,19 +276,12 @@ export default function DataSourcesPage() {
   };
 
   const resetForm = () => {
-    setSelectedChatbotId("");
+    setSelectedChatbotIds([]);
     setSelectedFile(null);
   };
 
-  // Check if a data source is currently being uploaded
-  const isUploading = (dataSource: DataSource) => {
-    // Check if this exact file is currently being uploaded
-    for (const fileKey of uploadingFiles) {
-      if (fileKey.includes(dataSource.fileName)) {
-        return true;
-      }
-    }
-    return false;
+  const isProcessing = (dataSourceId: number) => {
+    return processingDataSources.has(dataSourceId);
   };
 
   // Show error if chatbots failed to load
@@ -331,7 +378,7 @@ export default function DataSourcesPage() {
                   Upload Document
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl bg-white">
                 <DialogHeader>
                   <DialogTitle>Upload Data Source</DialogTitle>
                   <DialogDescription>
@@ -342,35 +389,18 @@ export default function DataSourcesPage() {
                 <div className="space-y-6">
                   {/* Chatbot Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="chatbot">Select Chatbot</Label>
-                    <Select
-                      value={selectedChatbotId}
-                      onValueChange={setSelectedChatbotId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a chatbot to train" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {chatbotsLoading ? (
-                          <SelectItem value="loading" disabled>
-                            Loading chatbots...
-                          </SelectItem>
-                        ) : chatbots && chatbots.length > 0 ? (
-                          chatbots.map((chatbot) => (
-                            <SelectItem
-                              key={chatbot.id}
-                              value={chatbot.id.toString()}
-                            >
-                              {chatbot.name}
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value="no-chatbots" disabled>
-                            No chatbots available. Create a chatbot first.
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="chatbot">Select Chatbot(s)</Label>
+                    <MultiSelect
+                      options={
+                        chatbots?.map((chatbot) => ({
+                          label: chatbot.name,
+                          value: chatbot.id.toString(),
+                        })) || []
+                      }
+                      selected={selectedChatbotIds}
+                      onChange={setSelectedChatbotIds}
+                      placeholder="Select chatbots to train..."
+                    />
                   </div>
 
                   {/* File Upload */}
@@ -470,7 +500,7 @@ export default function DataSourcesPage() {
                   <Button
                     onClick={handleUpload}
                     disabled={
-                      !selectedChatbotId ||
+                      selectedChatbotIds.length === 0 ||
                       !selectedFile ||
                       createDataSource.isPending
                     }
@@ -608,7 +638,7 @@ export default function DataSourcesPage() {
                               {dataSource.fileName}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {dataSource.chatbotName}
+                              {dataSource.chatbotNames.join(", ")}
                             </span>
                           </div>
                         </div>
@@ -629,20 +659,20 @@ export default function DataSourcesPage() {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          {isUploading(dataSource) ? (
+                          {isProcessing(dataSource.id) ? (
                             <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
                           ) : (
                             <CheckCircle className="w-4 h-4 text-green-600" />
                           )}
                           <span
                             className={
-                              isUploading(dataSource)
+                              isProcessing(dataSource.id)
                                 ? "text-blue-600"
                                 : "text-green-600"
                             }
                           >
-                            {isUploading(dataSource)
-                              ? "Uploading..."
+                            {isProcessing(dataSource.id)
+                              ? processingStatus?.message || "Processing..."
                               : "Uploaded"}
                           </span>
                         </div>
@@ -684,25 +714,25 @@ export default function DataSourcesPage() {
                     </div>
                     <div className="hidden md:block p-4">
                       <span className="text-sm text-gray-600">
-                        {dataSource.chatbotName}
+                        {dataSource.chatbotNames.join(", ")}
                       </span>
                     </div>
                     <div className="hidden md:block p-4">
                       <div className="flex items-center gap-2">
-                        {isUploading(dataSource) ? (
+                        {isProcessing(dataSource.id) ? (
                           <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
                         ) : (
                           <CheckCircle className="w-4 h-4 text-green-600" />
                         )}
                         <span
                           className={`text-sm ${
-                            isUploading(dataSource)
+                            isProcessing(dataSource.id)
                               ? "text-blue-600"
                               : "text-green-600"
                           }`}
                         >
-                          {isUploading(dataSource)
-                            ? "Uploading..."
+                          {isProcessing(dataSource.id)
+                            ? processingStatus?.message || "Processing..."
                             : "Uploaded"}
                         </span>
                       </div>
