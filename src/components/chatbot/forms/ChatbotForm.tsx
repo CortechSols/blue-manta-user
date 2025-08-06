@@ -60,6 +60,7 @@ export function ChatbotForm({
       name: "",
       systemPrompt: "",
       textPrompt: "",
+      greetingMessage: "",
       temperature: 0.7,
       sendButtonColor: "#0077B6",
       botTextColor: "#000000",
@@ -76,6 +77,7 @@ export function ChatbotForm({
     if (initialData && mode === "edit") {
       setValue("name", initialData.name || "");
       setValue("systemPrompt", initialData.systemPrompt || "");
+      setValue("greetingMessage", initialData.greetingMessage || "");
       setValue(
         "temperature",
         (initialData as Partial<Chatbot & { temperature?: number }>)
@@ -215,6 +217,7 @@ export function ChatbotForm({
 
       formData.append("name", data.name || "");
       formData.append("systemPrompt", data.systemPrompt || "");
+      formData.append("greetingMessage", data.greetingMessage || "");
       formData.append("temperature", data.temperature.toString());
 
       // Build the text prompt JSON structure
@@ -323,6 +326,24 @@ export function ChatbotForm({
               {errors.systemPrompt && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.systemPrompt.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="greetingMessage" className="text-sm font-medium">
+                Greeting Message
+              </Label>
+              <Textarea
+                id="greetingMessage"
+                {...register("greetingMessage")}
+                placeholder="Enter a greeting message for your chatbot..."
+                rows={3}
+                className="mt-1 resize-none"
+              />
+              {errors.greetingMessage && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.greetingMessage.message}
                 </p>
               )}
             </div>

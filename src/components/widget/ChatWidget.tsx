@@ -461,7 +461,7 @@ export function ChatWidget({
               {messages.length === 0 && (
                 <MemoizedWelcomeMessage
                   appearance={appearance}
-                  greeting={greeting}
+                  greeting={appearance?.greetingMessage || greeting}
                   botMessageBubbleColor={botMessageBubbleColor}
                   botTextColor={botTextColor}
                 />

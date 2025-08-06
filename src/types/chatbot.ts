@@ -7,6 +7,7 @@ export interface Chatbot {
     id: number;
     contactEmail: string;
   };
+  greetingMessage?: string;
   name: string;
   logo: string | null;
   systemPrompt: string;
@@ -254,6 +255,7 @@ export interface ChatbotAppearance {
   sendButtonColor: string;
   image: string | null;
   logo: string | null;
+  greetingMessage?: string;
 }
 
 export interface ChatbotAppearanceResponse {

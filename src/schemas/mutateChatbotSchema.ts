@@ -4,6 +4,7 @@ export const mutateChatbotSchema = z.object({
   name: z.string().min(1, "Chatbot name is required"),
   systemPrompt: z.string().min(1, "System prompt is required"),
   textPrompt: z.string().optional(),
+  greetingMessage: z.string().optional(),
   temperature: z
     .number()
     .min(0, "Temperature must be at least 0")
