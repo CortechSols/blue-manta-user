@@ -170,8 +170,9 @@ export default function DataSourcesPage() {
     const allowedTypes = [
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/csv",
     ];
-    const allowedExtensions = [".pdf", ".docx"];
+    const allowedExtensions = [".pdf", ".docx", ".csv"];
 
     const fileExtension = file.name
       .toLowerCase()
@@ -181,7 +182,7 @@ export default function DataSourcesPage() {
       !allowedTypes.includes(file.type) &&
       !allowedExtensions.includes(fileExtension)
     ) {
-      alert("Please select a PDF or DOCX file only.");
+      alert("Please select a PDF, DOCX, or CSV file only.");
       return;
     }
 
@@ -233,7 +234,14 @@ export default function DataSourcesPage() {
     const fileExtension = selectedFile.name
       .toLowerCase()
       .substring(selectedFile.name.lastIndexOf("."));
-    const sourceType = fileExtension === ".pdf" ? "pdf" : "docx";
+    const sourceType =
+      fileExtension === ".pdf"
+        ? "pdf"
+        : fileExtension === ".docx"
+        ? "docx"
+        : fileExtension === ".csv"
+        ? "csv"
+        : "pdf";
 
     const uploadData: CreateDataSourceRequest = {
       chatbot_ids: selectedChatbotIds.map((id) => parseInt(id)), // Convert string IDs to numbers
