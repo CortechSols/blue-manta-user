@@ -390,8 +390,8 @@ export default function DataSourcesPage() {
                 <DialogHeader>
                   <DialogTitle>Upload Data Source</DialogTitle>
                   <DialogDescription>
-                    Upload a PDF or DOCX document to train your chatbot with
-                    specific knowledge.
+                    Upload a PDF, DOCX, or CSV document to train your chatbot
+                    with specific knowledge.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6">
@@ -454,12 +454,12 @@ export default function DataSourcesPage() {
                               Drop your document here or click to browse
                             </p>
                             <p className="text-sm text-gray-500 mt-1">
-                              Supports PDF and DOCX files up to 10MB
+                              Supports PDF, DOCX, and CSV files up to 10MB
                             </p>
                           </div>
                           <Input
                             type="file"
-                            accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            accept=".pdf,.docx,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/csv"
                             onChange={handleFileInputChange}
                             className="hidden"
                             id="file-upload"
