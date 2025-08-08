@@ -387,13 +387,13 @@ export function ChatWidget({
           {/* Mobile backdrop */}
           {isMobile && (
             <div
-              className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm rounded-xl"
               onClick={() => setIsExpanded(false)}
             />
           )}
 
           <div
-            className={`${chatPosition} ${chatRounding} ${bgColor} ${shadowColor} border ${borderColor} flex flex-col overflow-hidden z-50 transition-all duration-300`}
+            className={`${chatPosition} ${chatRounding} ${bgColor} ${shadowColor} border ${borderColor} flex flex-col overflow-hidden z-50 transition-all duration-300 rounded-xl`}
             style={{
               width: chatWidth,
               height: chatHeight,
