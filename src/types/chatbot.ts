@@ -47,7 +47,7 @@ export interface DataSource {
 
 export interface CreateDataSourceRequest {
   chatbot_ids: number[];
-  source_type: "pdf" | "docx";
+  source_type: "pdf" | "docx" | "csv";
   file: File;
 }
 
