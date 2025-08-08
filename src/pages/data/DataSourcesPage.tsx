@@ -617,7 +617,7 @@ export default function DataSourcesPage() {
                     File Name
                   </div>
                   <div className="p-4 text-sm font-medium text-gray-700">
-                    Chatbot
+                    Chatbots
                   </div>
                   <div className="p-4 text-sm font-medium text-gray-700">
                     Status

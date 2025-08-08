@@ -104,7 +104,7 @@ export default function DashboardPage() {
       activePath="/dashboard"
     >
       <DashboardContainer
-        title="Organization Dashboard"
+        title="Client's Portal"
         subtitle={dashboardSubtitle}
         className="gap-0 space-y-0"
       >
